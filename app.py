@@ -389,6 +389,22 @@ def sidebar():
         st.metric("Försäljning", kr(s["fp"]))
         st.metric("TB", kr(s["tb"]))
         st.divider()
+        st.markdown("**Navigera**")
+        st.radio("sida_val", [
+            "🏠 Start", "📋 Projekt", "🔢 Kalkyl",
+            "💰 Prisbank", "📑 Mallar", "🏗 Byggdelar", "📊 Slutsida"
+        ], key="sida", label_visibility="collapsed")
+        st.divider()
+        s=summera(proj)
+        pname=proj.get("projektnamn","") or "—"
+        st.markdown(f"**{pname}**")
+        st.caption(f"{proj.get('status','')}  ·  {len(lista)} projekt totalt")
+        col1,col2=st.columns(2)
+        col1.metric("Rader", len(proj.get("rader",[])))
+        col2.metric("Marginal", pct(s["mg"]))
+        st.metric("Försäljning", kr(s["fp"]))
+        st.metric("TB", kr(s["tb"]))
+        st.divider()
         st.markdown("""
 <a href="javascript:window.print()" style="
   display:block;text-align:center;background:#1a3a5c;color:white;
@@ -1062,15 +1078,13 @@ def _pdf_slutsida(proj,buf):
 # ──────────────────────────────────────────────────────────────
 def main():
     init(); sidebar()
-    t1,t2,t3,t4,t5,t6,t7=st.tabs([
-        "🏠 Start","📋 Projekt","🔢 Kalkyl",
-        "💰 Prisbank","📑 Mallar","🏗 Byggdelar","📊 Slutsida"])
-    with t1: tab_start()
-    with t2: tab_projekt()
-    with t3: tab_kalkyl()
-    with t4: tab_prisbank()
-    with t5: tab_mallar()
-    with t6: tab_byggdelar()
-    with t7: tab_slutsida()
+    sida=st.session_state.get("sida","🏠 Start")
+    if   sida=="🏠 Start":      tab_start()
+    elif sida=="📋 Projekt":    tab_projekt()
+    elif sida=="🔢 Kalkyl":     tab_kalkyl()
+    elif sida=="💰 Prisbank":   tab_prisbank()
+    elif sida=="📑 Mallar":     tab_mallar()
+    elif sida=="🏗 Byggdelar":  tab_byggdelar()
+    elif sida=="📊 Slutsida":   tab_slutsida()
 
 if __name__=="__main__": main()
