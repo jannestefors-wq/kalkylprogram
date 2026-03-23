@@ -45,6 +45,125 @@ BKI = {
                       "2022":212.1,"2023":224.9,"2024":228.7,"2025":234.8,"2026":238.2},
 }
 
+KATEGORIER = ["Mark","Betong","Murning","Trä & stål","Isolering",
+              "Tak","Puts","Målning","Beläggning","Sakvaror","Övrigt"]
+
+DEFAULT_PRISBANK = [
+    # MARK
+    {"kod":"BC","benamning":"Maskinschakt källare klass A","enhet":"m³","matpris":472,"arbpris":0,"leverantor":"BK 2025","kategori":"Mark"},
+    {"kod":"BC","benamning":"Maskinschakt källare klass B","enhet":"m³","matpris":504,"arbpris":0,"leverantor":"BK 2025","kategori":"Mark"},
+    {"kod":"BC","benamning":"Maskinschakt källare klass C","enhet":"m³","matpris":530,"arbpris":0,"leverantor":"BK 2025","kategori":"Mark"},
+    {"kod":"BC","benamning":"Schakt yttre rörgravar klass A","enhet":"m³","matpris":530,"arbpris":0,"leverantor":"BK 2025","kategori":"Mark"},
+    {"kod":"BC","benamning":"Schakt yttre rörgravar klass B","enhet":"m³","matpris":562,"arbpris":0,"leverantor":"BK 2025","kategori":"Mark"},
+    {"kod":"BC","benamning":"Grovplanering med schaktmaskin","enhet":"m²","matpris":106,"arbpris":0,"leverantor":"BK 2025","kategori":"Mark"},
+    {"kod":"BC","benamning":"Fyllnad klass A schaktmaskin","enhet":"m³","matpris":176,"arbpris":0,"leverantor":"BK 2025","kategori":"Mark"},
+    {"kod":"BC","benamning":"Fyllnad klass B C D schaktmaskin","enhet":"m³","matpris":228,"arbpris":0,"leverantor":"BK 2025","kategori":"Mark"},
+    {"kod":"BC","benamning":"Asfalt 60Ab 8t exkl underarbete","enhet":"m²","matpris":530,"arbpris":0,"leverantor":"BK 2025","kategori":"Mark"},
+    {"kod":"BC","benamning":"Asfalt 80Ab 12t exkl underarbete","enhet":"m²","matpris":600,"arbpris":0,"leverantor":"BK 2025","kategori":"Mark"},
+    {"kod":"BC","benamning":"Grus slitlager 50mm","enhet":"m²","matpris":106,"arbpris":0,"leverantor":"BK 2025","kategori":"Mark"},
+    {"kod":"BC","benamning":"Dräneringsrör PEH ø90","enhet":"m","matpris":176,"arbpris":0,"leverantor":"BK 2025","kategori":"Mark"},
+    {"kod":"BC","benamning":"Dräneringsrör PEH ø110","enhet":"m","matpris":207,"arbpris":0,"leverantor":"BK 2025","kategori":"Mark"},
+    {"kod":"BC","benamning":"Dräneringsrör PEH ø175","enhet":"m","matpris":266,"arbpris":0,"leverantor":"BK 2025","kategori":"Mark"},
+    {"kod":"BC","benamning":"Gångbaneplattor betong 350x350x50mm","enhet":"m²","matpris":975,"arbpris":0,"leverantor":"BK 2025","kategori":"Mark"},
+    # BETONG
+    {"kod":"ES","benamning":"Betong C20/25 gjutning i hus","enhet":"m³","matpris":2778,"arbpris":446,"leverantor":"BK 2025","kategori":"Betong"},
+    {"kod":"ES","benamning":"Betong C25/30 gjutning i hus","enhet":"m³","matpris":2835,"arbpris":446,"leverantor":"BK 2025","kategori":"Betong"},
+    {"kod":"ES","benamning":"Betong C25/30 VT gjutning i hus","enhet":"m³","matpris":2993,"arbpris":446,"leverantor":"BK 2025","kategori":"Betong"},
+    {"kod":"ES","benamning":"Betong C28/35 gjutning i hus","enhet":"m³","matpris":2989,"arbpris":495,"leverantor":"BK 2025","kategori":"Betong"},
+    {"kod":"ESB","benamning":"Form väggar råplan 25mm","enhet":"m²","matpris":735,"arbpris":396,"leverantor":"BK 2025","kategori":"Betong"},
+    {"kod":"ESB","benamning":"Form väggar gles","enhet":"m²","matpris":646,"arbpris":327,"leverantor":"BK 2025","kategori":"Betong"},
+    {"kod":"ESB","benamning":"Form bjälklag 23mm råplan","enhet":"m²","matpris":600,"arbpris":297,"leverantor":"BK 2025","kategori":"Betong"},
+    {"kod":"ESB","benamning":"Form pelare balkformar 23mm råplan","enhet":"m²","matpris":972,"arbpris":594,"leverantor":"BK 2025","kategori":"Betong"},
+    {"kod":"ESC","benamning":"Armering B500 ø6mm","enhet":"kg","matpris":50,"arbpris":20,"leverantor":"BK 2025","kategori":"Betong"},
+    {"kod":"ESC","benamning":"Armering B500 ø8-12mm","enhet":"kg","matpris":37,"arbpris":20,"leverantor":"BK 2025","kategori":"Betong"},
+    {"kod":"ESC","benamning":"Armering B500 ø16-25mm","enhet":"kg","matpris":33,"arbpris":15,"leverantor":"BK 2025","kategori":"Betong"},
+    {"kod":"ESC","benamning":"Armeringsnät 5150","enhet":"m²","matpris":68,"arbpris":20,"leverantor":"BK 2025","kategori":"Betong"},
+    {"kod":"ESE","benamning":"Undergolv betong C25/30 50mm","enhet":"m²","matpris":174,"arbpris":50,"leverantor":"BK 2025","kategori":"Betong"},
+    {"kod":"ESE","benamning":"Undergolv betong C25/30 100mm","enhet":"m²","matpris":285,"arbpris":54,"leverantor":"BK 2025","kategori":"Betong"},
+    {"kod":"ESE","benamning":"Betonggolv helgjutet 70mm","enhet":"m²","matpris":282,"arbpris":99,"leverantor":"BK 2025","kategori":"Betong"},
+    {"kod":"ESE","benamning":"Betonggolv helgjutet 100mm","enhet":"m²","matpris":343,"arbpris":99,"leverantor":"BK 2025","kategori":"Betong"},
+    {"kod":"ESE","benamning":"Stålglättat golv 50mm","enhet":"m²","matpris":318,"arbpris":153,"leverantor":"BK 2025","kategori":"Betong"},
+    {"kod":"ESE","benamning":"Stålglättat golv 60mm","enhet":"m²","matpris":345,"arbpris":158,"leverantor":"BK 2025","kategori":"Betong"},
+    {"kod":"ESE","benamning":"Platsgjuten betongtrappa b=1000 per steg","enhet":"st","matpris":3126,"arbpris":1589,"leverantor":"BK 2025","kategori":"Betong"},
+    # MURNING
+    {"kod":"FSE","benamning":"Lättbetongblock mellanvägg 50mm","enhet":"m²","matpris":861,"arbpris":297,"leverantor":"BK 2025","kategori":"Murning"},
+    {"kod":"FSE","benamning":"Lättbetongblock mellanvägg 70mm","enhet":"m²","matpris":921,"arbpris":297,"leverantor":"BK 2025","kategori":"Murning"},
+    {"kod":"FSE","benamning":"Lättbetongblock mellanvägg 100mm","enhet":"m²","matpris":1063,"arbpris":297,"leverantor":"BK 2025","kategori":"Murning"},
+    {"kod":"FSE","benamning":"Murblock yttervägg 150mm","enhet":"m²","matpris":1386,"arbpris":322,"leverantor":"BK 2025","kategori":"Murning"},
+    {"kod":"FSE","benamning":"Murblock yttervägg 200mm","enhet":"m²","matpris":1768,"arbpris":322,"leverantor":"BK 2025","kategori":"Murning"},
+    {"kod":"FSE","benamning":"Murblock yttervägg 250mm","enhet":"m²","matpris":2044,"arbpris":322,"leverantor":"BK 2025","kategori":"Murning"},
+    {"kod":"FSF.2","benamning":"Lättklinker isolerblock 290x190x590mm","enhet":"m²","matpris":1898,"arbpris":257,"leverantor":"BK 2025","kategori":"Murning"},
+    {"kod":"FSF.2","benamning":"Lättklinkerbetong 70x190x590mm","enhet":"m²","matpris":870,"arbpris":297,"leverantor":"BK 2025","kategori":"Murning"},
+    {"kod":"FSF.2","benamning":"Lättklinkerbetong 125x198x498mm","enhet":"m²","matpris":1171,"arbpris":322,"leverantor":"BK 2025","kategori":"Murning"},
+    {"kod":"FSG.2","benamning":"Tegel halvstens vägg puts","enhet":"m²","matpris":1583,"arbpris":371,"leverantor":"BK 2025","kategori":"Murning"},
+    {"kod":"FSG.2","benamning":"Tegel helstens vägg puts","enhet":"m²","matpris":2967,"arbpris":599,"leverantor":"BK 2025","kategori":"Murning"},
+    {"kod":"FSG.2","benamning":"Fasadmurning halvstens röd tegel","enhet":"m²","matpris":2594,"arbpris":545,"leverantor":"BK 2025","kategori":"Murning"},
+    # TRÄ & STÅL
+    {"kod":"HSD.11","benamning":"Regel virke 45x95 Ö-virke","enhet":"m","matpris":118,"arbpris":59,"leverantor":"BK 2025","kategori":"Trä & stål"},
+    {"kod":"HSD.11","benamning":"Regel virke 45x120 Ö-virke","enhet":"m","matpris":127,"arbpris":59,"leverantor":"BK 2025","kategori":"Trä & stål"},
+    {"kod":"HSD.11","benamning":"Regel virke 45x145 Ö-virke","enhet":"m","matpris":137,"arbpris":64,"leverantor":"BK 2025","kategori":"Trä & stål"},
+    {"kod":"HSD.11","benamning":"Innerväggsregel 45x95 c600","enhet":"m²","matpris":243,"arbpris":94,"leverantor":"BK 2025","kategori":"Trä & stål"},
+    {"kod":"HSD.11","benamning":"Innerväggsregel 45x120 c600","enhet":"m²","matpris":315,"arbpris":94,"leverantor":"BK 2025","kategori":"Trä & stål"},
+    {"kod":"HSD.11","benamning":"Innerväggsregel 45x145 c600","enhet":"m²","matpris":332,"arbpris":99,"leverantor":"BK 2025","kategori":"Trä & stål"},
+    {"kod":"HSD.11","benamning":"Ytterväggsregel 45x170 c600","enhet":"m²","matpris":344,"arbpris":94,"leverantor":"BK 2025","kategori":"Trä & stål"},
+    {"kod":"HSD.12","benamning":"Bjälkar 45x145 c600 bjälklag","enhet":"m²","matpris":256,"arbpris":79,"leverantor":"BK 2025","kategori":"Trä & stål"},
+    {"kod":"HSD.12","benamning":"Bjälkar 45x195 c600 bjälklag","enhet":"m²","matpris":322,"arbpris":89,"leverantor":"BK 2025","kategori":"Trä & stål"},
+    {"kod":"HSD.12","benamning":"Bjälkar 45x220 c600 bjälklag","enhet":"m²","matpris":345,"arbpris":89,"leverantor":"BK 2025","kategori":"Trä & stål"},
+    {"kod":"HSD.131","benamning":"Takstol fackverkstol c900 spw 8-12m","enhet":"m²","matpris":338,"arbpris":74,"leverantor":"BK 2025","kategori":"Trä & stål"},
+    {"kod":"HSD.131","benamning":"Takstol fackverkstol c750 spw 15m","enhet":"m²","matpris":488,"arbpris":74,"leverantor":"BK 2025","kategori":"Trä & stål"},
+    {"kod":"HSD.133","benamning":"Inbrädning yttertak 17mm råspontad","enhet":"m²","matpris":274,"arbpris":89,"leverantor":"BK 2025","kategori":"Trä & stål"},
+    {"kod":"HSD.133","benamning":"Inbrädning yttertak 19mm råspontad","enhet":"m²","matpris":309,"arbpris":89,"leverantor":"BK 2025","kategori":"Trä & stål"},
+    {"kod":"HSD.16","benamning":"Fasadpanel lockläkt 22x170","enhet":"m²","matpris":787,"arbpris":332,"leverantor":"BK 2025","kategori":"Trä & stål"},
+    {"kod":"HSD.16","benamning":"Fasadpanel dubbelfasspont 22x145","enhet":"m²","matpris":576,"arbpris":193,"leverantor":"BK 2025","kategori":"Trä & stål"},
+    {"kod":"HSD.17","benamning":"Panel inomhus 15mm granpanel","enhet":"m²","matpris":625,"arbpris":218,"leverantor":"BK 2025","kategori":"Trä & stål"},
+    {"kod":"HSD.17","benamning":"Panel inomhus 22mm granpanel","enhet":"m²","matpris":768,"arbpris":218,"leverantor":"BK 2025","kategori":"Trä & stål"},
+    {"kod":"HSD.12","benamning":"Golvreglar 45x70 c600","enhet":"m²","matpris":445,"arbpris":94,"leverantor":"BK 2025","kategori":"Trä & stål"},
+    # ISOLERING
+    {"kod":"IBE","benamning":"Mineralull yttervägg 70mm KL0.037","enhet":"m²","matpris":101,"arbpris":30,"leverantor":"BK 2025","kategori":"Isolering"},
+    {"kod":"IBE","benamning":"Mineralull yttervägg 95mm KL0.037","enhet":"m²","matpris":120,"arbpris":30,"leverantor":"BK 2025","kategori":"Isolering"},
+    {"kod":"IBE","benamning":"Mineralull yttervägg 120mm KL0.037","enhet":"m²","matpris":144,"arbpris":35,"leverantor":"BK 2025","kategori":"Isolering"},
+    {"kod":"IBE","benamning":"Mineralull yttervägg 145mm KL0.037","enhet":"m²","matpris":165,"arbpris":35,"leverantor":"BK 2025","kategori":"Isolering"},
+    {"kod":"IBE","benamning":"Mineralull yttervägg 170mm KL0.037","enhet":"m²","matpris":183,"arbpris":35,"leverantor":"BK 2025","kategori":"Isolering"},
+    {"kod":"IBE","benamning":"Cellplast yttervägg 50mm","enhet":"m²","matpris":122,"arbpris":35,"leverantor":"BK 2025","kategori":"Isolering"},
+    {"kod":"IBE","benamning":"Cellplast yttervägg 100mm","enhet":"m²","matpris":203,"arbpris":35,"leverantor":"BK 2025","kategori":"Isolering"},
+    {"kod":"IBF","benamning":"Mineralull bjälklag 70mm KL0.036","enhet":"m²","matpris":135,"arbpris":35,"leverantor":"BK 2025","kategori":"Isolering"},
+    {"kod":"IBF","benamning":"Mineralull bjälklag 120mm KL0.036","enhet":"m²","matpris":191,"arbpris":40,"leverantor":"BK 2025","kategori":"Isolering"},
+    {"kod":"IBF","benamning":"Mineralull bjälklag 145mm KL0.036","enhet":"m²","matpris":209,"arbpris":40,"leverantor":"BK 2025","kategori":"Isolering"},
+    {"kod":"IBG","benamning":"PIR-isolering tak/bjälklag 50mm","enhet":"m²","matpris":460,"arbpris":45,"leverantor":"BK 2025","kategori":"Isolering"},
+    {"kod":"IBG","benamning":"PIR-isolering tak/bjälklag 100mm","enhet":"m²","matpris":767,"arbpris":45,"leverantor":"BK 2025","kategori":"Isolering"},
+    {"kod":"IBG","benamning":"PIR-isolering tak/bjälklag 150mm","enhet":"m²","matpris":1001,"arbpris":50,"leverantor":"BK 2025","kategori":"Isolering"},
+    {"kod":"IBG","benamning":"Takskiva stenull hård 80mm","enhet":"m²","matpris":564,"arbpris":59,"leverantor":"BK 2025","kategori":"Isolering"},
+    {"kod":"IBG","benamning":"Takskiva stenull hård 100mm","enhet":"m²","matpris":655,"arbpris":59,"leverantor":"BK 2025","kategori":"Isolering"},
+    {"kod":"IBC","benamning":"Markskiva cellplast 50mm","enhet":"m²","matpris":137,"arbpris":30,"leverantor":"BK 2025","kategori":"Isolering"},
+    {"kod":"IBC","benamning":"Markskiva cellplast 100mm","enhet":"m²","matpris":222,"arbpris":30,"leverantor":"BK 2025","kategori":"Isolering"},
+    {"kod":"IBC","benamning":"Sockelelement 75mm","enhet":"m","matpris":511,"arbpris":149,"leverantor":"BK 2025","kategori":"Isolering"},
+    {"kod":"IBC","benamning":"Sockelelement 100mm","enhet":"m","matpris":629,"arbpris":149,"leverantor":"BK 2025","kategori":"Isolering"},
+    {"kod":"IBF","benamning":"Lösull sprutad t400","enhet":"m²","matpris":192,"arbpris":0,"leverantor":"BK 2025","kategori":"Isolering"},
+    {"kod":"IBF","benamning":"Lösull sprutad t500","enhet":"m²","matpris":240,"arbpris":0,"leverantor":"BK 2025","kategori":"Isolering"},
+    {"kod":"IBF","benamning":"Ekofiber sprutad t400","enhet":"m²","matpris":300,"arbpris":0,"leverantor":"BK 2025","kategori":"Isolering"},
+    # PUTS
+    {"kod":"LBS","benamning":"Slamning vanlig invändig","enhet":"m²","matpris":141,"arbpris":84,"leverantor":"BK 2025","kategori":"Puts"},
+    {"kod":"LBS","benamning":"Slätputs invändigt 6mm","enhet":"m²","matpris":371,"arbpris":153,"leverantor":"BK 2025","kategori":"Puts"},
+    {"kod":"LBS","benamning":"Sockelputs stålslipat","enhet":"m²","matpris":617,"arbpris":307,"leverantor":"BK 2025","kategori":"Puts"},
+    {"kod":"LBS","benamning":"Grundning + stänkputs utvändigt","enhet":"m²","matpris":271,"arbpris":0,"leverantor":"BK 2025","kategori":"Puts"},
+    {"kod":"LBS","benamning":"Grundning + grovputs + stänkputs fin","enhet":"m²","matpris":625,"arbpris":0,"leverantor":"BK 2025","kategori":"Puts"},
+    {"kod":"LBS","benamning":"Ädelputsfasad inkl stålnät","enhet":"m²","matpris":1280,"arbpris":0,"leverantor":"BK 2025","kategori":"Puts"},
+    {"kod":"LBS","benamning":"Putsställning vägg/takyta","enhet":"m²","matpris":132,"arbpris":45,"leverantor":"BK 2025","kategori":"Puts"},
+    # MÅLNING
+    {"kod":"LCS","benamning":"Kalkfärg slät putsyta","enhet":"m²","matpris":70,"arbpris":0,"leverantor":"BK 2025","kategori":"Målning"},
+    {"kod":"LCS","benamning":"Latexfärg på puts","enhet":"m²","matpris":79,"arbpris":0,"leverantor":"BK 2025","kategori":"Målning"},
+    {"kod":"LCS","benamning":"Silikatfärg slät putsyta","enhet":"m²","matpris":90,"arbpris":0,"leverantor":"BK 2025","kategori":"Målning"},
+    {"kod":"LCS","benamning":"Sandspacklingputs","enhet":"m²","matpris":47,"arbpris":0,"leverantor":"BK 2025","kategori":"Målning"},
+    {"kod":"LCS","benamning":"Lackfärg bredd ≤30cm","enhet":"m","matpris":81,"arbpris":0,"leverantor":"BK 2025","kategori":"Målning"},
+    {"kod":"LCS","benamning":"Tapetsering putsyta spruts","enhet":"m²","matpris":162,"arbpris":0,"leverantor":"BK 2025","kategori":"Målning"},
+    {"kod":"LCS","benamning":"Glasfiberväv inkl målning puts","enhet":"m²","matpris":239,"arbpris":0,"leverantor":"BK 2025","kategori":"Målning"},
+    {"kod":"LCS","benamning":"Glasfiberväv inkl målning skivor","enhet":"m²","matpris":240,"arbpris":0,"leverantor":"BK 2025","kategori":"Målning"},
+    {"kod":"LCS","benamning":"Målning golv betong","enhet":"m²","matpris":150,"arbpris":0,"leverantor":"BK 2025","kategori":"Målning"},
+    {"kod":"LCS","benamning":"Tapetsering betong/lättbetong","enhet":"m²","matpris":145,"arbpris":0,"leverantor":"BK 2025","kategori":"Målning"},
+    {"kod":"LCS","benamning":"Målning nybyggnad villa per m³ BV","enhet":"m³","matpris":312,"arbpris":0,"leverantor":"BK 2025","kategori":"Målning"},
+    {"kod":"LCS","benamning":"Målning nybyggnad flerbostadshus per m³","enhet":"m³","matpris":324,"arbpris":0,"leverantor":"BK 2025","kategori":"Målning"},
+]
+
 # ──────────────────────────────────────────────────────────────
 #  UTILITIES
 # ──────────────────────────────────────────────────────────────
@@ -93,7 +212,7 @@ def summera(proj):
 
 def init():
     if "projekt" not in st.session_state: st.session_state.projekt=empty_projekt()
-    if "prisbank" not in st.session_state: st.session_state.prisbank=[]
+    if "prisbank" not in st.session_state: st.session_state.prisbank=list(DEFAULT_PRISBANK)
     if "mallar"   not in st.session_state: st.session_state.mallar=[]
 
 # ──────────────────────────────────────────────────────────────
@@ -236,6 +355,7 @@ def tab_kalkyl():
             if not pb:
                 st.info("Prisbanken är tom. Gå till fliken **Prisbank** för att lägga till artiklar.")
             else:
+                st.caption("💡 Priser från **Prisbank** (BK 2025 + egna). Mat-pris = komplett á-pris inkl arbete. Välj Typ=UE för underentreprenörsarbeten.")
                 c1,c2,c3,c4,c5=st.columns([3,1,1,1,1])
                 sok=c1.text_input("Sök artikel", placeholder="Namn eller kod...",
                                   label_visibility="collapsed")
@@ -330,19 +450,18 @@ def tab_kalkyl():
 
         edited=st.data_editor(
             df[["Radtyp","Benämning","Byggdel","Mängd","Enhet","Timmar",
-                "Á-pris","Kostnad","Påslag %","Försäljning","Leverantör"]],
+                "Á-pris","Kostnad","Påslag %","Försäljning"]],
             column_config={
-                "Radtyp":     st.column_config.SelectboxColumn("Typ",   options=RADTYPER,width=90),
-                "Benämning":  st.column_config.TextColumn("Benämning",  width=220),
-                "Byggdel":    st.column_config.SelectboxColumn("Byggdel",options=["–"]+bdlar,width=110),
-                "Mängd":      st.column_config.NumberColumn("Mängd",    format="%.2f",width=80),
-                "Enhet":      st.column_config.SelectboxColumn("Enhet", options=ENHETER,width=70),
-                "Timmar":     st.column_config.NumberColumn("Tim",      format="%.1f",width=70),
-                "Á-pris":     st.column_config.NumberColumn("Á-pris",   format="%.2f",width=90),
-                "Kostnad":    st.column_config.NumberColumn("Kostnad",  format="%.0f",width=90,disabled=True),
-                "Påslag %":   st.column_config.NumberColumn("Pål%",     format="%.1f",width=65),
-                "Försäljning":st.column_config.NumberColumn("Försälj.", format="%.0f",width=90,disabled=True),
-                "Leverantör": st.column_config.TextColumn("Leverantör", width=110),
+                "Radtyp":     st.column_config.SelectboxColumn("Typ",    options=RADTYPER,width="small"),
+                "Benämning":  st.column_config.TextColumn("Benämning",   width="medium"),
+                "Byggdel":    st.column_config.SelectboxColumn("Byggdel",options=["–"]+bdlar,width="small"),
+                "Mängd":      st.column_config.NumberColumn("Mängd",     format="%.2f",width="small"),
+                "Enhet":      st.column_config.SelectboxColumn("Enhet",  options=ENHETER,width="small"),
+                "Timmar":     st.column_config.NumberColumn("Tim",       format="%.1f",width="small"),
+                "Á-pris":     st.column_config.NumberColumn("Á-pris",    format="%.0f",width="small"),
+                "Kostnad":    st.column_config.NumberColumn("Kostnad",   format="%.0f",width="small",disabled=True),
+                "Påslag %":   st.column_config.NumberColumn("Pål%",      format="%.1f",width="small"),
+                "Försäljning":st.column_config.NumberColumn("Försälj.",  format="%.0f",width="small",disabled=True),
             },
             use_container_width=True, hide_index=True,
             num_rows="dynamic", height=min(60+len(visa)*35, 500),
@@ -423,30 +542,41 @@ def tab_prisbank():
     with t1:
         if not pb:
             st.info("Prisbanken är tom. Importera en prislista eller lägg till artiklar manuellt.")
+            if st.button("🔄 Återställ BK 2025 standardpriser", type="primary"):
+                st.session_state.prisbank=list(DEFAULT_PRISBANK); st.rerun()
         else:
-            sok=st.text_input("🔍 Sök",placeholder="Namn, kod eller leverantör...")
-            träffar=pb if not sok else [p for p in pb if
-                sok.lower() in p.get("benamning","").lower() or
-                sok.lower() in p.get("kod","").lower() or
-                sok.lower() in p.get("leverantor","").lower()]
+            fc1,fc2=st.columns([2,1])
+            sok=fc1.text_input("🔍 Sök",placeholder="Namn eller kod...",label_visibility="collapsed")
+            kat=fc2.selectbox("Kategori",["Alla"]+KATEGORIER,label_visibility="collapsed")
+            träffar=[p for p in pb if
+                (not sok or sok.lower() in p.get("benamning","").lower() or sok.lower() in p.get("kod","").lower())
+                and (kat=="Alla" or p.get("kategori","")==kat)]
 
-            st.caption(f"{len(träffar)} av {len(pb)} artiklar")
+            st.caption(f"📋 {len(träffar)} av {len(pb)} artiklar  |  Källa: BK 2025 (Byggmästarnas Kostnadskalkylator)")
 
-            df=pd.DataFrame(träffar if träffar else [{"kod":"","benamning":"","enhet":"st","matpris":0,"arbpris":0,"leverantor":""}])
+            # Ensure kategori field exists
+            for p in pb:
+                if "kategori" not in p: p["kategori"]="Övrigt"
+
+            df=pd.DataFrame(träffar if träffar else [{"kod":"","benamning":"","enhet":"st","matpris":0,"arbpris":0,"leverantor":"BK 2025","kategori":"Övrigt"}])
+            cols_show=["kategori","kod","benamning","enhet","matpris","arbpris","leverantor"]
+            for c in cols_show:
+                if c not in df.columns: df[c]=""
             edited=st.data_editor(
-                df,
+                df[cols_show],
                 column_config={
-                    "kod":        st.column_config.TextColumn("Kod",         width=80),
-                    "benamning":  st.column_config.TextColumn("Benämning",   width=260),
-                    "enhet":      st.column_config.SelectboxColumn("Enhet",  options=ENHETER,width=70),
-                    "matpris":    st.column_config.NumberColumn("Mat-pris",  format="%.2f",width=110,
-                                     help="Materialpris per enhet (kr)"),
-                    "arbpris":    st.column_config.NumberColumn("Arb-pris",  format="%.2f",width=110,
-                                     help="Arbetstid × timpris (kr per enhet)"),
-                    "leverantor": st.column_config.TextColumn("Leverantör",  width=130),
+                    "kategori":   st.column_config.SelectboxColumn("Kategori",  options=KATEGORIER,width="small"),
+                    "kod":        st.column_config.TextColumn("Kod",            width="small"),
+                    "benamning":  st.column_config.TextColumn("Benämning",      width="medium"),
+                    "enhet":      st.column_config.SelectboxColumn("Enhet",     options=ENHETER,width="small"),
+                    "matpris":    st.column_config.NumberColumn("Mat-pris",     format="%.0f",width="small",
+                                     help="Komplett á-pris enl BK 2025 (material+arbete). Används som UE- eller materialpris."),
+                    "arbpris":    st.column_config.NumberColumn("Arb-pris",     format="%.0f",width="small",
+                                     help="Uppskattad arbetskostnad kr/enhet (tim × 495 kr)"),
+                    "leverantor": st.column_config.TextColumn("Källa",          width="small"),
                 },
                 use_container_width=True, hide_index=True,
-                num_rows="dynamic", height=420, key="pb_ed"
+                num_rows="dynamic", height=400, key="pb_ed"
             )
             c1,c2=st.columns([2,1])
             if c1.button("💾  Spara ändringar", type="primary"):
@@ -489,17 +619,19 @@ def tab_prisbank():
 
     # ── 2. Lägg till manuellt ─────────────────────────────────
     with t2:
-        st.markdown("Lägg till en egen artikel med pris:")
+        st.markdown("**Lägg till egen artikel:**")
+        st.caption("Mat-pris = komplett á-pris (material+arbete) för UE/material. Arb-pris = om du vill särskilja enbart arbetskostnaden.")
         with st.form("ny_artikel"):
             c1,c2,c3=st.columns(3)
+            kat =c1.selectbox("Kategori",KATEGORIER)
             kod =c1.text_input("Kod (valfri)")
             ben =c1.text_input("Benämning *")
             enh =c1.selectbox("Enhet",ENHETER)
-            mat =c2.number_input("Materialpris (kr/enhet)",value=0.0,
-                                  help="Pris per enhet för material")
-            arb =c2.number_input("Arbetspris (kr/enhet)",value=0.0,
-                                  help="Timkostnad × normtid per enhet")
-            lev =c3.text_input("Leverantör/källa")
+            mat =c2.number_input("Mat-pris (kr/enhet)",value=0.0,
+                                  help="Komplett á-pris inkl material och arbete")
+            arb =c2.number_input("Arb-pris (kr/enhet)",value=0.0,
+                                  help="Enbart arbetskostnad per enhet")
+            lev =c3.text_input("Källa/leverantör")
             komm=c3.text_area("Notering",height=80)
             if st.form_submit_button("➕ Lägg till i prisbank", type="primary"):
                 if not ben: st.warning("Ange benämning.")
@@ -507,7 +639,7 @@ def tab_prisbank():
                     st.session_state.prisbank.append(
                         {"kod":kod,"benamning":ben,"enhet":enh,
                          "matpris":mat,"arbpris":arb,
-                         "leverantor":lev,"notering":komm})
+                         "leverantor":lev,"kategori":kat,"notering":komm})
                     st.success(f"'{ben}' tillagd."); st.rerun()
 
     # ── 3. Importera Excel ────────────────────────────────────
