@@ -322,7 +322,20 @@ def sidebar():
         st.caption("Bygg & Entreprenad  v2")
         st.divider()
 
-        # ── Projektlista ──────────────────────────────────────
+        # ── NAVIGERING ────────────────────────────────────────
+        st.markdown("**Välj sida**")
+        st.radio("nav", [
+            "🏠  Start",
+            "📋  Projektinfo",
+            "🔢  Kalkyl",
+            "💰  Prisbank",
+            "📑  Mallar",
+            "🏗  Byggdelar",
+            "📊  Slutsida",
+        ], key="sida", label_visibility="collapsed")
+        st.divider()
+
+        # ── PROJEKT ───────────────────────────────────────────
         st.markdown("**Projekt**")
         namn_lista=[p.get("projektnamn","") or f"Projekt {i+1}"
                     for i,p in enumerate(lista)]
@@ -358,8 +371,7 @@ def sidebar():
                 lista[0]=st.session_state.projekt
                 st.rerun()
 
-        # ── Fil-operationer ───────────────────────────────────
-        up=st.file_uploader("📂 Öppna (.json)", type=["json"],
+        up=st.file_uploader("📂 Öppna (.json)",type=["json"],
                              label_visibility="collapsed")
         if up:
             try:
@@ -375,43 +387,25 @@ def sidebar():
         name=(proj.get("projektnamn","projekt") or "projekt").replace(" ","_")
         st.download_button("💾 Spara projekt",
             data=json.dumps(proj,ensure_ascii=False,indent=2).encode(),
-            file_name=f"{name}.json", mime="application/json",
+            file_name=f"{name}.json",mime="application/json",
             use_container_width=True)
+        st.divider()
 
-        st.divider()
+        # ── SUMMERING ─────────────────────────────────────────
         s=summera(proj)
-        pname=proj.get("projektnamn","") or "—"
-        st.markdown(f"**{pname}**")
-        st.caption(f"{proj.get('status','')}  ·  {len(lista)} projekt totalt")
-        col1,col2=st.columns(2)
-        col1.metric("Rader", len(proj.get("rader",[])))
-        col2.metric("Marginal", pct(s["mg"]))
+        st.markdown(f"**{proj.get('projektnamn','') or '—'}**")
+        st.caption(f"{proj.get('status','')}  ·  {len(lista)} projekt")
+        c1,c2=st.columns(2)
+        c1.metric("Rader", len(proj.get("rader",[])))
+        c2.metric("Marginal", pct(s["mg"]))
         st.metric("Försäljning", kr(s["fp"]))
         st.metric("TB", kr(s["tb"]))
         st.divider()
-        st.markdown("**Navigera**")
-        st.radio("sida_val", [
-            "🏠 Start", "📋 Projekt", "🔢 Kalkyl",
-            "💰 Prisbank", "📑 Mallar", "🏗 Byggdelar", "📊 Slutsida"
-        ], key="sida", label_visibility="collapsed")
-        st.divider()
-        s=summera(proj)
-        pname=proj.get("projektnamn","") or "—"
-        st.markdown(f"**{pname}**")
-        st.caption(f"{proj.get('status','')}  ·  {len(lista)} projekt totalt")
-        col1,col2=st.columns(2)
-        col1.metric("Rader", len(proj.get("rader",[])))
-        col2.metric("Marginal", pct(s["mg"]))
-        st.metric("Försäljning", kr(s["fp"]))
-        st.metric("TB", kr(s["tb"]))
-        st.divider()
-        st.markdown("""
-<a href="javascript:window.print()" style="
-  display:block;text-align:center;background:#1a3a5c;color:white;
-  padding:8px 0;border-radius:6px;font-weight:600;font-size:.9rem;
-  text-decoration:none;margin-top:4px">
-  🖨 Skriv ut / Spara PDF
-</a>""", unsafe_allow_html=True)
+        st.markdown("""<a href="javascript:window.print()" style="
+          display:block;text-align:center;background:#1a3a5c;color:white;
+          padding:8px 0;border-radius:6px;font-weight:600;font-size:.9rem;
+          text-decoration:none">🖨 Skriv ut / Spara PDF</a>""",
+          unsafe_allow_html=True)
 
 # ──────────────────────────────────────────────────────────────
 #  TAB START
@@ -1078,13 +1072,14 @@ def _pdf_slutsida(proj,buf):
 # ──────────────────────────────────────────────────────────────
 def main():
     init(); sidebar()
-    sida=st.session_state.get("sida","🏠 Start")
-    if   sida=="🏠 Start":      tab_start()
-    elif sida=="📋 Projekt":    tab_projekt()
-    elif sida=="🔢 Kalkyl":     tab_kalkyl()
-    elif sida=="💰 Prisbank":   tab_prisbank()
-    elif sida=="📑 Mallar":     tab_mallar()
-    elif sida=="🏗 Byggdelar":  tab_byggdelar()
-    elif sida=="📊 Slutsida":   tab_slutsida()
+    sida=st.session_state.get("sida","🏠  Start")
+    if   "Start"      in sida: tab_start()
+    elif "Projektinfo" in sida: tab_projekt()
+    elif "Kalkyl"     in sida: tab_kalkyl()
+    elif "Prisbank"   in sida: tab_prisbank()
+    elif "Mallar"     in sida: tab_mallar()
+    elif "Byggdelar"  in sida: tab_byggdelar()
+    elif "Slutsida"   in sida: tab_slutsida()
+    else: tab_start()
 
 if __name__=="__main__": main()
