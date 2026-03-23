@@ -442,6 +442,55 @@ def tab_start():
         ], columns=["Post","kr"])
         st.dataframe(df,hide_index=True,use_container_width=True)
 
+    # ── Navigationsknappar ────────────────────────────────────
+    st.divider()
+    st.markdown("**Gå till**")
+    st.markdown("""
+<style>
+.nav-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:8px}
+.nav-btn{background:#1a3a5c;color:white;border:none;border-radius:10px;
+         padding:20px 10px;text-align:center;cursor:pointer;font-size:1rem;
+         font-weight:600;text-decoration:none;display:block;transition:background .2s}
+.nav-btn:hover{background:#2a5a8c;color:white}
+.nav-icon{font-size:1.8rem;display:block;margin-bottom:6px}
+</style>
+<div class="nav-grid">
+  <a class="nav-btn" href="?sida=Projektinfo" target="_self">
+    <span class="nav-icon">📋</span>Projektinfo
+  </a>
+  <a class="nav-btn" href="?sida=Kalkyl" target="_self">
+    <span class="nav-icon">🔢</span>Kalkyl
+  </a>
+  <a class="nav-btn" href="?sida=Prisbank" target="_self">
+    <span class="nav-icon">💰</span>Prisbank
+  </a>
+  <a class="nav-btn" href="?sida=Mallar" target="_self">
+    <span class="nav-icon">📑</span>Mallar
+  </a>
+  <a class="nav-btn" href="?sida=Byggdelar" target="_self">
+    <span class="nav-icon">🏗</span>Byggdelar
+  </a>
+  <a class="nav-btn" href="?sida=Slutsida" target="_self">
+    <span class="nav-icon">📊</span>Slutsida
+  </a>
+</div>""", unsafe_allow_html=True)
+    # Streamlit-knappar som faktiskt fungerar för navigering
+    st.write("")
+    b1,b2,b3=st.columns(3)
+    b4,b5,b6=st.columns(3)
+    if b1.button("📋  Projektinfo",  use_container_width=True):
+        st.session_state.sida="📋  Projektinfo";  st.rerun()
+    if b2.button("🔢  Kalkyl",       use_container_width=True):
+        st.session_state.sida="🔢  Kalkyl";       st.rerun()
+    if b3.button("💰  Prisbank",     use_container_width=True):
+        st.session_state.sida="💰  Prisbank";     st.rerun()
+    if b4.button("📑  Mallar",       use_container_width=True):
+        st.session_state.sida="📑  Mallar";       st.rerun()
+    if b5.button("🏗  Byggdelar",    use_container_width=True):
+        st.session_state.sida="🏗  Byggdelar";    st.rerun()
+    if b6.button("📊  Slutsida",     use_container_width=True):
+        st.session_state.sida="📊  Slutsida";     st.rerun()
+
 # ──────────────────────────────────────────────────────────────
 #  TAB PROJEKT
 # ──────────────────────────────────────────────────────────────
