@@ -294,6 +294,18 @@ h1,h2,h3{color:#1a3a5c}
           border-radius:4px;margin:6px 0}
 div[data-testid="stMetricValue"]{font-size:1.3rem;font-weight:700;color:#1a3a5c}
 div[data-testid="stMetricLabel"]{color:#6b7280;font-size:.85rem}
+/* ── Flikar – tydligare ── */
+.stTabs [data-baseweb="tab-list"]{gap:4px;border-bottom:2px solid #1a3a5c;padding-bottom:0}
+.stTabs [data-baseweb="tab"]{background:#e8edf4;border-radius:6px 6px 0 0;
+    padding:8px 16px;font-weight:600;font-size:.92rem;color:#1a3a5c;border:none}
+.stTabs [aria-selected="true"]{background:#1a3a5c !important;color:white !important}
+/* ── Utskrift ── */
+@media print{
+  section[data-testid="stSidebar"]{display:none}
+  .stTabs [data-baseweb="tab-list"]{display:none}
+  .block-container{padding:0}
+  button,footer{display:none}
+}
 </style>""", unsafe_allow_html=True)
 
 # ──────────────────────────────────────────────────────────────
@@ -376,6 +388,14 @@ def sidebar():
         col2.metric("Marginal", pct(s["mg"]))
         st.metric("Försäljning", kr(s["fp"]))
         st.metric("TB", kr(s["tb"]))
+        st.divider()
+        st.markdown("""
+<a href="javascript:window.print()" style="
+  display:block;text-align:center;background:#1a3a5c;color:white;
+  padding:8px 0;border-radius:6px;font-weight:600;font-size:.9rem;
+  text-decoration:none;margin-top:4px">
+  🖨 Skriv ut / Spara PDF
+</a>""", unsafe_allow_html=True)
 
 # ──────────────────────────────────────────────────────────────
 #  TAB START
