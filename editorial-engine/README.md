@@ -7,10 +7,11 @@ Isolerat schemaomrade. Bygger INGEN motor — se `docs/ARCHITECTURE_NOTE.md`
 
 ```
 editorial-engine/
-  schema/     kanonisk sanningskalla (Pydantic-modeller) + avledd JSON Schema
-  fixtures/   litet exempeldataset som bevisar att modellen hanger ihop
-  tests/      valideringstester (schema, inte en framtida motor)
-  docs/       arkitektur, entitetskarta, versionering, provenance, open questions
+  schema/          kanonisk sanningskalla (Pydantic-modeller) + avledd JSON Schema
+  canonical_data/  verklig canonical referensdata (16 Series, 8 ThesisFamily) + kallfiler fran Work
+  fixtures/        litet exempeldataset som bevisar att modellen hanger ihop
+  tests/           valideringstester (schema, inte en framtida motor)
+  docs/            arkitektur, entitetskarta, versionering, provenance, open questions
 ```
 
 ## Kom igang

@@ -102,3 +102,36 @@ detta schema finns for att undvika (Beslut 27). Att slippa upp "vad sa
 princip X i snapshot Y" ar en enkel lookup (och `VoicePrinciple.version`/
 `valid_from` svarar redan pa "vid vilken tidpunkt"), sa duplicering
 skulle inte kopa nagot.
+
+## TP-10 (Canonical Data Integration V1): Series/ThesisFamily `status` (canonical/strongly_supported) mappat till `Provenance.certainty`, ingen ny enum
+**Var:** `canonical_data/series_registry.py`, `canonical_data/thesis_family_registry.py`
+**Vad:** Work-pack:ens per-post `status`-falt (`"canonical"` /
+`"strongly_supported"`) mappas till `Series.provenance.certainty` resp.
+`ThesisFamily.provenance.certainty`, med `"canonical" -> EvidenceCertainty.VERIFIED`
+och `"strongly_supported" -> EvidenceCertainty.STRONGLY_SUPPORTED`.
+**Varfor:** Varken `Series` eller `ThesisFamily` hade nagot eget
+canonical/strongly_supported-falt i V1/V1.1 (bara `active: bool`, avsett
+for register som bara vaxer utan konfidensgrad per rad). Att lagga till ett
+nytt `status: SeriesStatus`-liknande falt hade varit en verklig
+schemaandring -- exakt det ordern (avsnitt 16) sager ska STOPPAS och
+rapporteras, inte goras tyst. Losningen som undvek detta: `EvidenceCertainty`
+(Beslut 23, redan i schemat sedan V1) hade redan bade `VERIFIED` och
+`STRONGLY_SUPPORTED` som varden, med precis den innebord som behovdes.
+Ingen ny enum-medlem, inget nytt falt. Se `docs/DATA_MAPPING_NOTE.md` for
+den fullstandiga mappningstabellen.
+
+## TP-11 (Canonical Data Integration V1): `editorial-engine/canonical_data/` — TECHNICAL PLACEMENT DECISION
+**Var:** `canonical_data/__init__.py`, `canonical_data/source/`,
+`canonical_data/series_registry.py`, `canonical_data/thesis_family_registry.py`
+**Vad:** En ny katalog under `editorial-engine/`, skild fran `fixtures/`,
+for verklig canonical referensdata (de 16 serierna, de 8 tesfamiljerna) och
+dess kalla (Work:s tva leveransfiler, bevarade orort).
+**Varfor:** Ordern (avsnitt 13) kraver strukturell separation mellan
+canonical referensdata och testfixturer, och att en minsta mojliga
+placering foreslas om ingen redan finns -- uttryckligen flaggat som
+TECHNICAL PLACEMENT DECISION, inte ny motorarkitektur. `fixtures/
+fixture_dataset.py` IMPORTERAR nu registret harifran (`load_series_registry()`,
+`load_thesis_family_registry()`) istallet for att duplicera eller bara gömma
+den riktiga datan i testdata. Ingen databas, inget API, ingen laddningsmotor
+-- bara tva rena mappningsfunktioner som lasger in en JSON-fil och bygger
+Pydantic-objekt.

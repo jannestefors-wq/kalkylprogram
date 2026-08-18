@@ -24,6 +24,23 @@ StyleAttribute, RepetitionSignal, ReaderEffect, Territory) stay
 Actor.HUMAN, since they represent project-leadership-approved editorial
 truth, not an automated reading of raw input.
 
+Canonical Data Integration V1: the two synthetic Series placeholders
+("SER-001"/"SER-002", named "Kara ..."/"Det langa spelet") and the one
+synthetic ThesisFamily placeholder ("TF-001") that previously stood in for
+the real Fas 0A registries are REMOVED from this fixture entirely -- their
+names duplicated real canonical series names, which is exactly the
+confusion the integration order prohibits leaving behind. `series` and
+`thesis_families` below are now the REAL 16 series / 8 thesis families,
+loaded from `canonical_data/` (see docs/DATA_MAPPING_NOTE.md).
+
+`content_1`/`content_2` and `idea_1`/`idea_2`/`angle_1` link to the FIRST
+and SECOND entries of the real registries (by the source pack's own
+order) purely to prove the FK mechanism works against real reference data.
+This is a positional, arbitrary technical choice for fixture-construction
+purposes -- it is NOT an editorial classification of this fixture's
+illustrative (non-canonical, never-published) content, and must not be
+read as one.
+
 This module intentionally does not import Streamlit or anything from the
 rest of the repository -- it is self-contained.
 """
@@ -32,6 +49,8 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
+from canonical_data.series_registry import load_series_registry
+from canonical_data.thesis_family_registry import load_thesis_family_registry
 from schema import (
     Angle,
     ContentForm,
@@ -47,10 +66,8 @@ from schema import (
     ReaderEffect,
     ReaderEffectAssociation,
     ReaderFeedback,
-    Series,
     Source,
     Territory,
-    ThesisFamily,
     VoiceCoreSnapshot,
     VoicePrinciple,
     build_variation_fingerprint,
@@ -81,7 +98,6 @@ from schema.enums import (
     RepetitionSignalType,
     ReturnPoint,
     RhythmPattern,
-    SeriesRole,
     SourceReliability,
     SourceType,
     StyleAttributeCategory,
@@ -118,6 +134,16 @@ def _ai_prov(certainty: EvidenceCertainty, method: str, actor_id: str, analysis_
 
 
 def build_fixture_dataset() -> dict[str, list]:
+    # ---- CANONICAL REGISTRIES (real 16 series / 8 thesis families) --------
+    # Loaded first so their ids are available to every other fixture record below.
+    # See canonical_data/ and docs/DATA_MAPPING_NOTE.md.
+    series_registry = load_series_registry()
+    thesis_family_registry = load_thesis_family_registry()
+    fixture_series_1_id = series_registry[0].series_id  # "series-dear-001" -- positional, see module docstring
+    fixture_series_2_id = series_registry[1].series_id  # "series-diagnosis-before-solution-001"
+    fixture_thesis_family_1_id = thesis_family_registry[0].thesis_family_id  # "thesis-symptom-cause-001"
+    fixture_thesis_family_2_id = thesis_family_registry[1].thesis_family_id  # "thesis-reality-before-story-001"
+
     # ---- RAW INPUT (2) -----------------------------------------------
     raw_input_1 = RawInput(
         raw_input_id="RI-001",
@@ -152,7 +178,7 @@ def build_fixture_dataset() -> dict[str, list]:
         themes=["power", "voice", "interruption"],
         people=[],
         models=[],
-        series=["SER-002"],
+        series=[fixture_series_1_id],
         reliability=SourceReliability.VERIFIED,
         usage_rights=UsageRights.OWNED,
         notes="Fixture source backing RI-001 / IDEA-001.",
@@ -175,24 +201,6 @@ def build_fixture_dataset() -> dict[str, list]:
         notes="Placeholder only. See ReaderFeedback RF-001.",
     )
 
-    # ---- SERIES (2, names taken verbatim from Beslut 17's own examples) ----
-    series_1 = Series(
-        series_id="SER-001",
-        name="Kara ...",
-        role=SeriesRole.FORM_BEARING_PILLAR,
-        description="Form-bearing pillar series, defined by a recurring address form rather than a topic.",
-        created_at=T0,
-        provenance=_prov(EvidenceCertainty.VERIFIED, "fas_0a_analysis"),
-    )
-    series_2 = Series(
-        series_id="SER-002",
-        name="Det langa spelet",
-        role=SeriesRole.TIME_PERSPECTIVE,
-        description="Series defined by a long time-horizon perspective on a situation.",
-        created_at=T0,
-        provenance=_prov(EvidenceCertainty.VERIFIED, "fas_0a_analysis"),
-    )
-
     # ---- TERRITORY (V1.1, OQ-3 -- "Makt" is Beslut 17's own example) ------
     territory_1 = Territory(
         territory_id="TER-001",
@@ -201,17 +209,6 @@ def build_fixture_dataset() -> dict[str, list]:
         "'Kara ...' / 'Det langa spelet' series.",
         created_at=T0,
         provenance=_prov(EvidenceCertainty.VERIFIED, "fas_0a_analysis"),
-    )
-
-    # ---- THESIS FAMILY (placeholder -- real Fas 0 8-family list pending) --
-    thesis_family_1 = ThesisFamily(
-        thesis_family_id="TF-001",
-        name="Osynligt maktbruk i vardagliga moten (fixture placeholder)",
-        core_statement="Makt utovas ofta genom sma, upprepade handlingar snarare an enskilda stora beslut.",
-        description="Placeholder thesis family for fixture purposes; not one of the eight approved Fas 0 families.",
-        example_phrasings=["En chef avbrot samma medarbetare tre ganger under motet."],
-        created_at=T0,
-        provenance=_prov(EvidenceCertainty.ANALYTICAL_PROPOSAL, "fixture_placeholder"),
     )
 
     # ---- VOICE PRINCIPLES (Canonical Voice Core V1, verbatim; Supported subset) --
@@ -358,8 +355,8 @@ def build_fixture_dataset() -> dict[str, list]:
                 EvidenceCertainty.ANALYTICAL_PROPOSAL, "fas_0a_analysis", "fas0a_pipeline_v1", "fas0a-analysis-logic-1.0"
             ),
         ),
-        related_series=["SER-002"],
-        related_thesis_families=["TF-001"],
+        related_series=[fixture_series_1_id],
+        related_thesis_families=[fixture_thesis_family_1_id],
         editorial_potential=EditorialPotential.HIGH,
         novelty_risk=NoveltyRisk.MEDIUM,
         status=IdeaStatus.ANALYZED,
@@ -387,8 +384,8 @@ def build_fixture_dataset() -> dict[str, list]:
                 EvidenceCertainty.ANALYTICAL_PROPOSAL, "fas_0a_analysis", "fas0a_pipeline_v1", "fas0a-analysis-logic-1.0"
             ),
         ),
-        related_series=["SER-001"],
-        related_thesis_families=["TF-001"],
+        related_series=[fixture_series_2_id],
+        related_thesis_families=[fixture_thesis_family_2_id],
         editorial_potential=EditorialPotential.MEDIUM,
         novelty_risk=NoveltyRisk.LOW,
         status=IdeaStatus.ANGLED,
@@ -401,7 +398,7 @@ def build_fixture_dataset() -> dict[str, list]:
         created_at=T0,
         title="Ratten att avsluta en tanke",
         description="Angle focused on the moment of interruption itself as the unit of analysis, rather than the outcome of the meeting.",
-        thesis_family_id="TF-001",
+        thesis_family_id=fixture_thesis_family_1_id,
         primary_variation_dimension=None,
         status=AngleStatus.SELECTED,
         provenance=_ai_prov(
@@ -435,9 +432,9 @@ def build_fixture_dataset() -> dict[str, list]:
         idea_id="IDEA-001",
         angle_id="ANGLE-001",
         voice_core_snapshot_id="SNAP-001",
-        series_ids=["SER-002"],
+        series_ids=[fixture_series_1_id],
         territory_ids=["TER-001"],
-        thesis_family_id="TF-001",
+        thesis_family_id=fixture_thesis_family_1_id,
         what=ContentWhat(
             topic="Tillit",
             subtopics=["moteskultur", "avbrott"],
@@ -502,8 +499,8 @@ def build_fixture_dataset() -> dict[str, list]:
         idea_id="IDEA-002",
         angle_id=None,
         voice_core_snapshot_id="SNAP-001",
-        series_ids=["SER-001"],
-        thesis_family_id="TF-001",
+        series_ids=[fixture_series_2_id],
+        thesis_family_id=fixture_thesis_family_2_id,
         what=ContentWhat(
             topic="Recognition",
             subtopics=["credit", "meetings"],
@@ -587,9 +584,9 @@ def build_fixture_dataset() -> dict[str, list]:
     return {
         "raw_inputs": [raw_input_1, raw_input_2],
         "sources": [source_1, source_2],
-        "series": [series_1, series_2],
+        "series": series_registry,
         "territories": [territory_1],
-        "thesis_families": [thesis_family_1],
+        "thesis_families": thesis_family_registry,
         "voice_principles": voice_principles,
         "voice_core_snapshots": [voice_core_snapshot_1],
         "style_attributes": style_attributes,

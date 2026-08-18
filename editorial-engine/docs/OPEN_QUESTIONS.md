@@ -25,23 +25,18 @@ fri text) och fran `series`. Implementerat i `schema/territory.py`
 (`Territory`), refererad fran `ContentRecord.territory_ids` och
 `Idea.related_territories`. Testat i `tests/test_territory.py` (Test E, F).
 
-## Fortfarande oppna
+### OQ-4 (LOST i Canonical Data Integration V1): riktiga 16 serier + 8 tesfamiljer — JA, integrerade
+Work levererade `LUF_Canonical_Data_Pack_V1.json` +
+`LUF_Canonical_Data_Pack_V1_Report.md`, granskade och godkanda av
+projektledningen. De verkliga 16 serierna och 8 tesfamiljerna ar nu
+integrerade i `canonical_data/series_registry.py` /
+`thesis_family_registry.py`, och de gamla synteiska platshallarna
+(`SER-001`/`SER-002`/`TF-001`) ar helt borttagna fran fixture-datasetet
+(som nu refererar det riktiga registret). Se
+`docs/DATA_MAPPING_NOTE.md`, `docs/CLASSIFICATION_DECISION_NOTE.md` och
+`docs/FINAL_REPORT_DATA_INTEGRATION_V1.md`.
 
-### OQ-4: Fullstandig lista over de 16 serierna och de atta tesfamiljerna
-Fortfarande olost i V1.1 — inget nytt underlag mottogs for detta i denna
-korrigeringsrunda. Uppdragstexten anger antalet (16 respektive 8) och ger
-namn pa TVA serier som exempel ("Kara ...", "Det langa spelet"), men inte
-den fullstandiga listan, och inga namn alls for de atta tesfamiljerna.
-Fixture-datasetet innehaller darfor fortfarande bara de tva namngivna
-serierna plus EN tydligt flaggad platshallar-tesfamilj (`TF-001`,
-markerad "fixture placeholder" i `fixtures/fixture_dataset.py`) — inte de
-verkliga atta. Per V1.1-ordern punkt 5: platshallarna ligger kvar
-oforandrade; ingen rekonstruktion har forsokts.
-**Beslut som kravs:** projektledningen behover leverera den fullstandiga
-Series Registry- och Thesis Family-listan sa att `Series`/`ThesisFamily`-
-raderna kan fyllas i med riktigt innehall.
-**UNDERLAG SAKNAS** i denna arbetsmiljo — se `docs/FINAL_REPORT_V1_1.md`
-punkt O/P.
+## Fortfarande oppna
 
 ### OQ-5: Parastoo-recensionen — schemat verifierat, texten fortfarande utestaende
 V1.1-ordern bad oss verifiera att schemat redan kan ta emot Parastoos
@@ -51,8 +46,9 @@ fullstandiga originalrecension utan schemaandring. **Verifierat: JA** — se
 som konstruerar en avsevart langre `ReaderFeedback.feedback_text` an
 platshallaren anvander, utan nagon schemaandring. `ReaderFeedback`
 (`RF-001` i fixture-datasetet) forblir en tydligt markerad platshallare —
-den innehaller INTE Parastoos faktiska recensionstext, eftersom den inte
-fanns i det material som lamnades till detta uppdrag.
+den innehaller INTE Parastoos faktiska recensionstext. Inte heller
+Canonical Data Integration V1-uppdraget medforde nagon originaltext fran
+Parastoo (endast de tva Series/Thesis-datapaketsfilerna mottogs).
 **Beslut som kravs:** inget scheman-beslut — bara att den faktiska
 recensionstexten sa smaningom levereras och skrivs in i `feedback_text`.
-**UNDERLAG SAKNAS** (sjalva texten) i denna arbetsmiljo.
+**UNDERLAG SAKNAS** (sjalva texten) i denna arbetsmiljo, fortfarande.
