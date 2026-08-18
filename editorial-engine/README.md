@@ -1,0 +1,46 @@
+# LUF Editorial Engine — Canonical Editorial Schema V1
+
+Isolerat schemaomrade. Bygger INGEN motor — se `docs/ARCHITECTURE_NOTE.md`
+"Vad som INTE byggts".
+
+## Struktur
+
+```
+editorial-engine/
+  schema/     kanonisk sanningskalla (Pydantic-modeller) + avledd JSON Schema
+  fixtures/   litet exempeldataset som bevisar att modellen hanger ihop
+  tests/      valideringstester (schema, inte en framtida motor)
+  docs/       arkitektur, entitetskarta, versionering, provenance, open questions
+```
+
+## Kom igang
+
+```bash
+cd editorial-engine
+pip install -r requirements.txt
+
+# kor testerna
+python3 -m pytest -q
+
+# generera JSON Schema (avlett artefakt — redigera aldrig for hand)
+python3 -m schema.export_json_schema
+
+# generera fixture-dataset som JSON
+python3 -m fixtures.generate_fixture_json
+```
+
+## Lasordning
+
+1. `docs/ARCHITECTURE_NOTE.md` — helhetsbild och var sanningen bor.
+2. `docs/ENTITY_MAP.md` — objekt, relationer, de fyra variationsdimensionerna.
+3. `docs/ENUMS_TAXONOMIES.md` — alla kontrollerade vokabularer.
+4. `docs/VERSIONING_STRATEGY.md`, `docs/PROVENANCE_STRATEGY.md`.
+5. `docs/OPEN_QUESTIONS.md`, `docs/TECHNICAL_PROPOSALS.md` — allt som
+   kravde ett tekniskt beslut, flaggat for granskning.
+6. `docs/FINAL_REPORT.md` — slutrapport (Beslut 32).
+
+## Kanonisk kod
+
+`schema/*.py`. Varje fil har en modulniva-docstring som forklarar vilket
+Beslut (i uppdragstexten) den representerar och vilka normaliseringar/
+TECHNICAL PROPOSALS som gjorts.
