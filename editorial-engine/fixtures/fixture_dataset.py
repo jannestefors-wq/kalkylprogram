@@ -49,6 +49,7 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
+from canonical_data.reader_feedback_registry import load_book_source, load_parastoo_reader_feedback
 from canonical_data.series_registry import load_series_registry
 from canonical_data.thesis_family_registry import load_thesis_family_registry
 from schema import (
@@ -144,6 +145,11 @@ def build_fixture_dataset() -> dict[str, list]:
     fixture_thesis_family_1_id = thesis_family_registry[0].thesis_family_id  # "thesis-symptom-cause-001"
     fixture_thesis_family_2_id = thesis_family_registry[1].thesis_family_id  # "thesis-reality-before-story-001"
 
+    # ---- CANONICAL READER FEEDBACK (Final Canonical Data Closure) ---------
+    # Parastoo Ebrahimzadeh's real, full original review -- see canonical_data/reader_feedback_registry.py.
+    parastoo_book_source = load_book_source()
+    parastoo_reader_feedback = load_parastoo_reader_feedback()
+
     # ---- RAW INPUT (2) -----------------------------------------------
     raw_input_1 = RawInput(
         raw_input_id="RI-001",
@@ -186,11 +192,11 @@ def build_fixture_dataset() -> dict[str, list]:
     source_2 = Source(
         source_id="SRC-002",
         source_type=SourceType.REVIEW,
-        title="Reader feedback compilation (placeholder)",
+        title="Reader feedback compilation (TEST_ONLY placeholder)",
         author=None,
         date=T0,
         language="en",
-        origin="Fixture placeholder -- real feedback to be attached later without schema change.",
+        origin="TEST_ONLY fixture placeholder -- not a real source.",
         content_reference=None,
         themes=["credit", "recognition"],
         people=[],
@@ -198,7 +204,8 @@ def build_fixture_dataset() -> dict[str, list]:
         series=[],
         reliability=SourceReliability.REPORTED,
         usage_rights=UsageRights.UNCLEAR,
-        notes="Placeholder only. See ReaderFeedback RF-001.",
+        notes="TEST_ONLY. See ReaderFeedback RF-TEST-ONLY-001. The real Parastoo Ebrahimzadeh review "
+        "is in canonical_data/, backed by its own Source (source-book-leadership-without-filter).",
     )
 
     # ---- TERRITORY (V1.1, OQ-3 -- "Makt" is Beslut 17's own example) ------
@@ -406,18 +413,24 @@ def build_fixture_dataset() -> dict[str, list]:
         ),
     )
 
-    # ---- READER FEEDBACK (1 placeholder) ---------------------------------
+    # ---- READER FEEDBACK (TEST_ONLY fixture illustration) -----------------
+    # Final Canonical Data Closure: renamed from "RF-001" to make unmistakably
+    # clear this is NOT Parastoo's real review (that is now
+    # canonical_data.reader_feedback_registry.load_parastoo_reader_feedback(),
+    # loaded into this dataset separately below) -- it never has been; it is a
+    # structurally-illustrative fixture row exercising the intended/observed
+    # split, kept distinct so it can never be mistaken for canonical data.
     reader_feedback_1 = ReaderFeedback(
-        reader_feedback_id="RF-001",
+        reader_feedback_id="RF-TEST-ONLY-001",
         source_id="SRC-002",
         content_reference="CONTENT-001",
-        feedback_text="[placeholder -- full original review text to be attached later without schema change]",
+        feedback_text="[TEST_ONLY fixture illustration -- not a real review. See canonical_data/ for the real Parastoo Ebrahimzadeh ReaderFeedback.]",
         feedback_reference=None,
         effect_observations=["reader reported recognizing the situation described"],
         verification_status=FeedbackVerificationStatus.UNVERIFIED,
         date=T0,
         language="en",
-        notes="Fixture placeholder standing in for a real future reader review (e.g. Parastoo's).",
+        notes="TEST_ONLY -- fixture illustration for schema-proof purposes, not derived from any real review.",
     )
 
     # ---- CONTENT RECORD (2) ----------------------------------------------
@@ -473,7 +486,7 @@ def build_fixture_dataset() -> dict[str, list]:
             ReaderEffectAssociation(
                 reader_effect_id="RE-001",
                 mode=ReaderEffectMode.OBSERVED,
-                evidence_reader_feedback_ids=["RF-001"],
+                evidence_reader_feedback_ids=["RF-TEST-ONLY-001"],
             ),
         ],
         variation_fingerprint=None,  # filled in below via build_variation_fingerprint
@@ -583,7 +596,7 @@ def build_fixture_dataset() -> dict[str, list]:
 
     return {
         "raw_inputs": [raw_input_1, raw_input_2],
-        "sources": [source_1, source_2],
+        "sources": [source_1, source_2, parastoo_book_source],
         "series": series_registry,
         "territories": [territory_1],
         "thesis_families": thesis_family_registry,
@@ -594,7 +607,7 @@ def build_fixture_dataset() -> dict[str, list]:
         "reader_effects": reader_effects_catalog,
         "ideas": [idea_1, idea_2],
         "angles": [angle_1],
-        "reader_feedback": [reader_feedback_1],
+        "reader_feedback": [reader_feedback_1, parastoo_reader_feedback],
         "content_records": [content_1, content_2],
         "quality_assessments": [quality_assessment_1],
         "human_decisions": [human_decision_1],

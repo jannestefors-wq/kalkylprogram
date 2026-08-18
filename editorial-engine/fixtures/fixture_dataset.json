@@ -50,11 +50,11 @@
       "source_id": "SRC-002",
       "schema_version": "1.0.0",
       "source_type": "review",
-      "title": "Reader feedback compilation (placeholder)",
+      "title": "Reader feedback compilation (TEST_ONLY placeholder)",
       "author": null,
       "date": "2026-01-15T09:00:00Z",
       "language": "en",
-      "origin": "Fixture placeholder -- real feedback to be attached later without schema change.",
+      "origin": "TEST_ONLY fixture placeholder -- not a real source.",
       "content_reference": null,
       "themes": [
         "credit",
@@ -65,7 +65,25 @@
       "series": [],
       "reliability": "reported",
       "usage_rights": "unclear",
-      "notes": "Placeholder only. See ReaderFeedback RF-001."
+      "notes": "TEST_ONLY. See ReaderFeedback RF-TEST-ONLY-001. The real Parastoo Ebrahimzadeh review is in canonical_data/, backed by its own Source (source-book-leadership-without-filter)."
+    },
+    {
+      "source_id": "source-book-leadership-without-filter",
+      "schema_version": "1.0.0",
+      "source_type": "book",
+      "title": "Leadership Without Filter",
+      "author": "Jan Stefors",
+      "date": null,
+      "language": null,
+      "origin": null,
+      "content_reference": null,
+      "themes": [],
+      "people": [],
+      "models": [],
+      "series": [],
+      "reliability": null,
+      "usage_rights": null,
+      "notes": "Bibliographic stub created to give ReaderFeedback.source_id a real target for 'reader-feedback-parastoo-ebrahimzadeh-leadership-without-filter-001', without fabricating a ContentRecord. See canonical_data/reader_feedback_registry.py module docstring."
     }
   ],
   "series": [
@@ -1126,11 +1144,11 @@
   ],
   "reader_feedback": [
     {
-      "reader_feedback_id": "RF-001",
+      "reader_feedback_id": "RF-TEST-ONLY-001",
       "schema_version": "1.0.0",
       "source_id": "SRC-002",
       "content_reference": "CONTENT-001",
-      "feedback_text": "[placeholder -- full original review text to be attached later without schema change]",
+      "feedback_text": "[TEST_ONLY fixture illustration -- not a real review. See canonical_data/ for the real Parastoo Ebrahimzadeh ReaderFeedback.]",
       "feedback_reference": null,
       "effect_observations": [
         "reader reported recognizing the situation described"
@@ -1138,7 +1156,22 @@
       "verification_status": "unverified",
       "date": "2026-01-15T09:00:00Z",
       "language": "en",
-      "notes": "Fixture placeholder standing in for a real future reader review (e.g. Parastoo's)."
+      "notes": "TEST_ONLY -- fixture illustration for schema-proof purposes, not derived from any real review."
+    },
+    {
+      "reader_feedback_id": "reader-feedback-parastoo-ebrahimzadeh-leadership-without-filter-001",
+      "schema_version": "1.0.0",
+      "source_id": "source-book-leadership-without-filter",
+      "content_reference": "UNDERLAG SAKNAS",
+      "feedback_text": "Leadership Without Filter was more than just a book about leadership, human relationships, or workplace dynamics for me. It helped me endure one of the most difficult periods of my life by giving me a clearer understanding of the situation I was experiencing.\n\nMost importantly, it reminded me that when we find ourselves in circumstances shaped by manipulation, hidden agendas, or the self-interest of others, those experiences are not necessarily invisible or impossible to explain. There are patterns behind them, and those patterns can be recognized and understood.\n\nIn this book, Jan Stefors attempts to expose, without unnecessary ambiguity or hesitation, realities that often remain unspoken within professional relationships and power structures. He addresses workplace politics, power games, and behind-the-scenes behavior that can cause serious psychological harm to an individual while also damaging trust, motivation, and ultimately the effectiveness of an entire team.\n\nWhat makes this book particularly different for me is the way it speaks to the person who is experiencing manipulation. Many people may suddenly find themselves in situations they do not fully understand, where others impose their beliefs, expectations, or narratives on them and take advantage of their uncertainty, vulnerability, or lack of awareness. In such environments, one of the most damaging consequences is that the person being manipulated may eventually begin to question their own perception, judgment, and understanding of reality.\n\nJan Stefors' writing can help the reader recognize these patterns more clearly. Rather than approaching manipulation only as an abstract psychological concept, the book encourages the reader to reconnect with their own inner voice, emotions, and judgment. In doing so, it can help a person regain a sense of clarity and perhaps begin to see a possible way out of an unhealthy or manipulative situation.\n\nI have read many books dealing with shadow psychology, psychological manipulation, and power dynamics, but very few have affected me as deeply as Jan Stefors' writing. His style is sharp, direct, clear, and unapologetically unambiguous. He does not hide harmful behavior behind complicated terminology or neutral explanations. Instead, he brings responsibility, intention, and consequences into the open.\n\nAnother strength of this book is how easily its ideas can be connected to the world we live in. Control, hidden agendas, and abuse of power can appear in workplaces, professional relationships, organizations, and many other areas of social life.\n\nThis is why I consider Leadership Without Filter, and Jan Stefors' writing more broadly, to be both distinctive and exceptionally valuable. For me, the real power of his work lies in the fact that it does not simply describe manipulation from the outside. It has the potential to help someone who is caught inside such a situation understand what is happening to them, trust their own perception again, and begin to imagine a way forward.\n\nI sincerely hope that Jan Stefors' work becomes more widely recognized around the world. I believe that many people who have experienced manipulative environments, coercive power dynamics, psychological pressure, or unhealthy leadership structures may find something deeply familiar and genuinely illuminating in his writing.",
+      "feedback_reference": null,
+      "effect_observations": [
+        "RE-002 (perspektivskifte / 'sprak for monster') -- stott direkt av originaltexten: \"those experiences are not necessarily invisible or impossible to explain. There are patterns behind them, and those patterns can be recognized and understood.\" och \"Jan Stefors' writing can help the reader recognize these patterns more clearly.\" Inte formaliserad som ReaderEffectAssociation (kraver en ContentRecord, som saknas for denna bokrecension) -- se modulens docstring."
+      ],
+      "verification_status": "verified_verbatim",
+      "date": "2026-08-18T00:00:00Z",
+      "language": "en",
+      "notes": "Reviewer: Parastoo Ebrahimzadeh. Reviewed work: 'Leadership Without Filter' by Jan Stefors. Source type: Direct message from reviewer. Verification: Verified from original direct message and screenshots supplied by project leadership. content_reference intentionally holds an explicit gap marker, not a real reference -- see canonical_data/reader_feedback_registry.py module docstring and docs/PARASTOO_INTEGRATION_GAP_REPORT.md."
     }
   ],
   "content_records": [
@@ -1212,7 +1245,7 @@
           "reader_effect_id": "RE-001",
           "mode": "observed",
           "evidence_reader_feedback_ids": [
-            "RF-001"
+            "RF-TEST-ONLY-001"
           ],
           "notes": null
         }

@@ -75,7 +75,7 @@ def test_g_reader_feedback_can_carry_observed_effects_without_becoming_voice_cor
     content_1 = next(c for c in dataset["content_records"] if c.content_id == "CONTENT-001")
     observed = [e for e in content_1.reader_effects if e.mode.value == "observed"]
     assert observed, "content must have at least one OBSERVED reader effect association backed by feedback"
-    assert "RF-001" in observed[0].evidence_reader_feedback_ids
+    assert "RF-TEST-ONLY-001" in observed[0].evidence_reader_feedback_ids
 
     # No field on ReaderFeedback or its usage can register it as a VoicePrinciple/VoiceCoreSnapshot.
     voice_principle_ids = {v.voice_principle_id for v in dataset["voice_principles"]}

@@ -135,3 +135,26 @@ fixture_dataset.py` IMPORTERAR nu registret harifran (`load_series_registry()`,
 den riktiga datan i testdata. Ingen databas, inget API, ingen laddningsmotor
 -- bara tva rena mappningsfunktioner som lasger in en JSON-fil och bygger
 Pydantic-objekt.
+
+## TP-12 (Final Canonical Data Closure): `"UNDERLAG SAKNAS"` som explicit satt faltvarde, plus Source(BOOK)-stub for bokrecensioner
+**Var:** `canonical_data/reader_feedback_registry.py`
+**Vad:** Tva tekniska losningar for samma rotorsak (se
+`docs/PARASTOO_INTEGRATION_GAP_REPORT.md` for fullstandig analys):
+(1) `ReaderFeedback.content_reference` (obligatoriskt `str`, FK -> ContentRecord)
+satts till den ordagranna strangen `"UNDERLAG SAKNAS"` for Parastoos
+bokrecension, eftersom ingen ContentRecord finns for en bok och ingen fick
+hittas pa. (2) En ny `Source(source_type=SourceType.BOOK)`-post skapades
+for boken "Leadership Without Filter" och kopplas via det redan befintliga,
+redan valfria `ReaderFeedback.source_id`-faltet.
+**Varfor:** Beslut 24 ("NULL AR BATTRE AN PAHITT") etablerade redan
+principen att osakerhet ska vara explicit, inte gissad. `content_reference`
+saknar dock en `Optional`/null-vag att uttrycka just detta (se
+gap-rapporten for varfor detta INTE andrades utan projektledarbeslut).
+`"UNDERLAG SAKNAS"` ar redan detta projekts vedertagna, igenkannbara
+markor for exakt denna situation (anvant som prosa i
+`docs/OPEN_QUESTIONS.md` sedan V1.1); att anvanda den ordagranna strangen
+som faltvarde ar en minimal, konsekvent forlangning av samma konvention,
+inte en ny uppfinning. `SourceType.BOOK` fanns redan i schemat sedan V1
+(ingen ny enum-medlem); att skapa en Source-post av den typen ar ren
+transkribering av bibliografiska uppgifter (titel, forfattare) som
+projektledningen sjalv lamnade, inte ny redaktionell analys.

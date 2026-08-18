@@ -36,19 +36,36 @@ integrerade i `canonical_data/series_registry.py` /
 `docs/DATA_MAPPING_NOTE.md`, `docs/CLASSIFICATION_DECISION_NOTE.md` och
 `docs/FINAL_REPORT_DATA_INTEGRATION_V1.md`.
 
+### OQ-5 (LOST i Final Canonical Data Closure): Parastoo-recensionen — JA, importerad
+Parastoo Ebrahimzadehs fullstandiga originalrecension av "Leadership
+Without Filter" ar mottagen fran projektledningen och integrerad ordagrant
+som en verklig `ReaderFeedback`-post
+(`canonical_data/reader_feedback_registry.py`,
+`canonical_data/source/parastoo_ebrahimzadeh_review_leadership_without_filter.txt`).
+Ingen schemaandring kravdes. Den tidigare fixture-platshallaren ar omdopt
+till `RF-TEST-ONLY-001` och kan inte langre forvaxlas med den verkliga
+posten. Se `docs/FINAL_REPORT_PARASTOO_CLOSURE.md`.
+
 ## Fortfarande oppna
 
-### OQ-5: Parastoo-recensionen — schemat verifierat, texten fortfarande utestaende
-V1.1-ordern bad oss verifiera att schemat redan kan ta emot Parastoos
-fullstandiga originalrecension utan schemaandring. **Verifierat: JA** — se
-`docs/FINAL_REPORT_V1_1.md` punkt F och det nya testet
-`tests/test_reader_effect_modes.py::test_g_reader_feedback_can_carry_observed_effects_without_becoming_voice_core`,
-som konstruerar en avsevart langre `ReaderFeedback.feedback_text` an
-platshallaren anvander, utan nagon schemaandring. `ReaderFeedback`
-(`RF-001` i fixture-datasetet) forblir en tydligt markerad platshallare —
-den innehaller INTE Parastoos faktiska recensionstext. Inte heller
-Canonical Data Integration V1-uppdraget medforde nagon originaltext fran
-Parastoo (endast de tva Series/Thesis-datapaketsfilerna mottogs).
-**Beslut som kravs:** inget scheman-beslut — bara att den faktiska
-recensionstexten sa smaningom levereras och skrivs in i `feedback_text`.
-**UNDERLAG SAKNAS** (sjalva texten) i denna arbetsmiljo, fortfarande.
+### OQ-6: `ReaderFeedback.content_reference` saknar en giltig representation for icke-ContentRecord-evidens (t.ex. bocker)
+Upptackt vid integrationen av Parastoos recension: faltet ar obligatoriskt
+och dokumenterat som FK -> `ContentRecord.content_id`, men evidens kan
+giltigt handla om andra saker an ContentRecord (har: en bok). Ingen
+schemaandring gjordes (per uttrycklig instruktion); faltet bar istallet den
+ordagranna sentinel-strangen `"UNDERLAG SAKNAS"` for detta enskilda fall.
+Fullstandig analys: `docs/PARASTOO_INTEGRATION_GAP_REPORT.md`.
+**Beslut som kravs:** ska `content_reference` bli `Optional[str]`, eller
+ska ett bredare "evidence subject"-koncept (ContentRecord ELLER Source)
+inforas for framtida Reader Feedback som inte galler ett specifikt
+content-utkast?
+
+### OQ-7: Reader Effect-taxonomin saknar en post for "atererovrat eget omdome / klarhet"
+Parastoos recension stodjer tydligt en effekt i stil med "reconnecting
+with one's own judgment" / "regaining clarity" (aftereffect-liknande), men
+detta motsvaras inte av nagon befintlig `ReaderEffect`-post (bara RE-001
+"obehag" och RE-002 "perspektivskifte" finns annu). Ingen ny `ReaderEffect`
+skapades (forbjudet av ordern); effekten ar darfor INTE kopplad till
+recensionen. Fullstandig analys: `docs/PARASTOO_INTEGRATION_GAP_REPORT.md`.
+**Beslut som kravs:** ska Reader Effect-katalogen utokas med en post for
+denna effekt (t.ex. kategori AFTEREFFECT)?
