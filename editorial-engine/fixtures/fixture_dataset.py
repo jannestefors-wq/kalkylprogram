@@ -51,6 +51,7 @@ from datetime import datetime, timezone
 
 from canonical_data.reader_feedback_registry import load_book_source, load_parastoo_reader_feedback
 from canonical_data.series_registry import load_series_registry
+from canonical_data.territory_registry import load_territory_registry
 from canonical_data.thesis_family_registry import load_thesis_family_registry
 from schema import (
     Angle,
@@ -68,7 +69,6 @@ from schema import (
     ReaderEffectAssociation,
     ReaderFeedback,
     Source,
-    Territory,
     VoiceCoreSnapshot,
     VoicePrinciple,
     build_variation_fingerprint,
@@ -209,14 +209,9 @@ def build_fixture_dataset() -> dict[str, list]:
     )
 
     # ---- TERRITORY (V1.1, OQ-3 -- "Makt" is Beslut 17's own example) ------
-    territory_1 = Territory(
-        territory_id="TER-001",
-        name="Makt",
-        description="Beslut 17's own example of a territory, distinct from the 'Tillit' topic and the "
-        "'Kara ...' / 'Det langa spelet' series.",
-        created_at=T0,
-        provenance=_prov(EvidenceCertainty.VERIFIED, "fas_0a_analysis"),
-    )
+    # V1A: relocated to canonical_data/territory_registry.py -- see that module's docstring.
+    territory_registry = load_territory_registry()
+    territory_1 = territory_registry[0]
 
     # ---- VOICE PRINCIPLES (Canonical Voice Core V1, verbatim; Supported subset) --
     canonical_texts = [
