@@ -507,7 +507,7 @@
             }
           ],
           "default": null,
-          "description": "Version identifier of whatever analysis logic produced an interpretation, distinct from schema_version. Required whenever created_by == AI_SYSTEM (see tests/test_relation_integrity.py).",
+          "description": "Version identifier of whatever analysis logic produced an interpretation, distinct from schema_version. REQUIRED (validated below) whenever created_by == Actor.AI_SYSTEM. May be null for human-created provenance.",
           "title": "Analysis Logic Version"
         },
         "supporting_source_ids": {
@@ -852,7 +852,7 @@
       "description": "TECHNICAL PROPOSAL field -- FK -> Angle.angle_id.",
       "title": "Angle Id"
     },
-    "voice_core_version_ref": {
+    "voice_core_snapshot_id": {
       "anyOf": [
         {
           "type": "string"
@@ -862,8 +862,8 @@
         }
       ],
       "default": null,
-      "description": "TECHNICAL PROPOSAL field -- label like 'voice-core-1.0' this text was authored/judged against.",
-      "title": "Voice Core Version Ref"
+      "description": "TECHNICAL PROPOSAL field -- FK -> VoiceCoreSnapshot.snapshot_id this text was authored/judged against. V1.1: replaces the earlier free-text 'voice_core_version_ref' label (OQ-1) with an actual reference, so the exact set of principles in effect is always recoverable, not just a version label.",
+      "title": "Voice Core Snapshot Id"
     },
     "series_ids": {
       "description": "Series.series_id values.",
@@ -871,6 +871,14 @@
         "type": "string"
       },
       "title": "Series Ids",
+      "type": "array"
+    },
+    "territory_ids": {
+      "description": "V1.1 (OQ-3) -- Territory.territory_id values. Never a series_id or a free topic string.",
+      "items": {
+        "type": "string"
+      },
+      "title": "Territory Ids",
       "type": "array"
     },
     "thesis_family_id": {

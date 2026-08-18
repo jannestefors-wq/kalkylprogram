@@ -41,8 +41,10 @@ class QualityAssessment(BaseModel):
         description="Where the work should go back to if result != PASS, e.g. REANGLE -> Angle, REWORK -> Generation.",
     )
 
-    voice_core_version_ref: Optional[str] = Field(
-        default=None, description="Voice Core version label this assessment checked the content against."
+    voice_core_snapshot_id: Optional[str] = Field(
+        default=None,
+        description="FK -> VoiceCoreSnapshot.snapshot_id this assessment checked the content against. "
+        "V1.1: replaces the earlier free-text label (OQ-1).",
     )
 
     provenance: Provenance

@@ -71,7 +71,7 @@
             }
           ],
           "default": null,
-          "description": "Version identifier of whatever analysis logic produced an interpretation, distinct from schema_version. Required whenever created_by == AI_SYSTEM (see tests/test_relation_integrity.py).",
+          "description": "Version identifier of whatever analysis logic produced an interpretation, distinct from schema_version. REQUIRED (validated below) whenever created_by == Actor.AI_SYSTEM. May be null for human-created provenance.",
           "title": "Analysis Logic Version"
         },
         "supporting_source_ids": {
@@ -215,7 +215,7 @@
       "default": null,
       "description": "Where the work should go back to if result != PASS, e.g. REANGLE -> Angle, REWORK -> Generation."
     },
-    "voice_core_version_ref": {
+    "voice_core_snapshot_id": {
       "anyOf": [
         {
           "type": "string"
@@ -225,8 +225,8 @@
         }
       ],
       "default": null,
-      "description": "Voice Core version label this assessment checked the content against.",
-      "title": "Voice Core Version Ref"
+      "description": "FK -> VoiceCoreSnapshot.snapshot_id this assessment checked the content against. V1.1: replaces the earlier free-text label (OQ-1).",
+      "title": "Voice Core Snapshot Id"
     },
     "provenance": {
       "$ref": "#/$defs/Provenance"

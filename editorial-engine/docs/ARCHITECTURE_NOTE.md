@@ -1,4 +1,12 @@
-# A. Architecture Note — Canonical Editorial Schema V1
+# A. Architecture Note — Canonical Editorial Schema V1 (V1.1)
+
+**V1.1-tillagg (se `docs/OPEN_QUESTIONS.md` for de losta fragorna och
+`docs/FINAL_REPORT_V1_1.md` for korrigeringsrundans fulla rapport):**
+`VoiceCoreSnapshot` (OQ-1), hart validerat `analysis_logic_version` for
+AI-provenance (OQ-2), `Territory` som eget register (OQ-3), och en rattning
+av Voice-dokumentationens formulering sa den inte foregriper en annu
+icke-byggd generators beteende (se avsnitt "Voice Core -- vad schemat
+uttalar sig om" nedan). Grundarkitekturen fran V1 ar oforandrad.
 
 ## Vad detta ar
 
@@ -54,7 +62,7 @@ inte bara dokumenterade:
 | CONTENT | `ContentRecord` | `schema/content.py` |
 | QUALITY | `QualityAssessment` | `schema/quality.py` |
 | HUMAN DECISION | `HumanDecision` | `schema/decision.py` |
-| (stodjande) | `Series`, `ThesisFamily`, `VoicePrinciple`, `ReaderEffect`, `ReaderFeedback` | `schema/series.py`, `schema/voice.py`, `schema/reader_effect.py` |
+| (stodjande) | `Series`, `Territory`, `ThesisFamily`, `VoicePrinciple`, `VoiceCoreSnapshot`, `ReaderEffect`, `ReaderFeedback` | `schema/series.py`, `schema/territory.py`, `schema/voice.py`, `schema/reader_effect.py` |
 
 Separationen ar strukturell, inte bara namngiven:
 
@@ -86,11 +94,32 @@ Separationen ar strukturell, inte bara namngiven:
    en `QualityAssessment` (`based_on_quality_assessment_id`) men ingenting
    tvingar `HumanDecision.decision` att spegla `QualityAssessment.result` —
    manniskan kan alltid ga emot AI:ns rekommendation.
-7. **Series != Topic != Territory != Form** — `Series` ar det enda tunga
-   registret (med `SeriesRole` for att skilja pelar-typer). `topic` och
-   `territory` ar oppna, fria taggar pa `Idea`/`ContentRecord`, aldrig
-   `series_id`. `form` ar variationsdimensionen + de strukturella falten pa
-   `ContentForm`. Se `docs/ENUMS_TAXONOMIES.md`.
+7. **Series != Topic != Territory != Form** — `Series` och (sedan V1.1)
+   `Territory` ar bada egna register (`SeriesRole` skiljer pelar-typer
+   inom Series; Territory har ingen motsvarande subtyp-enum). `topic`
+   forblir en oppen, fri tagg pa `Idea`/`ContentRecord` (V1.1-beslut:
+   forblir sa, till skillnad fran territory). Ingen av dem ar nagonsin en
+   `series_id` eller en `territory_id`. `form` ar variationsdimensionen +
+   de strukturella falten pa `ContentForm`. Se `docs/ENUMS_TAXONOMIES.md`
+   och `tests/test_territory.py`.
+8. **VoiceCoreSnapshot referererar, duplicerar inte** (V1.1, OQ-1) —
+   `VoiceCoreSnapshot.voice_principle_ids` ar en lista `voice_principle_id`,
+   aldrig kopior av `definition`/`anti_definition`. `ContentRecord` och
+   `QualityAssessment` pekar pa ett snapshot (`voice_core_snapshot_id`),
+   inte pa en fri etikett-strang som tidigare. Se TP-9 och
+   `docs/VERSIONING_STRATEGY.md`.
+
+## Voice Core — vad schemat uttalar sig om (V1.1-rattning)
+
+`VoicePrinciple` (`schema/voice.py`) beskriver vad canonical Voice
+Core-data BETYDER: en canonical, versionerad, evidensburen redaktionell
+referens, obligatorisk input till varje framtida sparbar bedomning som
+anvander den. Schemat uttalar sig INTE om HUR en annu icke byggd generator
+later anvander den (t.ex. om en sadan komponent nagonsin kan "valja bort"
+Voice Core) — det ar ett separat, senare beslut, inte kodat har. En
+tidigare formulering i `schema/voice.py`s docstring ("a generator cannot
+'turn these off'") foregrep ett sadant generatorbeteende och ar rattad i
+V1.1.
 
 ## Placering och isolering (Beslut 30)
 

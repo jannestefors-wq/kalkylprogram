@@ -1,17 +1,28 @@
 """
-Fixture dataset (Beslut 28).
+Fixture dataset (Beslut 28; extended for V1.1).
 
 Purpose: prove the schema hangs together end-to-end, nothing more. Content
 here is either (a) drawn verbatim from the approved Fas 0 material quoted in
 the brief (the two example series names, the eight Canonical Voice Core
-principles, two Supported Voice Principles, and the "chef avbrot" example
-input), or (b) clearly-fictional, structurally-illustrative placeholder
-material invented only to exercise fields the approved material didn't
-supply an example for (a second Idea/Source/ContentRecord, a placeholder
-Thesis Family, a placeholder reader-feedback entry). None of it is a
-publish-ready LUF post, and no real third party's words are put in their
-mouth: the Parastoo-style ReaderFeedback below is an explicit placeholder,
-not a reproduction of her actual review.
+principles, two Supported Voice Principles, the "chef avbrot" example
+input, and "Makt" as the Beslut 17 example territory), or (b)
+clearly-fictional, structurally-illustrative placeholder material invented
+only to exercise fields the approved material didn't supply an example for
+(a second Idea/Source/ContentRecord, a placeholder Thesis Family, a
+placeholder reader-feedback entry). None of it is a publish-ready LUF post,
+and no real third party's words are put in their mouth: the Parastoo-style
+ReaderFeedback below is an explicit placeholder, not a reproduction of her
+actual review.
+
+V1.1 additions: a Territory ("Makt", TER-001), a VoiceCoreSnapshot
+(SNAP-001, bundling the 8 canonical principles), and AI-attributed
+Provenance (Actor.AI_SYSTEM + analysis_logic_version) on the records that
+genuinely represent an AI-produced interpretation (IdeaInterpretation,
+Angle, the QualityAssessment, and the two draft ContentRecords) -- the
+Fas 0B-sourced registry entries (Series, ThesisFamily, VoicePrinciple,
+StyleAttribute, RepetitionSignal, ReaderEffect, Territory) stay
+Actor.HUMAN, since they represent project-leadership-approved editorial
+truth, not an automated reading of raw input.
 
 This module intentionally does not import Streamlit or anything from the
 rest of the repository -- it is self-contained.
@@ -38,7 +49,9 @@ from schema import (
     ReaderFeedback,
     Series,
     Source,
+    Territory,
     ThesisFamily,
+    VoiceCoreSnapshot,
     VoicePrinciple,
     build_variation_fingerprint,
 )
@@ -80,15 +93,28 @@ from schema.voice import RepetitionSignal, StyleAttribute
 T0 = datetime(2026, 1, 15, 9, 0, tzinfo=timezone.utc)
 
 
-def _prov(certainty: EvidenceCertainty, method: str, actor_id: str = "fas0_editorial_process") -> Provenance:
+def _prov(
+    certainty: EvidenceCertainty,
+    method: str,
+    actor_id: str = "fas0_editorial_process",
+    actor: Actor = Actor.HUMAN,
+    analysis_logic_version: str | None = None,
+) -> Provenance:
     return Provenance(
-        created_by=Actor.HUMAN,
+        created_by=actor,
         actor_id=actor_id,
         created_at=T0,
         certainty=certainty,
         method=method,
+        analysis_logic_version=analysis_logic_version,
         supporting_source_ids=[],
     )
+
+
+def _ai_prov(certainty: EvidenceCertainty, method: str, actor_id: str, analysis_logic_version: str) -> Provenance:
+    """V1.1 (OQ-2): AI-attributed provenance always carries analysis_logic_version -- Provenance's own
+    validator (schema/provenance.py) rejects Actor.AI_SYSTEM without it, so this helper cannot forget it."""
+    return _prov(certainty, method, actor_id=actor_id, actor=Actor.AI_SYSTEM, analysis_logic_version=analysis_logic_version)
 
 
 def build_fixture_dataset() -> dict[str, list]:
@@ -167,6 +193,16 @@ def build_fixture_dataset() -> dict[str, list]:
         provenance=_prov(EvidenceCertainty.VERIFIED, "fas_0a_analysis"),
     )
 
+    # ---- TERRITORY (V1.1, OQ-3 -- "Makt" is Beslut 17's own example) ------
+    territory_1 = Territory(
+        territory_id="TER-001",
+        name="Makt",
+        description="Beslut 17's own example of a territory, distinct from the 'Tillit' topic and the "
+        "'Kara ...' / 'Det langa spelet' series.",
+        created_at=T0,
+        provenance=_prov(EvidenceCertainty.VERIFIED, "fas_0a_analysis"),
+    )
+
     # ---- THESIS FAMILY (placeholder -- real Fas 0 8-family list pending) --
     thesis_family_1 = ThesisFamily(
         thesis_family_id="TF-001",
@@ -220,6 +256,18 @@ def build_fixture_dataset() -> dict[str, list]:
         for vid, text in supported_texts
     ]
     voice_principles = canonical_principles + supported_principles
+
+    # ---- VOICE CORE SNAPSHOT (V1.1, OQ-1) --------------------------------
+    # References the 8 canonical principles by id -- does not duplicate their text.
+    voice_core_snapshot_1 = VoiceCoreSnapshot(
+        snapshot_id="SNAP-001",
+        version="1.0",
+        created_at=T0,
+        voice_principle_ids=[p.voice_principle_id for p in canonical_principles],
+        active=True,
+        provenance=_prov(EvidenceCertainty.VERIFIED, "voice_core_snapshot_compilation"),
+        notes="Bundles Canonical Voice Core V1 (the 8 canonical principles) as the 'voice-core-1.0' reference.",
+    )
 
     # ---- STYLE ATTRIBUTE (2 of the Fas 0B options) ----------------------
     style_short_opening = StyleAttribute(
@@ -306,7 +354,9 @@ def build_fixture_dataset() -> dict[str, list]:
             relationship_dimension="Upprepningen eroderar tillit over tid.",
             system_dimension="Ingen i rummet ingriper -- monstret ar tyst accepterat.",
             possible_consequence="Medarbetaren slutar lagga fram ideer.",
-            provenance=_prov(EvidenceCertainty.ANALYTICAL_PROPOSAL, "fas_0a_analysis", actor_id="fas0a_pipeline_v1"),
+            provenance=_ai_prov(
+                EvidenceCertainty.ANALYTICAL_PROPOSAL, "fas_0a_analysis", "fas0a_pipeline_v1", "fas0a-analysis-logic-1.0"
+            ),
         ),
         related_series=["SER-002"],
         related_thesis_families=["TF-001"],
@@ -333,7 +383,9 @@ def build_fixture_dataset() -> dict[str, list]:
             relationship_dimension="Erodes the junior colleague's willingness to speak up again.",
             system_dimension="No meeting norm exists for acknowledging prior contributions.",
             possible_consequence="Junior colleague disengages from future idea-sharing.",
-            provenance=_prov(EvidenceCertainty.ANALYTICAL_PROPOSAL, "fas_0a_analysis", actor_id="fas0a_pipeline_v1"),
+            provenance=_ai_prov(
+                EvidenceCertainty.ANALYTICAL_PROPOSAL, "fas_0a_analysis", "fas0a_pipeline_v1", "fas0a-analysis-logic-1.0"
+            ),
         ),
         related_series=["SER-001"],
         related_thesis_families=["TF-001"],
@@ -352,7 +404,9 @@ def build_fixture_dataset() -> dict[str, list]:
         thesis_family_id="TF-001",
         primary_variation_dimension=None,
         status=AngleStatus.SELECTED,
-        provenance=_prov(EvidenceCertainty.ANALYTICAL_PROPOSAL, "fas_0a_analysis", actor_id="fas0a_pipeline_v1"),
+        provenance=_ai_prov(
+            EvidenceCertainty.ANALYTICAL_PROPOSAL, "fas_0a_analysis", "fas0a_pipeline_v1", "fas0a-analysis-logic-1.0"
+        ),
     )
 
     # ---- READER FEEDBACK (1 placeholder) ---------------------------------
@@ -380,8 +434,9 @@ def build_fixture_dataset() -> dict[str, list]:
         status=ContentStatus.QUALITY_REVIEW,
         idea_id="IDEA-001",
         angle_id="ANGLE-001",
-        voice_core_version_ref="voice-core-1.0",
+        voice_core_snapshot_id="SNAP-001",
         series_ids=["SER-002"],
+        territory_ids=["TER-001"],
         thesis_family_id="TF-001",
         what=ContentWhat(
             topic="Tillit",
@@ -430,7 +485,7 @@ def build_fixture_dataset() -> dict[str, list]:
         related_content_ids=[],
         source_ids=["SRC-001"],
         final_text=None,
-        provenance=_prov(EvidenceCertainty.ANALYTICAL_PROPOSAL, "draft_generation_fixture", actor_id="fixture"),
+        provenance=_ai_prov(EvidenceCertainty.ANALYTICAL_PROPOSAL, "draft_generation_fixture", "fixture", "draft-gen-fixture-0.1"),
     )
     content_1 = content_1.model_copy(
         update={"variation_fingerprint": build_variation_fingerprint(content_1, T0)}
@@ -446,7 +501,7 @@ def build_fixture_dataset() -> dict[str, list]:
         status=ContentStatus.PUBLISHED,
         idea_id="IDEA-002",
         angle_id=None,
-        voice_core_version_ref="voice-core-1.0",
+        voice_core_snapshot_id="SNAP-001",
         series_ids=["SER-001"],
         thesis_family_id="TF-001",
         what=ContentWhat(
@@ -491,7 +546,7 @@ def build_fixture_dataset() -> dict[str, list]:
         related_content_ids=["CONTENT-001"],
         source_ids=[],
         final_text="You've had this happen to you. [...] (fixture placeholder -- not a publish-ready post)",
-        provenance=_prov(EvidenceCertainty.ANALYTICAL_PROPOSAL, "draft_generation_fixture", actor_id="fixture"),
+        provenance=_ai_prov(EvidenceCertainty.ANALYTICAL_PROPOSAL, "draft_generation_fixture", "fixture", "draft-gen-fixture-0.1"),
     )
     content_2 = content_2.model_copy(
         update={"variation_fingerprint": build_variation_fingerprint(content_2, T0)}
@@ -511,8 +566,10 @@ def build_fixture_dataset() -> dict[str, list]:
             )
         ],
         recommended_return_point=ReturnPoint.GENERATION,
-        voice_core_version_ref="voice-core-1.0",
-        provenance=_prov(EvidenceCertainty.ANALYTICAL_PROPOSAL, "quality_gate_fixture", actor_id="fixture_quality_gate_v0"),
+        voice_core_snapshot_id="SNAP-001",
+        provenance=_ai_prov(
+            EvidenceCertainty.ANALYTICAL_PROPOSAL, "quality_gate_fixture", "fixture_quality_gate_v0", "quality-gate-fixture-0.1"
+        ),
     )
 
     # ---- HUMAN DECISION (1) ------------------------------------------------
@@ -531,8 +588,10 @@ def build_fixture_dataset() -> dict[str, list]:
         "raw_inputs": [raw_input_1, raw_input_2],
         "sources": [source_1, source_2],
         "series": [series_1, series_2],
+        "territories": [territory_1],
         "thesis_families": [thesis_family_1],
         "voice_principles": voice_principles,
+        "voice_core_snapshots": [voice_core_snapshot_1],
         "style_attributes": style_attributes,
         "repetition_signals": repetition_signals,
         "reader_effects": reader_effects_catalog,

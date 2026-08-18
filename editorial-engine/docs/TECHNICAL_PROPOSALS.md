@@ -14,14 +14,17 @@ handredigerad sanningskalla.
 **Varfor:** Beslut 27 kraver att vi valjer en sanningskalla och undviker
 Adam-problemet. Se `docs/ARCHITECTURE_NOTE.md`.
 
-## TP-2: `idea_id`, `angle_id`, `voice_core_version_ref` pa `ContentRecord`
-**Var:** `schema/content.py`
+## TP-2 (uppdaterad i V1.1): `idea_id`, `angle_id`, `voice_core_snapshot_id` pa `ContentRecord`
+**Var:** `schema/content.py`, `schema/quality.py`
 **Vad:** Tre falt som inte star i Beslut 8:s fallista.
 **Varfor:** Utan `idea_id`/`angle_id` gar det inte att sparka en
 `ContentRecord` tillbaka genom ANGLE till IDEA, vilket hela kedjan i
-Beslut 2 forutsatter. Utan `voice_core_version_ref` gar det inte att senare
-svara "den har texten bedomdes mot Voice Core 1.0" (Beslut 22:s explicita
-exempel).
+Beslut 2 forutsatter.
+**V1.1-uppdatering:** faltet hette tidigare `voice_core_version_ref` (en
+fri etikett-strang). Efter OQ-1-beslutet (infor `VoiceCoreSnapshot`) ar det
+omdopt till `voice_core_snapshot_id` och ar nu en riktig FK mot
+`VoiceCoreSnapshot.snapshot_id`, kontrollerad av `schema/integrity.py`.
+Samma bytt genomfort pa `QualityAssessment`.
 
 ## TP-3: `schema/integrity.py` — referensintegritets-kontroll
 **Var:** `schema/integrity.py`
@@ -60,10 +63,42 @@ konkreta anledningen ar Beslut 5:s krav att `raw_input != interpretation`
 strukturellt, samt Beslut 8:s egen motivering ("vad texten sager" vs. "hur
 texten ar byggd").
 
-## TP-7: `topic`/`territory` som fria taggar, inte egna entiteter
-**Var:** `schema/content.py` (`ContentWhat.topic`), `docs/ENUMS_TAXONOMIES.md`
-**Vad:** Topic och territory fick inga egna registertabeller i V1.
-**Varfor:** Beslut 26 varnar uttryckligen for att bygga ett monster. Om
-`territory` senare behover egen metadata (t.ex. en beskrivning eller
-relation till fler serier) blir det en enkel MINOR-schemaandring
-(`docs/VERSIONING_STRATEGY.md`). Se ocksa OQ-3.
+## TP-7 (SUPERSEDED i V1.1 for territory-delen): `topic`/`territory` som fria taggar
+**Var:** `schema/content.py` (`ContentWhat.topic`), `schema/territory.py`, `docs/ENUMS_TAXONOMIES.md`
+**Ursprungligt forslag (V1):** bade topic och territory fick fria taggar,
+inga egna registertabeller.
+**V1.1-beslut (OQ-3):** `topic` forblir fri text (oforandrat, godkant), men
+`territory` blev ett eget canonical register (`Territory`,
+`schema/territory.py`), refererat via `ContentRecord.territory_ids` och
+`Idea.related_territories`. TP-7 galler darfor nu bara halften av det
+ursprungliga forslaget (topic); territory-halften ar ersatt av ett
+godkant, implementerat beslut, inte langre en oppen teknisk proposal.
+
+## TP-8 (V1.1): "status" pa Territory och VoiceCoreSnapshot realiserat som `active` + `superseded_by`, ingen ny enum
+**Var:** `schema/territory.py`, `schema/voice.py` (`VoiceCoreSnapshot`)
+**Vad:** Bade V1.1-ordern (avsnitt 2 och 4) namner "status" som ett
+minimifalt for dessa tva objekt. Ingen ny statusenum skapades; istallet
+aterandvands exakt samma monster som redan finns pa `Series`,
+`ThesisFamily`, `StyleAttribute` och `RepetitionSignal` (`active: bool`),
+plus samma `superseded_by: Optional[str]`-monster som redan finns pa
+`VoicePrinciple`, for `VoiceCoreSnapshot`.
+**Varfor:** V1.1-ordern avsnitt 9 kravde uttryckligen: "Atervanand
+befintliga canonical statusbegrepp dar de passar. Skapa separat enum
+endast om lifecycle faktiskt skiljer sig." Bade Territorys livscykel
+(vaxer, pensioneras ibland) och VoiceCoreSnapshots livscykel (skapas,
+blir eventuellt ersatt av en nyare snapshot) matchar redan befintliga
+monster exakt — att uppfinna en ny enum for att bokstavligen heta "status"
+hade skapat den parallella statusmodell ordern varnar for.
+
+## TP-9 (V1.1): `VoiceCoreSnapshot` refererar principer, duplicerar dem inte
+**Var:** `schema/voice.py` (`VoiceCoreSnapshot.voice_principle_ids`)
+**Vad:** Snapshot lagrar bara en lista `voice_principle_id`-varden, inte
+kopior av `definition`/`anti_definition`.
+**Varfor:** Uttryckligen efterfragat i V1.1-ordern avsnitt 2
+("Dokumentera valet"). En princips kanoniska text har exakt ett hem
+(`VoicePrinciple`); att duplicera den i varje snapshot den nagonsin ingatt
+i hade aterskapat precis det tva-representationer-glider-isar-problem
+detta schema finns for att undvika (Beslut 27). Att slippa upp "vad sa
+princip X i snapshot Y" ar en enkel lookup (och `VoicePrinciple.version`/
+`valid_from` svarar redan pa "vid vilken tidpunkt"), sa duplicering
+skulle inte kopa nagot.

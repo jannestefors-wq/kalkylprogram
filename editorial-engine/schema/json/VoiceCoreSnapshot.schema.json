@@ -107,26 +107,13 @@
       ],
       "title": "Provenance",
       "type": "object"
-    },
-    "RepetitionSignalType": {
-      "description": "Beslut 14: known repetition risks identified in Fas 0A / 0B.",
-      "enum": [
-        "short_thesis_opening",
-        "thesis_plus_contrast",
-        "triad_or_quartet",
-        "opposing_pair",
-        "visually_structured_frame",
-        "closing_question",
-        "repeated_short_line_rhythm"
-      ],
-      "title": "RepetitionSignalType",
-      "type": "string"
     }
   },
   "additionalProperties": false,
+  "description": "V1.1, OQ-1 resolution: a free-text label like \"voice-core-1.0\" was\njudged insufficient long-term -- we must later be able to state exactly\nwhich VoicePrinciple rows a text or analysis was judged against, not\njust which label was in fashion at the time.\n\nDesign choice (documented per the order's explicit request): this\nREFERENCES existing `VoicePrinciple` rows by id\n(`voice_principle_ids`) rather than duplicating their `definition`/\n`anti_definition` text. A principle's canonical wording has exactly one\nhome (`VoicePrinciple`); duplicating it into every snapshot that ever\nincluded it would recreate the Adam-style two-representations-that-\ndrift-apart problem this schema exists to avoid (Beslut 27). Looking up\n\"what did principle X actually say under snapshot Y\" is a one-hop join\n(`VoicePrinciple.version`/`valid_from` already answers \"as of when\"),\nwhich is cheap enough that duplication buys nothing.\n\nLifecycle: reuses the exact same `active` + `superseded_by` pattern\nalready used by `VoicePrinciple` and the other registries, rather than\nintroducing a new status enum -- see docs/TECHNICAL_PROPOSALS.md TP-8\nand docs/OPEN_QUESTIONS.md (Beslut 9 of the V1.1 order: no parallel\nstatus model unless the lifecycle genuinely differs, and a snapshot's\ndoes not).",
   "properties": {
-    "repetition_signal_id": {
-      "title": "Repetition Signal Id",
+    "snapshot_id": {
+      "title": "Snapshot Id",
       "type": "string"
     },
     "schema_version": {
@@ -134,67 +121,66 @@
       "title": "Schema Version",
       "type": "string"
     },
-    "signal_type": {
-      "$ref": "#/$defs/RepetitionSignalType"
-    },
-    "related_style_attribute_id": {
-      "anyOf": [
-        {
-          "type": "string"
-        },
-        {
-          "type": "null"
-        }
-      ],
-      "default": null,
-      "description": "StyleAttribute.style_attribute_id this risk pattern is derived from, if any.",
-      "title": "Related Style Attribute Id"
-    },
-    "description": {
-      "anyOf": [
-        {
-          "type": "string"
-        },
-        {
-          "type": "null"
-        }
-      ],
-      "default": null,
-      "title": "Description"
-    },
-    "detection_notes": {
-      "anyOf": [
-        {
-          "type": "string"
-        },
-        {
-          "type": "null"
-        }
-      ],
-      "default": null,
-      "description": "Human-readable notes on how this MIGHT be measured later. No measurement is implemented here.",
-      "title": "Detection Notes"
+    "version": {
+      "description": "e.g. '1.0' -- what ContentRecord/QualityAssessment refer to as the Voice Core version used.",
+      "title": "Version",
+      "type": "string"
     },
     "created_at": {
       "format": "date-time",
       "title": "Created At",
       "type": "string"
     },
-    "provenance": {
-      "$ref": "#/$defs/Provenance"
+    "voice_principle_ids": {
+      "description": "FK -> VoicePrinciple.voice_principle_id. The exact set of principles in effect at this snapshot.",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Voice Principle Ids",
+      "type": "array"
     },
     "active": {
       "default": true,
       "title": "Active",
       "type": "boolean"
+    },
+    "superseded_by": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "snapshot_id of the snapshot that replaced this one as the current reference, if any.",
+      "title": "Superseded By"
+    },
+    "provenance": {
+      "$ref": "#/$defs/Provenance"
+    },
+    "notes": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Notes"
     }
   },
   "required": [
-    "repetition_signal_id",
-    "signal_type",
+    "snapshot_id",
+    "version",
     "created_at",
+    "voice_principle_ids",
     "provenance"
   ],
-  "title": "RepetitionSignal",
+  "title": "VoiceCoreSnapshot",
   "type": "object"
 }

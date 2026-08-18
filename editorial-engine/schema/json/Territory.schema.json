@@ -107,26 +107,12 @@
       ],
       "title": "Provenance",
       "type": "object"
-    },
-    "RepetitionSignalType": {
-      "description": "Beslut 14: known repetition risks identified in Fas 0A / 0B.",
-      "enum": [
-        "short_thesis_opening",
-        "thesis_plus_contrast",
-        "triad_or_quartet",
-        "opposing_pair",
-        "visually_structured_frame",
-        "closing_question",
-        "repeated_short_line_rhythm"
-      ],
-      "title": "RepetitionSignalType",
-      "type": "string"
     }
   },
   "additionalProperties": false,
   "properties": {
-    "repetition_signal_id": {
-      "title": "Repetition Signal Id",
+    "territory_id": {
+      "title": "Territory Id",
       "type": "string"
     },
     "schema_version": {
@@ -134,21 +120,9 @@
       "title": "Schema Version",
       "type": "string"
     },
-    "signal_type": {
-      "$ref": "#/$defs/RepetitionSignalType"
-    },
-    "related_style_attribute_id": {
-      "anyOf": [
-        {
-          "type": "string"
-        },
-        {
-          "type": "null"
-        }
-      ],
-      "default": null,
-      "description": "StyleAttribute.style_attribute_id this risk pattern is derived from, if any.",
-      "title": "Related Style Attribute Id"
+    "name": {
+      "title": "Name",
+      "type": "string"
     },
     "description": {
       "anyOf": [
@@ -161,19 +135,6 @@
       ],
       "default": null,
       "title": "Description"
-    },
-    "detection_notes": {
-      "anyOf": [
-        {
-          "type": "string"
-        },
-        {
-          "type": "null"
-        }
-      ],
-      "default": null,
-      "description": "Human-readable notes on how this MIGHT be measured later. No measurement is implemented here.",
-      "title": "Detection Notes"
     },
     "created_at": {
       "format": "date-time",
@@ -190,11 +151,11 @@
     }
   },
   "required": [
-    "repetition_signal_id",
-    "signal_type",
+    "territory_id",
+    "name",
     "created_at",
     "provenance"
   ],
-  "title": "RepetitionSignal",
+  "title": "Territory",
   "type": "object"
 }

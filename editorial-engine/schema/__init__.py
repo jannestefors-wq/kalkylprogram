@@ -29,7 +29,8 @@ from .raw_input import RawInput  # noqa: E402
 from .reader_effect import ReaderEffect, ReaderEffectAssociation, ReaderFeedback  # noqa: E402
 from .series import Series, ThesisFamily  # noqa: E402
 from .source import Source  # noqa: E402
-from .voice import RepetitionSignal, StyleAttribute, VoicePrinciple  # noqa: E402
+from .territory import Territory  # noqa: E402
+from .voice import RepetitionSignal, StyleAttribute, VoiceCoreSnapshot, VoicePrinciple  # noqa: E402
 
 __all__ = [
     "SCHEMA_VERSION",
@@ -52,7 +53,9 @@ __all__ = [
     "Series",
     "ThesisFamily",
     "Source",
+    "Territory",
     "RepetitionSignal",
     "StyleAttribute",
+    "VoiceCoreSnapshot",
     "VoicePrinciple",
 ]

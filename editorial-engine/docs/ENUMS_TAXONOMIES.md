@@ -31,15 +31,25 @@ principle som senare dras tillbaka), inte ett Fas 0B-begrepp.
 `form_bearing_pillar` · `time_perspective` · `recurring_character_or_voice` ·
 `thematic_track` · `other`
 
-## Oppna, fria vokabularer (medvetet INTE enums i V1)
+## Canonical register (V1.1 tillskott)
+
+### Territory (`schema/territory.py`)
+Inget kontrollerat enum-varde — `Territory` ar en RADPOST-baserad
+registertabell (som `Series`/`ThesisFamily`), inte en enum, eftersom
+listan over territories forvantas vaxa redaktionellt over tid pa samma
+satt som Series-listan gor. V1.1 (OQ-3): flyttat hit fran "oppna, fria
+vokabularer" nedan — se `docs/OPEN_QUESTIONS.md` (loste OQ-3) och TP-7.
+Fixture-exempel: `TER-001` "Makt" (Beslut 17:s eget exempel).
+
+## Oppna, fria vokabularer (medvetet INTE enums eller register i V1)
 
 Dessa halls som fria strangar for att undvika att lasa fast en lista som
 vaxer ofta eller vars fullstandiga innehall inte fanns i det godkanda
 underlaget:
 
 - **topic** (`ContentWhat.topic`, `ContentForm`-relaterat) — t.ex. "Tillit".
-- **territory** — inte ett eget falt i V1; se `docs/OPEN_QUESTIONS.md` OQ-3
-  for om det behover bli ett.
+  V1.1 (Beslut 12 i V1.1-ordern): explicit bekraftat att detta FORTSATT
+  ska vara fri text, till skillnad fran territory.
 - **form** (`ContentForm.form`) — t.ex. "linkedin_post", "letter".
 - **opening_type**, **dramaturgy**, **paragraph_pattern**, **signature_type**,
   **key_phrases**, **rhetorical_patterns** — fri text/lista, eftersom Fas 0

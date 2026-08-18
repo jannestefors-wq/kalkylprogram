@@ -31,8 +31,10 @@ from . import (
     ReaderFeedback,
     Series,
     Source,
+    Territory,
     ThesisFamily,
     VariationFingerprint,
+    VoiceCoreSnapshot,
     VoicePrinciple,
 )
 from .voice import RepetitionSignal, StyleAttribute
@@ -42,8 +44,10 @@ CANONICAL_TOP_LEVEL_MODELS = {
     "Idea": Idea,
     "Source": Source,
     "Series": Series,
+    "Territory": Territory,
     "ThesisFamily": ThesisFamily,
     "VoicePrinciple": VoicePrinciple,
+    "VoiceCoreSnapshot": VoiceCoreSnapshot,
     "StyleAttribute": StyleAttribute,
     "RepetitionSignal": RepetitionSignal,
     "Angle": Angle,

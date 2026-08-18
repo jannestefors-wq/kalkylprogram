@@ -81,7 +81,7 @@
             }
           ],
           "default": null,
-          "description": "Version identifier of whatever analysis logic produced an interpretation, distinct from schema_version. Required whenever created_by == AI_SYSTEM (see tests/test_relation_integrity.py).",
+          "description": "Version identifier of whatever analysis logic produced an interpretation, distinct from schema_version. REQUIRED (validated below) whenever created_by == Actor.AI_SYSTEM. May be null for human-created provenance.",
           "title": "Analysis Logic Version"
         },
         "supporting_source_ids": {

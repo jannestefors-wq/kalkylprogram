@@ -249,7 +249,7 @@
             }
           ],
           "default": null,
-          "description": "Version identifier of whatever analysis logic produced an interpretation, distinct from schema_version. Required whenever created_by == AI_SYSTEM (see tests/test_relation_integrity.py).",
+          "description": "Version identifier of whatever analysis logic produced an interpretation, distinct from schema_version. REQUIRED (validated below) whenever created_by == Actor.AI_SYSTEM. May be null for human-created provenance.",
           "title": "Analysis Logic Version"
         },
         "supporting_source_ids": {
@@ -360,6 +360,14 @@
         "type": "string"
       },
       "title": "Related Series",
+      "type": "array"
+    },
+    "related_territories": {
+      "description": "V1.1 (OQ-3) -- Territory.territory_id values.",
+      "items": {
+        "type": "string"
+      },
+      "title": "Related Territories",
       "type": "array"
     },
     "related_thesis_families": {

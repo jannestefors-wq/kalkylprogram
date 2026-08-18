@@ -11,6 +11,8 @@ graph LR
     Idea -->|idea_id| ContentRecord
     Series -->|series_ids| Idea
     Series -->|series_ids| ContentRecord
+    Territory -->|related_territories| Idea
+    Territory -->|territory_ids| ContentRecord
     ThesisFamily -->|thesis_family_id| Idea
     ThesisFamily -->|thesis_family_id| Angle
     ThesisFamily -->|thesis_family_id| ContentRecord
@@ -24,13 +26,20 @@ graph LR
     ContentRecord -->|content_id| QualityAssessment
     ContentRecord -->|target_id| HumanDecision
     QualityAssessment -->|based_on_quality_assessment_id| HumanDecision
-    VoicePrinciple -.->|voice_core_version_ref, label only| ContentRecord
-    VoicePrinciple -.->|voice_core_version_ref, label only| QualityAssessment
+    VoicePrinciple -->|voice_principle_ids| VoiceCoreSnapshot
+    VoiceCoreSnapshot -->|voice_core_snapshot_id| ContentRecord
+    VoiceCoreSnapshot -->|voice_core_snapshot_id| QualityAssessment
 ```
 
-Streckade pilar (`-.->`) = losa etikett-referenser (fri strang, inte en
-formell FK), plana pilar (`-->`) = FK mot ett `*_id`-falt som kontrolleras
-av `schema/integrity.py` och `tests/test_relation_integrity.py`.
+Plana pilar (`-->`) = FK mot ett `*_id`-falt som kontrolleras av
+`schema/integrity.py` och `tests/test_relation_integrity.py` /
+`tests/test_voice_core_snapshot.py` / `tests/test_territory.py`.
+Streckade pilar (`-.->`) = losa, icke-FK-relationer (t.ex.
+`RepetitionSignal.related_style_attribute_id`, valfri).
+
+**V1.1-andring:** `VoicePrinciple -.-> ContentRecord/QualityAssessment`
+(en los etikett, `voice_core_version_ref`) ar ersatt av en riktig FK-kedja
+via `VoiceCoreSnapshot` (OQ-1). `Territory` ar ett nytt register (OQ-3).
 
 ## Objekt och deras identitet
 
@@ -40,8 +49,10 @@ av `schema/integrity.py` och `tests/test_relation_integrity.py`.
 | Idea | `idea_id` | Ja — `IdeaStatus` | `schema/idea.py` |
 | Source | `source_id` | Nej — statisk beskrivning av materialet | `schema/source.py` |
 | Series | `series_id` | Nej — `active: bool` racker (register vaxer, andrar inte betydelse) | `schema/series.py` |
+| Territory | `territory_id` | Nej — `active: bool`, samma monster som Series (V1.1, TP-8) | `schema/territory.py` |
 | ThesisFamily | `thesis_family_id` | Nej — samma som Series | `schema/series.py` |
 | VoicePrinciple | `voice_principle_id` | Ja — `VoicePrincipleStatus` (canonical/supported/proposal/deprecated) | `schema/voice.py` |
+| VoiceCoreSnapshot | `snapshot_id` | Nej — `active: bool` + `superseded_by`, samma monster som VoicePrinciple (V1.1, TP-8) | `schema/voice.py` |
 | StyleAttribute | `style_attribute_id` | Nej — `active: bool` | `schema/voice.py` |
 | RepetitionSignal | `repetition_signal_id` | Nej — `active: bool` | `schema/voice.py` |
 | Angle | `angle_id` | Ja — `AngleStatus` | `schema/angle.py` |
@@ -54,9 +65,10 @@ av `schema/integrity.py` och `tests/test_relation_integrity.py`.
 
 ## Vardeobjekt (ingen egen id, alltid inbaddade)
 
-- `Provenance` — pa `IdeaInterpretation`, `Series`, `ThesisFamily`,
-  `VoicePrinciple.evidence`, `StyleAttribute`, `RepetitionSignal`, `Angle`,
-  `ReaderEffect`, `ContentRecord`, `QualityAssessment`.
+- `Provenance` — pa `IdeaInterpretation`, `Series`, `Territory`,
+  `ThesisFamily`, `VoicePrinciple.evidence`, `VoiceCoreSnapshot`,
+  `StyleAttribute`, `RepetitionSignal`, `Angle`, `ReaderEffect`,
+  `ContentRecord`, `QualityAssessment`.
 - `ContentWhat`, `ContentForm` — inbaddade i `ContentRecord` (Beslut 8:s
   "vad texten sager" / "hur texten ar byggd"-uppdelning).
 - `ReaderEffectAssociation` — inbaddad i `ContentRecord.reader_effects`.
@@ -82,7 +94,8 @@ RawInput(raw_input_id)
                  <- QualityAssessment(content_id)
                       <- HumanDecision(target_id=content_id | quality_assessment_id via based_on_quality_assessment_id)
 Source(source_id) referens fran: Idea, ContentRecord
-Series/ThesisFamily referens fran: Idea, Angle, ContentRecord
-VoicePrinciple/StyleAttribute/RepetitionSignal/ReaderEffect referens fran: ContentRecord
+Series/Territory/ThesisFamily referens fran: Idea, Angle (endast ThesisFamily), ContentRecord
+VoiceCoreSnapshot(voice_principle_ids -> VoicePrinciple) referens fran: ContentRecord, QualityAssessment
+StyleAttribute/RepetitionSignal/ReaderEffect referens fran: ContentRecord
 ReaderFeedback(content_reference=content_id) -> ReaderEffectAssociation.evidence_reader_feedback_ids
 ```

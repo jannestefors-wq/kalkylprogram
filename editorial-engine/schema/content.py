@@ -10,12 +10,17 @@ framtida repetitionskontroll." No field was dropped; `series` was renamed
 per Beslut 15's explicit 0..N + intended/observed requirement, which
 supersedes the singular field named in Beslut 8.
 
-TECHNICAL PROPOSAL: `idea_id`, `angle_id` and `voice_core_version_ref` were
+TECHNICAL PROPOSAL: `idea_id`, `angle_id` and `voice_core_snapshot_id` were
 added -- not present in Beslut 8's list -- because without them a
 ContentRecord cannot be traced back through ANGLE to IDEA, or checked
-against a specific Voice Core version, both of which the chain in Beslut 2
+against a specific Voice Core snapshot, both of which the chain in Beslut 2
 and the versioning requirement in Beslut 22 depend on. Flagged in
-docs/TECHNICAL_PROPOSALS.md.
+docs/TECHNICAL_PROPOSALS.md (TP-2, updated in V1.1 when the field was
+promoted from a free-text label to a real FK -- see OQ-1 resolution).
+
+V1.1 (OQ-3): `territory_ids` was added -- Territory is now its own
+canonical register (schema/territory.py), never a series_id or a topic
+string. See TP-7 (updated).
 
 Beslut 10 (four variation dimensions) maps onto this module as:
     CONTENT     -> ContentWhat
@@ -177,12 +182,18 @@ class ContentRecord(BaseModel):
 
     idea_id: Optional[str] = Field(default=None, description="TECHNICAL PROPOSAL field -- FK -> Idea.idea_id.")
     angle_id: Optional[str] = Field(default=None, description="TECHNICAL PROPOSAL field -- FK -> Angle.angle_id.")
-    voice_core_version_ref: Optional[str] = Field(
+    voice_core_snapshot_id: Optional[str] = Field(
         default=None,
-        description="TECHNICAL PROPOSAL field -- label like 'voice-core-1.0' this text was authored/judged against.",
+        description="TECHNICAL PROPOSAL field -- FK -> VoiceCoreSnapshot.snapshot_id this text was authored/judged "
+        "against. V1.1: replaces the earlier free-text 'voice_core_version_ref' label (OQ-1) with an actual "
+        "reference, so the exact set of principles in effect is always recoverable, not just a version label.",
     )
 
     series_ids: list[str] = Field(default_factory=list, description="Series.series_id values.")
+    territory_ids: list[str] = Field(
+        default_factory=list,
+        description="V1.1 (OQ-3) -- Territory.territory_id values. Never a series_id or a free topic string.",
+    )
     thesis_family_id: Optional[str] = None
 
     what: ContentWhat = Field(default_factory=ContentWhat)

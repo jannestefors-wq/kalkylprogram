@@ -110,6 +110,27 @@
       "active": true
     }
   ],
+  "territories": [
+    {
+      "territory_id": "TER-001",
+      "schema_version": "1.0.0",
+      "name": "Makt",
+      "description": "Beslut 17's own example of a territory, distinct from the 'Tillit' topic and the 'Kara ...' / 'Det langa spelet' series.",
+      "created_at": "2026-01-15T09:00:00Z",
+      "provenance": {
+        "created_by": "human",
+        "actor_id": "fas0_editorial_process",
+        "created_at": "2026-01-15T09:00:00Z",
+        "certainty": "verified",
+        "method": "fas_0a_analysis",
+        "analysis_logic_version": null,
+        "supporting_source_ids": [],
+        "schema_version": "1.0.0",
+        "notes": null
+      },
+      "active": true
+    }
+  ],
   "thesis_families": [
     {
       "thesis_family_id": "TF-001",
@@ -377,6 +398,38 @@
       "superseded_by": null
     }
   ],
+  "voice_core_snapshots": [
+    {
+      "snapshot_id": "SNAP-001",
+      "schema_version": "1.0.0",
+      "version": "1.0",
+      "created_at": "2026-01-15T09:00:00Z",
+      "voice_principle_ids": [
+        "VP-C1",
+        "VP-C2",
+        "VP-C3",
+        "VP-C4",
+        "VP-C5",
+        "VP-C6",
+        "VP-C7",
+        "VP-C8"
+      ],
+      "active": true,
+      "superseded_by": null,
+      "provenance": {
+        "created_by": "human",
+        "actor_id": "fas0_editorial_process",
+        "created_at": "2026-01-15T09:00:00Z",
+        "certainty": "verified",
+        "method": "voice_core_snapshot_compilation",
+        "analysis_logic_version": null,
+        "supporting_source_ids": [],
+        "schema_version": "1.0.0",
+        "notes": null
+      },
+      "notes": "Bundles Canonical Voice Core V1 (the 8 canonical principles) as the 'voice-core-1.0' reference."
+    }
+  ],
   "style_attributes": [
     {
       "style_attribute_id": "SA-001",
@@ -540,12 +593,12 @@
         "system_dimension": "Ingen i rummet ingriper -- monstret ar tyst accepterat.",
         "possible_consequence": "Medarbetaren slutar lagga fram ideer.",
         "provenance": {
-          "created_by": "human",
+          "created_by": "ai_system",
           "actor_id": "fas0a_pipeline_v1",
           "created_at": "2026-01-15T09:00:00Z",
           "certainty": "analytical_proposal",
           "method": "fas_0a_analysis",
-          "analysis_logic_version": null,
+          "analysis_logic_version": "fas0a-analysis-logic-1.0",
           "supporting_source_ids": [],
           "schema_version": "1.0.0",
           "notes": null
@@ -554,6 +607,7 @@
       "related_series": [
         "SER-002"
       ],
+      "related_territories": [],
       "related_thesis_families": [
         "TF-001"
       ],
@@ -590,12 +644,12 @@
         "system_dimension": "No meeting norm exists for acknowledging prior contributions.",
         "possible_consequence": "Junior colleague disengages from future idea-sharing.",
         "provenance": {
-          "created_by": "human",
+          "created_by": "ai_system",
           "actor_id": "fas0a_pipeline_v1",
           "created_at": "2026-01-15T09:00:00Z",
           "certainty": "analytical_proposal",
           "method": "fas_0a_analysis",
-          "analysis_logic_version": null,
+          "analysis_logic_version": "fas0a-analysis-logic-1.0",
           "supporting_source_ids": [],
           "schema_version": "1.0.0",
           "notes": null
@@ -604,6 +658,7 @@
       "related_series": [
         "SER-001"
       ],
+      "related_territories": [],
       "related_thesis_families": [
         "TF-001"
       ],
@@ -631,12 +686,12 @@
       "rejected_reason": null,
       "superseded_by": null,
       "provenance": {
-        "created_by": "human",
+        "created_by": "ai_system",
         "actor_id": "fas0a_pipeline_v1",
         "created_at": "2026-01-15T09:00:00Z",
         "certainty": "analytical_proposal",
         "method": "fas_0a_analysis",
-        "analysis_logic_version": null,
+        "analysis_logic_version": "fas0a-analysis-logic-1.0",
         "supporting_source_ids": [],
         "schema_version": "1.0.0",
         "notes": null
@@ -673,9 +728,12 @@
       "status": "quality_review",
       "idea_id": "IDEA-001",
       "angle_id": "ANGLE-001",
-      "voice_core_version_ref": "voice-core-1.0",
+      "voice_core_snapshot_id": "SNAP-001",
       "series_ids": [
         "SER-002"
+      ],
+      "territory_ids": [
+        "TER-001"
       ],
       "thesis_family_id": "TF-001",
       "what": {
@@ -763,12 +821,12 @@
       ],
       "final_text": null,
       "provenance": {
-        "created_by": "human",
+        "created_by": "ai_system",
         "actor_id": "fixture",
         "created_at": "2026-01-15T09:00:00Z",
         "certainty": "analytical_proposal",
         "method": "draft_generation_fixture",
-        "analysis_logic_version": null,
+        "analysis_logic_version": "draft-gen-fixture-0.1",
         "supporting_source_ids": [],
         "schema_version": "1.0.0",
         "notes": null
@@ -786,10 +844,11 @@
       "status": "published",
       "idea_id": "IDEA-002",
       "angle_id": null,
-      "voice_core_version_ref": "voice-core-1.0",
+      "voice_core_snapshot_id": "SNAP-001",
       "series_ids": [
         "SER-001"
       ],
+      "territory_ids": [],
       "thesis_family_id": "TF-001",
       "what": {
         "topic": "Recognition",
@@ -868,12 +927,12 @@
       "source_ids": [],
       "final_text": "You've had this happen to you. [...] (fixture placeholder -- not a publish-ready post)",
       "provenance": {
-        "created_by": "human",
+        "created_by": "ai_system",
         "actor_id": "fixture",
         "created_at": "2026-01-15T09:00:00Z",
         "certainty": "analytical_proposal",
         "method": "draft_generation_fixture",
-        "analysis_logic_version": null,
+        "analysis_logic_version": "draft-gen-fixture-0.1",
         "supporting_source_ids": [],
         "schema_version": "1.0.0",
         "notes": null
@@ -896,14 +955,14 @@
         }
       ],
       "recommended_return_point": "generation",
-      "voice_core_version_ref": "voice-core-1.0",
+      "voice_core_snapshot_id": "SNAP-001",
       "provenance": {
-        "created_by": "human",
+        "created_by": "ai_system",
         "actor_id": "fixture_quality_gate_v0",
         "created_at": "2026-01-15T09:00:00Z",
         "certainty": "analytical_proposal",
         "method": "quality_gate_fixture",
-        "analysis_logic_version": null,
+        "analysis_logic_version": "quality-gate-fixture-0.1",
         "supporting_source_ids": [],
         "schema_version": "1.0.0",
         "notes": null

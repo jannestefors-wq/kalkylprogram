@@ -3,8 +3,14 @@ VOICE PRINCIPLE, STYLE ATTRIBUTE, REPETITION SIGNAL (Beslut 11-14).
 
 Three separate registries, on purpose:
 
-    VoicePrinciple   -- WHO LUF is (Voice Core + supported principles).
-                         Never optional; a generator cannot "turn these off".
+    VoicePrinciple   -- WHO LUF is (Voice Core + supported principles): a
+                         canonical, versioned, evidence-bearing editorial
+                         reference, obligatory input to any future traceable
+                         assessment that uses it. (V1.1 correction: this
+                         schema describes what the canonical data MEANS: it
+                         does not prescribe how a not-yet-built generator
+                         must consume it -- that is a future, separately
+                         approved decision, not encoded here.)
     StyleAttribute   -- HOW a text may choose to sound (Style Options).
                          All of them are optional simultaneously (Beslut 13:
                          a future component must be able to reject every
@@ -77,6 +83,50 @@ class StyleAttribute(BaseModel):
     created_at: datetime
     provenance: Provenance
     active: bool = True
+
+
+class VoiceCoreSnapshot(BaseModel):
+    """
+    V1.1, OQ-1 resolution: a free-text label like "voice-core-1.0" was
+    judged insufficient long-term -- we must later be able to state exactly
+    which VoicePrinciple rows a text or analysis was judged against, not
+    just which label was in fashion at the time.
+
+    Design choice (documented per the order's explicit request): this
+    REFERENCES existing `VoicePrinciple` rows by id
+    (`voice_principle_ids`) rather than duplicating their `definition`/
+    `anti_definition` text. A principle's canonical wording has exactly one
+    home (`VoicePrinciple`); duplicating it into every snapshot that ever
+    included it would recreate the Adam-style two-representations-that-
+    drift-apart problem this schema exists to avoid (Beslut 27). Looking up
+    "what did principle X actually say under snapshot Y" is a one-hop join
+    (`VoicePrinciple.version`/`valid_from` already answers "as of when"),
+    which is cheap enough that duplication buys nothing.
+
+    Lifecycle: reuses the exact same `active` + `superseded_by` pattern
+    already used by `VoicePrinciple` and the other registries, rather than
+    introducing a new status enum -- see docs/TECHNICAL_PROPOSALS.md TP-8
+    and docs/OPEN_QUESTIONS.md (Beslut 9 of the V1.1 order: no parallel
+    status model unless the lifecycle genuinely differs, and a snapshot's
+    does not).
+    """
+
+    model_config = {"extra": "forbid"}
+
+    snapshot_id: str
+    schema_version: str = Field(default=SCHEMA_VERSION)
+    version: str = Field(description="e.g. '1.0' -- what ContentRecord/QualityAssessment refer to as the Voice Core version used.")
+    created_at: datetime
+    voice_principle_ids: list[str] = Field(
+        min_length=1,
+        description="FK -> VoicePrinciple.voice_principle_id. The exact set of principles in effect at this snapshot.",
+    )
+    active: bool = True
+    superseded_by: Optional[str] = Field(
+        default=None, description="snapshot_id of the snapshot that replaced this one as the current reference, if any."
+    )
+    provenance: Provenance
+    notes: Optional[str] = None
 
 
 class RepetitionSignal(BaseModel):

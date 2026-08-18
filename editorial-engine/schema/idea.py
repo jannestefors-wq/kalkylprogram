@@ -85,6 +85,9 @@ class Idea(BaseModel):
     )
 
     related_series: list[str] = Field(default_factory=list, description="Series.series_id values.")
+    related_territories: list[str] = Field(
+        default_factory=list, description="V1.1 (OQ-3) -- Territory.territory_id values."
+    )
     related_thesis_families: list[str] = Field(default_factory=list, description="ThesisFamily.thesis_family_id values.")
     related_models: list[str] = Field(default_factory=list, description="Free identifiers for photo/story models involved.")
     related_characters: list[str] = Field(default_factory=list)

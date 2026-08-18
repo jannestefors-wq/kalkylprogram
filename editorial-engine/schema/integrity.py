@@ -40,6 +40,9 @@ def check_relations(dataset: dict[str, list]) -> list[RelationViolation]:
         "repetition_signals": {r.repetition_signal_id for r in dataset.get("repetition_signals", [])},
         "quality_assessments": {q.quality_assessment_id for q in dataset.get("quality_assessments", [])},
         "raw_inputs": {r.raw_input_id for r in dataset.get("raw_inputs", [])},
+        "territories": {t.territory_id for t in dataset.get("territories", [])},
+        "voice_core_snapshots": {v.snapshot_id for v in dataset.get("voice_core_snapshots", [])},
+        "voice_principles": {v.voice_principle_id for v in dataset.get("voice_principles", [])},
     }
 
     violations: list[RelationViolation] = []
@@ -56,6 +59,7 @@ def check_relations(dataset: dict[str, list]) -> list[RelationViolation]:
         _check("Idea", idea.idea_id, "raw_input_id", idea.raw_input_id, "raw_inputs")
         _check("Idea", idea.idea_id, "source_id", idea.source_id, "sources")
         _check_many("Idea", idea.idea_id, "related_series", idea.related_series, "series")
+        _check_many("Idea", idea.idea_id, "related_territories", idea.related_territories, "territories")
         _check_many("Idea", idea.idea_id, "related_thesis_families", idea.related_thesis_families, "thesis_families")
 
     for angle in dataset.get("angles", []):
@@ -66,7 +70,9 @@ def check_relations(dataset: dict[str, list]) -> list[RelationViolation]:
         _check("ContentRecord", content.content_id, "idea_id", content.idea_id, "ideas")
         _check("ContentRecord", content.content_id, "angle_id", content.angle_id, "angles")
         _check("ContentRecord", content.content_id, "thesis_family_id", content.thesis_family_id, "thesis_families")
+        _check("ContentRecord", content.content_id, "voice_core_snapshot_id", content.voice_core_snapshot_id, "voice_core_snapshots")
         _check_many("ContentRecord", content.content_id, "series_ids", content.series_ids, "series")
+        _check_many("ContentRecord", content.content_id, "territory_ids", content.territory_ids, "territories")
         _check_many("ContentRecord", content.content_id, "source_ids", content.source_ids, "sources")
         _check_many(
             "ContentRecord", content.content_id, "style_attributes_used", content.style_attributes_used, "style_attributes"
@@ -90,6 +96,16 @@ def check_relations(dataset: dict[str, list]) -> list[RelationViolation]:
 
     for qa in dataset.get("quality_assessments", []):
         _check("QualityAssessment", qa.quality_assessment_id, "content_id", qa.content_id, "content_records")
+        _check(
+            "QualityAssessment", qa.quality_assessment_id, "voice_core_snapshot_id", qa.voice_core_snapshot_id,
+            "voice_core_snapshots",
+        )
+
+    for snapshot in dataset.get("voice_core_snapshots", []):
+        _check_many(
+            "VoiceCoreSnapshot", snapshot.snapshot_id, "voice_principle_ids", snapshot.voice_principle_ids,
+            "voice_principles",
+        )
 
     for hd in dataset.get("human_decisions", []):
         _check(
