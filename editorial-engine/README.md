@@ -1,17 +1,20 @@
-# LUF Editorial Engine — Canonical Editorial Schema V1
+# LUF Editorial Engine
 
-Isolerat schemaomrade. Bygger INGEN motor — se `docs/ARCHITECTURE_NOTE.md`
-"Vad som INTE byggts".
+Canonical Foundation V1 (schema + canonical referensdata) plus V1A, den
+forsta vertikala motorkedjan (rent domanlogik, ingen generator). Se
+`docs/ARCHITECTURE_NOTE.md` for Canonical Foundation, `docs/V1A_PURPOSE.md`
+for vad V1A bevisar och `docs/V1A_DOES_NOT_DO.md` for dess avgransning.
 
 ## Struktur
 
 ```
 editorial-engine/
   schema/          kanonisk sanningskalla (Pydantic-modeller) + avledd JSON Schema
-  canonical_data/  verklig canonical referensdata (16 Series, 8 ThesisFamily) + kallfiler fran Work
+  canonical_data/  verklig canonical referensdata (16 Series, 8 ThesisFamily, Territory, Reader Feedback) + kallfiler
+  engine/          V1A: Raw Idea -> Interpretation -> Classification -> Comparison -> Angles -> Recommendation -> Human Decision
   fixtures/        litet exempeldataset som bevisar att modellen hanger ihop
-  tests/           valideringstester (schema, inte en framtida motor)
-  docs/            arkitektur, entitetskarta, versionering, provenance, open questions
+  tests/           valideringstester (schema + V1A, inte en framtida generator)
+  docs/            arkitektur, entitetskarta, versionering, provenance, open questions, V1A-dokumentation
 ```
 
 ## Kom igang
