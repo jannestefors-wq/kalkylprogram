@@ -1,0 +1,7 @@
+# Root .gitignore excludes *.json repo-wide (for the house app's data files).
+# Re-include JSON inside editorial-engine/: the derived JSON Schema exports
+# and the fixture dataset dump are deliverables of this schema area.
+!*.json
+
+.pytest_cache/
+schema/json/*.json.tmp

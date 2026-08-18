@@ -1,0 +1,1446 @@
+{
+  "raw_inputs": [
+    {
+      "raw_input_id": "RI-001",
+      "schema_version": "1.0.0",
+      "captured_at": "2026-01-15T09:00:00Z",
+      "text": "En chef avbrot samma medarbetare tre ganger under motet.",
+      "input_type": "observation",
+      "origin_note": "Janne, observation from a leadership meeting.",
+      "language": "sv",
+      "content_hash": "0e73222a0ce1acaced89529a89ee36706534377b88ce40b8d2b8144e7040e066"
+    },
+    {
+      "raw_input_id": "RI-002",
+      "schema_version": "1.0.0",
+      "captured_at": "2026-01-15T09:00:00Z",
+      "text": "A team lead presented an idea in the all-hands. It was the same idea a junior colleague had already raised twice in earlier meetings, without follow-up either time.",
+      "input_type": "observation",
+      "origin_note": "Fixture placeholder observation (illustrative only).",
+      "language": "en",
+      "content_hash": "3d34656d3142c11510ff0de9dd0dd65896a952008f87344b3ec926bd1b33502e"
+    }
+  ],
+  "sources": [
+    {
+      "source_id": "SRC-001",
+      "schema_version": "1.0.0",
+      "source_type": "experience",
+      "title": "Leadership meeting observation log",
+      "author": "Janne Stefors",
+      "date": "2026-01-15T09:00:00Z",
+      "language": "sv",
+      "origin": "Direct observation",
+      "content_reference": null,
+      "themes": [
+        "power",
+        "voice",
+        "interruption"
+      ],
+      "people": [],
+      "models": [],
+      "series": [
+        "series-dear-001"
+      ],
+      "reliability": "verified",
+      "usage_rights": "owned",
+      "notes": "Fixture source backing RI-001 / IDEA-001."
+    },
+    {
+      "source_id": "SRC-002",
+      "schema_version": "1.0.0",
+      "source_type": "review",
+      "title": "Reader feedback compilation (TEST_ONLY placeholder)",
+      "author": null,
+      "date": "2026-01-15T09:00:00Z",
+      "language": "en",
+      "origin": "TEST_ONLY fixture placeholder -- not a real source.",
+      "content_reference": null,
+      "themes": [
+        "credit",
+        "recognition"
+      ],
+      "people": [],
+      "models": [],
+      "series": [],
+      "reliability": "reported",
+      "usage_rights": "unclear",
+      "notes": "TEST_ONLY. See ReaderFeedback RF-TEST-ONLY-001. The real Parastoo Ebrahimzadeh review is in canonical_data/, backed by its own Source (source-book-leadership-without-filter)."
+    },
+    {
+      "source_id": "source-book-leadership-without-filter",
+      "schema_version": "1.0.0",
+      "source_type": "book",
+      "title": "Leadership Without Filter",
+      "author": "Jan Stefors",
+      "date": null,
+      "language": null,
+      "origin": null,
+      "content_reference": null,
+      "themes": [],
+      "people": [],
+      "models": [],
+      "series": [],
+      "reliability": null,
+      "usage_rights": null,
+      "notes": "Bibliographic stub created to give ReaderFeedback.source_id a real target for 'reader-feedback-parastoo-ebrahimzadeh-leadership-without-filter-001', without fabricating a ContentRecord. See canonical_data/reader_feedback_registry.py module docstring."
+    }
+  ],
+  "series": [
+    {
+      "series_id": "series-dear-001",
+      "schema_version": "1.0.0",
+      "name": "Kära …",
+      "role": "form_bearing_pillar",
+      "description": "Direkt tal till roller i arbete och relationer om ansvar, konsekvens och mänsklighet.",
+      "created_at": "2026-08-18T00:00:00Z",
+      "provenance": {
+        "created_by": "human",
+        "actor_id": "work_fas0a_editorial_process",
+        "created_at": "2026-08-18T00:00:00Z",
+        "certainty": "verified",
+        "method": "work_canonical_data_pack_v1",
+        "analysis_logic_version": null,
+        "supporting_source_ids": [],
+        "schema_version": "1.0.0",
+        "notes": "Sprak: sv. Evidence: Fas 0A Series Registry: etablerad pelare. Notes: CLASSIFICATION_REVIEW_REQUIRED: formen är brevet/pelaren och kan bära flera ämnen. Projektledarbeslut A (Canonical Data Integration V1): behall som SERIES, status canonical. Formbarande pelare som kan bara flera amnen -- hindrar inte att den samtidigt ar ett etablerat redaktionellt seriesspar."
+      },
+      "active": true
+    },
+    {
+      "series_id": "series-diagnosis-before-solution-001",
+      "schema_version": "1.0.0",
+      "name": "Diagnos före lösning",
+      "role": "other",
+      "description": "Går bakom symptom till grundorsaker i människa, system och kultur.",
+      "created_at": "2026-08-18T00:00:00Z",
+      "provenance": {
+        "created_by": "human",
+        "actor_id": "work_fas0a_editorial_process",
+        "created_at": "2026-08-18T00:00:00Z",
+        "certainty": "verified",
+        "method": "work_canonical_data_pack_v1",
+        "analysis_logic_version": null,
+        "supporting_source_ids": [],
+        "schema_version": "1.0.0",
+        "notes": "Sprak: sv. Evidence: Fas 0A Series Registry: etablerad, Svenska, Akademin. Notes: Metodserie med caseform."
+      },
+      "active": true
+    },
+    {
+      "series_id": "series-long-game-001",
+      "schema_version": "1.0.0",
+      "name": "Det långa spelet",
+      "role": "time_perspective",
+      "description": "Val över tid inom karriär, pengar, relationer, åldrande, status och arv.",
+      "created_at": "2026-08-18T00:00:00Z",
+      "provenance": {
+        "created_by": "human",
+        "actor_id": "work_fas0a_editorial_process",
+        "created_at": "2026-08-18T00:00:00Z",
+        "certainty": "strongly_supported",
+        "method": "work_canonical_data_pack_v1",
+        "analysis_logic_version": null,
+        "supporting_source_ids": [],
+        "schema_version": "1.0.0",
+        "notes": "Sprak: sv. Evidence: Fas 0A Series Registry: planerad permanent serie. Notes: Planerad. Inte verifierad som publicerad serie."
+      },
+      "active": true
+    },
+    {
+      "series_id": "series-worklife-lies-001",
+      "schema_version": "1.0.0",
+      "name": "Arbetslivets lögner",
+      "role": "other",
+      "description": "Bekväma berättelser och uttalade eller outtalade osanningar i arbetslivet.",
+      "created_at": "2026-08-18T00:00:00Z",
+      "provenance": {
+        "created_by": "human",
+        "actor_id": "work_fas0a_editorial_process",
+        "created_at": "2026-08-18T00:00:00Z",
+        "certainty": "verified",
+        "method": "work_canonical_data_pack_v1",
+        "analysis_logic_version": null,
+        "supporting_source_ids": [],
+        "schema_version": "1.0.0",
+        "notes": "Sprak: sv. Evidence: Fas 0A Series Registry: etablerad seriemarkering. Notes: Tematiskt närliggande tystnad och valda sanningar."
+      },
+      "active": true
+    },
+    {
+      "series_id": "series-everyone-knows-001",
+      "schema_version": "1.0.0",
+      "name": "Alla vet. Ingen säger det.",
+      "role": "other",
+      "description": "Det kollektivt kända som inte får språk.",
+      "created_at": "2026-08-18T00:00:00Z",
+      "provenance": {
+        "created_by": "human",
+        "actor_id": "work_fas0a_editorial_process",
+        "created_at": "2026-08-18T00:00:00Z",
+        "certainty": "verified",
+        "method": "work_canonical_data_pack_v1",
+        "analysis_logic_version": null,
+        "supporting_source_ids": [],
+        "schema_version": "1.0.0",
+        "notes": "Sprak: sv. Evidence: Fas 0A Series Registry: etablerad seriemarkering. Notes: Fokus på tystnadens sociala mekanik."
+      },
+      "active": true
+    },
+    {
+      "series_id": "series-silent-price-001",
+      "schema_version": "1.0.0",
+      "name": "Det tysta priset",
+      "role": "other",
+      "description": "Vad människor och organisationer förlorar när sanningen blir dyr.",
+      "created_at": "2026-08-18T00:00:00Z",
+      "provenance": {
+        "created_by": "human",
+        "actor_id": "work_fas0a_editorial_process",
+        "created_at": "2026-08-18T00:00:00Z",
+        "certainty": "verified",
+        "method": "work_canonical_data_pack_v1",
+        "analysis_logic_version": null,
+        "supporting_source_ids": [],
+        "schema_version": "1.0.0",
+        "notes": "Sprak: sv. Evidence: Fas 0A Series Registry: etablerad seriemarkering. Notes: Närliggande Alla vet. Ingen säger det. Fokus ligger på konsekvens snarare än observation."
+      },
+      "active": true
+    },
+    {
+      "series_id": "series-meetings-we-should-skip-001",
+      "schema_version": "1.0.0",
+      "name": "Möten vi borde slippa",
+      "role": "other",
+      "description": "Mötesformer och organisatoriskt slöseri.",
+      "created_at": "2026-08-18T00:00:00Z",
+      "provenance": {
+        "created_by": "human",
+        "actor_id": "work_fas0a_editorial_process",
+        "created_at": "2026-08-18T00:00:00Z",
+        "certainty": "verified",
+        "method": "work_canonical_data_pack_v1",
+        "analysis_logic_version": null,
+        "supporting_source_ids": [],
+        "schema_version": "1.0.0",
+        "notes": "Sprak: sv. Evidence: Fas 0A Series Registry: etablerad seriemarkering. Notes: Smalare vardagsformat."
+      },
+      "active": true
+    },
+    {
+      "series_id": "series-culture-without-filter-001",
+      "schema_version": "1.0.0",
+      "name": "Kultur utan filter",
+      "role": "other",
+      "description": "Kultur som faktiskt beteende, inte värdeord.",
+      "created_at": "2026-08-18T00:00:00Z",
+      "provenance": {
+        "created_by": "human",
+        "actor_id": "work_fas0a_editorial_process",
+        "created_at": "2026-08-18T00:00:00Z",
+        "certainty": "verified",
+        "method": "work_canonical_data_pack_v1",
+        "analysis_logic_version": null,
+        "supporting_source_ids": [],
+        "schema_version": "1.0.0",
+        "notes": "Sprak: sv. Evidence: Fas 0A Series Registry: etablerad seriemarkering. Notes: System- och normfokus."
+      },
+      "active": true
+    },
+    {
+      "series_id": "series-upside-down-world-001",
+      "schema_version": "1.0.0",
+      "name": "Välkommen till tvärtomvärlden",
+      "role": "other",
+      "description": "Det invanda vänds och granskas från motsatt håll.",
+      "created_at": "2026-08-18T00:00:00Z",
+      "provenance": {
+        "created_by": "human",
+        "actor_id": "work_fas0a_editorial_process",
+        "created_at": "2026-08-18T00:00:00Z",
+        "certainty": "verified",
+        "method": "work_canonical_data_pack_v1",
+        "analysis_logic_version": null,
+        "supporting_source_ids": [],
+        "schema_version": "1.0.0",
+        "notes": "Sprak: sv. Evidence: Fas 0A Series Registry: etablerad seriemarkering. Notes: CLASSIFICATION_REVIEW_REQUIRED: retoriskt perspektivformat snarare än ett tydligt avgränsat territorium. Projektledarbeslut B (Canonical Data Integration V1): behall som SERIES, status canonical. Perspektivvandningen ar seriens aterkommande redaktionella identitet."
+      },
+      "active": true
+    },
+    {
+      "series_id": "series-enough-now-001",
+      "schema_version": "1.0.0",
+      "name": "Nu räcker det",
+      "role": "other",
+      "description": "Gränssättning mot destruktiva arbetslivsmönster.",
+      "created_at": "2026-08-18T00:00:00Z",
+      "provenance": {
+        "created_by": "human",
+        "actor_id": "work_fas0a_editorial_process",
+        "created_at": "2026-08-18T00:00:00Z",
+        "certainty": "verified",
+        "method": "work_canonical_data_pack_v1",
+        "analysis_logic_version": null,
+        "supporting_source_ids": [],
+        "schema_version": "1.0.0",
+        "notes": "Sprak: sv. Evidence: Fas 0A Series Registry: etablerad seriemarkering. Notes: Mer konfrontativt och mobiliserande."
+      },
+      "active": true
+    },
+    {
+      "series_id": "series-one-thing-001",
+      "schema_version": "1.0.0",
+      "name": "Om du bara fick välja en sak …",
+      "role": "other",
+      "description": "Återkommande reflektionsfråga om verklig förändring.",
+      "created_at": "2026-08-18T00:00:00Z",
+      "provenance": {
+        "created_by": "human",
+        "actor_id": "work_fas0a_editorial_process",
+        "created_at": "2026-08-18T00:00:00Z",
+        "certainty": "strongly_supported",
+        "method": "work_canonical_data_pack_v1",
+        "analysis_logic_version": null,
+        "supporting_source_ids": [],
+        "schema_version": "1.0.0",
+        "notes": "Sprak: sv. Evidence: Fas 0A Series Registry: etablerad/planerad. Notes: CLASSIFICATION_REVIEW_REQUIRED: frågeformat, inte eget territorium. Projektledarbeslut C (Canonical Data Integration V1): behall som SERIES, status strongly_supported. Aterkommande frageformat som kan anvandas over flera territorier. Ingen uppgradering till canonical."
+      },
+      "active": true
+    },
+    {
+      "series_id": "series-ai-sees-001",
+      "schema_version": "1.0.0",
+      "name": "När AI ser det vi inte vill se",
+      "role": "other",
+      "description": "AI som spegel för undvikande, makt och ansvar.",
+      "created_at": "2026-08-18T00:00:00Z",
+      "provenance": {
+        "created_by": "human",
+        "actor_id": "work_fas0a_editorial_process",
+        "created_at": "2026-08-18T00:00:00Z",
+        "certainty": "strongly_supported",
+        "method": "work_canonical_data_pack_v1",
+        "analysis_logic_version": null,
+        "supporting_source_ids": [],
+        "schema_version": "1.0.0",
+        "notes": "Sprak: sv. Evidence: Fas 0A Series Registry: planerad återkommande serie, Runda bordet. Notes: Planerad. Dilemmaformat med tre perspektiv/svar."
+      },
+      "active": true
+    },
+    {
+      "series_id": "series-marketing-without-filter-001",
+      "schema_version": "1.0.0",
+      "name": "Marknadsföring utan filter",
+      "role": "other",
+      "description": "Underifrånperspektiv, mod, budskap och verklig kontakt.",
+      "created_at": "2026-08-18T00:00:00Z",
+      "provenance": {
+        "created_by": "human",
+        "actor_id": "work_fas0a_editorial_process",
+        "created_at": "2026-08-18T00:00:00Z",
+        "certainty": "verified",
+        "method": "work_canonical_data_pack_v1",
+        "analysis_logic_version": null,
+        "supporting_source_ids": [],
+        "schema_version": "1.0.0",
+        "notes": "Sprak: sv. Evidence: Fas 0A Series Registry: permanent spår. Notes: Rör marknadsföring, inte organisationsdiagnos."
+      },
+      "active": true
+    },
+    {
+      "series_id": "series-ubuntu-human-001",
+      "schema_version": "1.0.0",
+      "name": "Ubuntu. det mänskliga",
+      "role": "other",
+      "description": "Ömsesidighet, samhörighet och människovärde.",
+      "created_at": "2026-08-18T00:00:00Z",
+      "provenance": {
+        "created_by": "human",
+        "actor_id": "work_fas0a_editorial_process",
+        "created_at": "2026-08-18T00:00:00Z",
+        "certainty": "strongly_supported",
+        "method": "work_canonical_data_pack_v1",
+        "analysis_logic_version": null,
+        "supporting_source_ids": [],
+        "schema_version": "1.0.0",
+        "notes": "Sprak: sv, en. Evidence: Fas 0A Series Registry: identifierat koncept. Engelskt exempel finns. Notes: CLASSIFICATION_REVIEW_REQUIRED: identifierat koncept, inte säkerställt som etablerad serie. Projektledarbeslut D (Canonical Data Integration V1): klassificerad som SERIES CANDIDATE, status strongly_supported. Identifierat som koncept men annu inte verifierat som etablerad publicerad serie. Schema V1.1 saknar ett separat tekniskt falt for SERIES CANDIDATE; klassificeringen bevaras har i metadata/notes per uttrycklig instruktion, ingen ny enum skapad."
+      },
+      "active": true
+    },
+    {
+      "series_id": "series-easy-to-choose-001",
+      "schema_version": "1.0.0",
+      "name": "Gör det enkelt att välja dig / Make It Easy To Choose You",
+      "role": "other",
+      "description": "Tydlighet som gör val möjligt.",
+      "created_at": "2026-08-18T00:00:00Z",
+      "provenance": {
+        "created_by": "human",
+        "actor_id": "work_fas0a_editorial_process",
+        "created_at": "2026-08-18T00:00:00Z",
+        "certainty": "strongly_supported",
+        "method": "work_canonical_data_pack_v1",
+        "analysis_logic_version": null,
+        "supporting_source_ids": [],
+        "schema_version": "1.0.0",
+        "notes": "Sprak: sv, en. Evidence: Fas 0A Series Registry: identifierat svenskt och engelskt spår. Notes: CLASSIFICATION_REVIEW_REQUIRED: positionerings- och kommunikationsspår. Projektledarbeslut E (Canonical Data Integration V1): klassificerad som SERIES / EDITORIAL TRACK, status strongly_supported. Ingen uppgradering till canonical. Schema V1.1 saknar ett separat tekniskt falt for EDITORIAL TRACK; klassificeringen bevaras har i metadata/notes per uttrycklig instruktion, ingen ny enum skapad."
+      },
+      "active": true
+    },
+    {
+      "series_id": "series-abandon-to-survive-001",
+      "schema_version": "1.0.0",
+      "name": "What You Must Abandon To Survive",
+      "role": "other",
+      "description": "Det som behöver överges för att kunna fortsätta.",
+      "created_at": "2026-08-18T00:00:00Z",
+      "provenance": {
+        "created_by": "human",
+        "actor_id": "work_fas0a_editorial_process",
+        "created_at": "2026-08-18T00:00:00Z",
+        "certainty": "strongly_supported",
+        "method": "work_canonical_data_pack_v1",
+        "analysis_logic_version": null,
+        "supporting_source_ids": [],
+        "schema_version": "1.0.0",
+        "notes": "Sprak: en. Evidence: Fas 0A Series Registry: planerat engelskt serieutkast. Notes: Planerat engelskt serieutkast. Inte verifierat som publicerat."
+      },
+      "active": true
+    }
+  ],
+  "territories": [
+    {
+      "territory_id": "TER-001",
+      "schema_version": "1.0.0",
+      "name": "Makt",
+      "description": "Beslut 17's own example of a territory, distinct from the 'Tillit' topic and the 'Kara ...' / 'Det langa spelet' series.",
+      "created_at": "2026-01-15T09:00:00Z",
+      "provenance": {
+        "created_by": "human",
+        "actor_id": "fas0_editorial_process",
+        "created_at": "2026-01-15T09:00:00Z",
+        "certainty": "verified",
+        "method": "fas_0a_analysis",
+        "analysis_logic_version": null,
+        "supporting_source_ids": [],
+        "schema_version": "1.0.0",
+        "notes": null
+      },
+      "active": true
+    }
+  ],
+  "thesis_families": [
+    {
+      "thesis_family_id": "thesis-symptom-cause-001",
+      "schema_version": "1.0.0",
+      "name": "Symptom är inte orsak",
+      "core_statement": "Resultat, konflikt och kvalitet ska förstås genom mönster och samband.",
+      "description": "Relaterade teman: symptom, orsak, mönster, resultat, kvalitet, konflikt.",
+      "example_phrasings": [],
+      "created_at": "2026-08-18T00:00:00Z",
+      "provenance": {
+        "created_by": "human",
+        "actor_id": "work_fas0a_editorial_process",
+        "created_at": "2026-08-18T00:00:00Z",
+        "certainty": "strongly_supported",
+        "method": "work_canonical_data_pack_v1",
+        "analysis_logic_version": null,
+        "supporting_source_ids": [],
+        "schema_version": "1.0.0",
+        "notes": "Evidence: Fas 0A Thesis Family 1. | WORK: De flesta företag behandlar symptomen. | WORK: Vi söker det som skapade problemet. Notes: Analytisk gruppering från Fas 0A."
+      },
+      "active": true
+    },
+    {
+      "thesis_family_id": "thesis-reality-before-story-001",
+      "schema_version": "1.0.0",
+      "name": "Verklighet före berättelse",
+      "core_statement": "Observation ska föregå tolkning, språk och beslut.",
+      "description": "Relaterade teman: observation, tolkning, verklighet, språk, beslut.",
+      "example_phrasings": [],
+      "created_at": "2026-08-18T00:00:00Z",
+      "provenance": {
+        "created_by": "human",
+        "actor_id": "work_fas0a_editorial_process",
+        "created_at": "2026-08-18T00:00:00Z",
+        "certainty": "strongly_supported",
+        "method": "work_canonical_data_pack_v1",
+        "analysis_logic_version": null,
+        "supporting_source_ids": [],
+        "schema_version": "1.0.0",
+        "notes": "Evidence: Fas 0A Thesis Family 2. | WORK: Observation före tolkning. | WORK: Företagsutveckling börjar inte i rapporten. Den börjar i verkligheten. Notes: Analytisk gruppering från Fas 0A."
+      },
+      "active": true
+    },
+    {
+      "thesis_family_id": "thesis-invisible-governs-001",
+      "schema_version": "1.0.0",
+      "name": "Det osynliga styr",
+      "core_statement": "Undertext, tystnad, normer och informella strukturer påverkar mer än organisationsschemat.",
+      "description": "Relaterade teman: undertext, tystnad, normer, informell makt, struktur.",
+      "example_phrasings": [],
+      "created_at": "2026-08-18T00:00:00Z",
+      "provenance": {
+        "created_by": "human",
+        "actor_id": "work_fas0a_editorial_process",
+        "created_at": "2026-08-18T00:00:00Z",
+        "certainty": "strongly_supported",
+        "method": "work_canonical_data_pack_v1",
+        "analysis_logic_version": null,
+        "supporting_source_ids": [],
+        "schema_version": "1.0.0",
+        "notes": "Evidence: Fas 0A Thesis Family 3. | WORK: Katalysatorn gör det osynliga synligt. | Fas 0A serier: Alla vet. Ingen säger det. och Det tysta priset. Notes: Analytisk gruppering från Fas 0A."
+      },
+      "active": true
+    },
+    {
+      "thesis_family_id": "thesis-responsibility-not-passed-001",
+      "schema_version": "1.0.0",
+      "name": "Ansvar får inte passeras",
+      "core_statement": "Den som ser ett problem behöver initiera rörelse, utan krav på att ensam bära allt.",
+      "description": "Relaterade teman: ansvar, handlingskraft, problem, samverkan.",
+      "example_phrasings": [],
+      "created_at": "2026-08-18T00:00:00Z",
+      "provenance": {
+        "created_by": "human",
+        "actor_id": "work_fas0a_editorial_process",
+        "created_at": "2026-08-18T00:00:00Z",
+        "certainty": "strongly_supported",
+        "method": "work_canonical_data_pack_v1",
+        "analysis_logic_version": null,
+        "supporting_source_ids": [],
+        "schema_version": "1.0.0",
+        "notes": "Evidence: Fas 0A Thesis Family 4. | WORK: Om du ser problemet så äger du problemet. Notes: Analytisk gruppering från Fas 0A."
+      },
+      "active": true
+    },
+    {
+      "thesis_family_id": "thesis-relation-results-001",
+      "schema_version": "1.0.0",
+      "name": "Relation och resultat hör ihop",
+      "core_statement": "Tydlighet, krav, stöd och tillit är inte motpoler.",
+      "description": "Relaterade teman: relation, resultat, krav, stöd, tydlighet, tillit.",
+      "example_phrasings": [],
+      "created_at": "2026-08-18T00:00:00Z",
+      "provenance": {
+        "created_by": "human",
+        "actor_id": "work_fas0a_editorial_process",
+        "created_at": "2026-08-18T00:00:00Z",
+        "certainty": "strongly_supported",
+        "method": "work_canonical_data_pack_v1",
+        "analysis_logic_version": null,
+        "supporting_source_ids": [],
+        "schema_version": "1.0.0",
+        "notes": "Evidence: Fas 0A Thesis Family 5. | WORK: Människan först betyder inte resultatet sist. Notes: Analytisk gruppering från Fas 0A."
+      },
+      "active": true
+    },
+    {
+      "thesis_family_id": "thesis-change-over-time-001",
+      "schema_version": "1.0.0",
+      "name": "Förändring är beteende över tid",
+      "core_statement": "Beslut räcker inte. Verkligheten måste förändras och följas upp.",
+      "description": "Relaterade teman: förändring, beteende, uppföljning, konsekvens, beslut.",
+      "example_phrasings": [],
+      "created_at": "2026-08-18T00:00:00Z",
+      "provenance": {
+        "created_by": "human",
+        "actor_id": "work_fas0a_editorial_process",
+        "created_at": "2026-08-18T00:00:00Z",
+        "certainty": "strongly_supported",
+        "method": "work_canonical_data_pack_v1",
+        "analysis_logic_version": null,
+        "supporting_source_ids": [],
+        "schema_version": "1.0.0",
+        "notes": "Evidence: Fas 0A Thesis Family 6. | WORK: Så flyttar vi verksamheten. | WORK: Fyra ord håller ihop förändringen. Notes: Analytisk gruppering från Fas 0A."
+      },
+      "active": true
+    },
+    {
+      "thesis_family_id": "thesis-silence-price-001",
+      "schema_version": "1.0.0",
+      "name": "Tystnad har ett pris",
+      "core_statement": "När rösten försvinner förlorar både människan och organisationen.",
+      "description": "Relaterade teman: tystnad, röst, rädsla, konsekvenser, människovärde.",
+      "example_phrasings": [],
+      "created_at": "2026-08-18T00:00:00Z",
+      "provenance": {
+        "created_by": "human",
+        "actor_id": "work_fas0a_editorial_process",
+        "created_at": "2026-08-18T00:00:00Z",
+        "certainty": "strongly_supported",
+        "method": "work_canonical_data_pack_v1",
+        "analysis_logic_version": null,
+        "supporting_source_ids": [],
+        "schema_version": "1.0.0",
+        "notes": "Evidence: Fas 0A Thesis Family 7. | Utkast: Det farligaste en människa kan förlora är inte sitt jobb. Det är sin röst. Notes: Analytisk gruppering från Fas 0A. Publiceringsstatus kan inte fastställas."
+      },
+      "active": true
+    },
+    {
+      "thesis_family_id": "thesis-clarity-creates-choice-001",
+      "schema_version": "1.0.0",
+      "name": "Tydlighet skapar val",
+      "core_statement": "Människor kan inte välja, ta ansvar eller agera i dimma.",
+      "description": "Relaterade teman: tydlighet, val, ansvar, agerande, kommunikation.",
+      "example_phrasings": [],
+      "created_at": "2026-08-18T00:00:00Z",
+      "provenance": {
+        "created_by": "human",
+        "actor_id": "work_fas0a_editorial_process",
+        "created_at": "2026-08-18T00:00:00Z",
+        "certainty": "strongly_supported",
+        "method": "work_canonical_data_pack_v1",
+        "analysis_logic_version": null,
+        "supporting_source_ids": [],
+        "schema_version": "1.0.0",
+        "notes": "Evidence: Fas 0A Thesis Family 8. | Utkast/serie: Det handlar inte om att vara bäst. Det handlar om att vara tydlig. Notes: Analytisk gruppering från Fas 0A. Publiceringsstatus kan inte fastställas."
+      },
+      "active": true
+    }
+  ],
+  "voice_principles": [
+    {
+      "voice_principle_id": "VP-C1",
+      "schema_version": "1.0.0",
+      "name": "Manniskan forblir synlig i systemet.",
+      "definition": "Manniskan forblir synlig i systemet.",
+      "anti_definition": null,
+      "status": "canonical",
+      "evidence": [
+        {
+          "created_by": "human",
+          "actor_id": "fas0_editorial_process",
+          "created_at": "2026-01-15T09:00:00Z",
+          "certainty": "verified",
+          "method": "fas_0b_analysis",
+          "analysis_logic_version": null,
+          "supporting_source_ids": [],
+          "schema_version": "1.0.0",
+          "notes": null
+        }
+      ],
+      "version": "1.0",
+      "valid_from": "2026-01-15T09:00:00Z",
+      "superseded_by": null
+    },
+    {
+      "voice_principle_id": "VP-C2",
+      "schema_version": "1.0.0",
+      "name": "Ansvar ska bli mojligt och konkret.",
+      "definition": "Ansvar ska bli mojligt och konkret.",
+      "anti_definition": null,
+      "status": "canonical",
+      "evidence": [
+        {
+          "created_by": "human",
+          "actor_id": "fas0_editorial_process",
+          "created_at": "2026-01-15T09:00:00Z",
+          "certainty": "verified",
+          "method": "fas_0b_analysis",
+          "analysis_logic_version": null,
+          "supporting_source_ids": [],
+          "schema_version": "1.0.0",
+          "notes": null
+        }
+      ],
+      "version": "1.0",
+      "valid_from": "2026-01-15T09:00:00Z",
+      "superseded_by": null
+    },
+    {
+      "voice_principle_id": "VP-C3",
+      "schema_version": "1.0.0",
+      "name": "Verkligheten gar fore den bekvama berattelsen.",
+      "definition": "Verkligheten gar fore den bekvama berattelsen.",
+      "anti_definition": null,
+      "status": "canonical",
+      "evidence": [
+        {
+          "created_by": "human",
+          "actor_id": "fas0_editorial_process",
+          "created_at": "2026-01-15T09:00:00Z",
+          "certainty": "verified",
+          "method": "fas_0b_analysis",
+          "analysis_logic_version": null,
+          "supporting_source_ids": [],
+          "schema_version": "1.0.0",
+          "notes": null
+        }
+      ],
+      "version": "1.0",
+      "valid_from": "2026-01-15T09:00:00Z",
+      "superseded_by": null
+    },
+    {
+      "voice_principle_id": "VP-C4",
+      "schema_version": "1.0.0",
+      "name": "Det osynliga ska fa sprak.",
+      "definition": "Det osynliga ska fa sprak.",
+      "anti_definition": null,
+      "status": "canonical",
+      "evidence": [
+        {
+          "created_by": "human",
+          "actor_id": "fas0_editorial_process",
+          "created_at": "2026-01-15T09:00:00Z",
+          "certainty": "verified",
+          "method": "fas_0b_analysis",
+          "analysis_logic_version": null,
+          "supporting_source_ids": [],
+          "schema_version": "1.0.0",
+          "notes": null
+        }
+      ],
+      "version": "1.0",
+      "valid_from": "2026-01-15T09:00:00Z",
+      "superseded_by": null
+    },
+    {
+      "voice_principle_id": "VP-C5",
+      "schema_version": "1.0.0",
+      "name": "Symptom ska leda blicken mot samband och karna.",
+      "definition": "Symptom ska leda blicken mot samband och karna.",
+      "anti_definition": null,
+      "status": "canonical",
+      "evidence": [
+        {
+          "created_by": "human",
+          "actor_id": "fas0_editorial_process",
+          "created_at": "2026-01-15T09:00:00Z",
+          "certainty": "verified",
+          "method": "fas_0b_analysis",
+          "analysis_logic_version": null,
+          "supporting_source_ids": [],
+          "schema_version": "1.0.0",
+          "notes": null
+        }
+      ],
+      "version": "1.0",
+      "valid_from": "2026-01-15T09:00:00Z",
+      "superseded_by": null
+    },
+    {
+      "voice_principle_id": "VP-C6",
+      "schema_version": "1.0.0",
+      "name": "Relation och resultat halls ihop.",
+      "definition": "Relation och resultat halls ihop.",
+      "anti_definition": null,
+      "status": "canonical",
+      "evidence": [
+        {
+          "created_by": "human",
+          "actor_id": "fas0_editorial_process",
+          "created_at": "2026-01-15T09:00:00Z",
+          "certainty": "verified",
+          "method": "fas_0b_analysis",
+          "analysis_logic_version": null,
+          "supporting_source_ids": [],
+          "schema_version": "1.0.0",
+          "notes": null
+        }
+      ],
+      "version": "1.0",
+      "valid_from": "2026-01-15T09:00:00Z",
+      "superseded_by": null
+    },
+    {
+      "voice_principle_id": "VP-C7",
+      "schema_version": "1.0.0",
+      "name": "Lasaren ska fa behalla sitt omdome.",
+      "definition": "Lasaren ska fa behalla sitt omdome.",
+      "anti_definition": null,
+      "status": "canonical",
+      "evidence": [
+        {
+          "created_by": "human",
+          "actor_id": "fas0_editorial_process",
+          "created_at": "2026-01-15T09:00:00Z",
+          "certainty": "verified",
+          "method": "fas_0b_analysis",
+          "analysis_logic_version": null,
+          "supporting_source_ids": [],
+          "schema_version": "1.0.0",
+          "notes": null
+        }
+      ],
+      "version": "1.0",
+      "valid_from": "2026-01-15T09:00:00Z",
+      "superseded_by": null
+    },
+    {
+      "voice_principle_id": "VP-C8",
+      "schema_version": "1.0.0",
+      "name": "LUF talar med lasaren, aldrig over lasaren.",
+      "definition": "LUF talar med lasaren, aldrig over lasaren.",
+      "anti_definition": null,
+      "status": "canonical",
+      "evidence": [
+        {
+          "created_by": "human",
+          "actor_id": "fas0_editorial_process",
+          "created_at": "2026-01-15T09:00:00Z",
+          "certainty": "verified",
+          "method": "fas_0b_analysis",
+          "analysis_logic_version": null,
+          "supporting_source_ids": [],
+          "schema_version": "1.0.0",
+          "notes": null
+        }
+      ],
+      "version": "1.0",
+      "valid_from": "2026-01-15T09:00:00Z",
+      "superseded_by": null
+    },
+    {
+      "voice_principle_id": "VP-S1",
+      "schema_version": "1.0.0",
+      "name": "Makt ar relationell, inte bara formell.",
+      "definition": "Makt ar relationell, inte bara formell.",
+      "anti_definition": null,
+      "status": "strongly_supported",
+      "evidence": [
+        {
+          "created_by": "human",
+          "actor_id": "fas0_editorial_process",
+          "created_at": "2026-01-15T09:00:00Z",
+          "certainty": "strongly_supported",
+          "method": "fas_0b_analysis",
+          "analysis_logic_version": null,
+          "supporting_source_ids": [],
+          "schema_version": "1.0.0",
+          "notes": null
+        }
+      ],
+      "version": "1.0",
+      "valid_from": "2026-01-15T09:00:00Z",
+      "superseded_by": null
+    },
+    {
+      "voice_principle_id": "VP-S2",
+      "schema_version": "1.0.0",
+      "name": "Klarhet utan forenkling.",
+      "definition": "Klarhet utan forenkling.",
+      "anti_definition": null,
+      "status": "strongly_supported",
+      "evidence": [
+        {
+          "created_by": "human",
+          "actor_id": "fas0_editorial_process",
+          "created_at": "2026-01-15T09:00:00Z",
+          "certainty": "strongly_supported",
+          "method": "fas_0b_analysis",
+          "analysis_logic_version": null,
+          "supporting_source_ids": [],
+          "schema_version": "1.0.0",
+          "notes": null
+        }
+      ],
+      "version": "1.0",
+      "valid_from": "2026-01-15T09:00:00Z",
+      "superseded_by": null
+    }
+  ],
+  "voice_core_snapshots": [
+    {
+      "snapshot_id": "SNAP-001",
+      "schema_version": "1.0.0",
+      "version": "1.0",
+      "created_at": "2026-01-15T09:00:00Z",
+      "voice_principle_ids": [
+        "VP-C1",
+        "VP-C2",
+        "VP-C3",
+        "VP-C4",
+        "VP-C5",
+        "VP-C6",
+        "VP-C7",
+        "VP-C8"
+      ],
+      "active": true,
+      "superseded_by": null,
+      "provenance": {
+        "created_by": "human",
+        "actor_id": "fas0_editorial_process",
+        "created_at": "2026-01-15T09:00:00Z",
+        "certainty": "verified",
+        "method": "voice_core_snapshot_compilation",
+        "analysis_logic_version": null,
+        "supporting_source_ids": [],
+        "schema_version": "1.0.0",
+        "notes": null
+      },
+      "notes": "Bundles Canonical Voice Core V1 (the 8 canonical principles) as the 'voice-core-1.0' reference."
+    }
+  ],
+  "style_attributes": [
+    {
+      "style_attribute_id": "SA-001",
+      "schema_version": "1.0.0",
+      "name": "Kort deklarativ oppning",
+      "category": "opening",
+      "description": "A short declarative sentence opens the text.",
+      "example": "Han avbrot henne igen.",
+      "created_at": "2026-01-15T09:00:00Z",
+      "provenance": {
+        "created_by": "human",
+        "actor_id": "fas0_editorial_process",
+        "created_at": "2026-01-15T09:00:00Z",
+        "certainty": "strongly_supported",
+        "method": "fas_0b_analysis",
+        "analysis_logic_version": null,
+        "supporting_source_ids": [],
+        "schema_version": "1.0.0",
+        "notes": null
+      },
+      "active": true
+    },
+    {
+      "style_attribute_id": "SA-002",
+      "schema_version": "1.0.0",
+      "name": "Slutfraga",
+      "category": "ending",
+      "description": "The text ends on a direct question to the reader.",
+      "example": "Vad hande sist du blev avbruten?",
+      "created_at": "2026-01-15T09:00:00Z",
+      "provenance": {
+        "created_by": "human",
+        "actor_id": "fas0_editorial_process",
+        "created_at": "2026-01-15T09:00:00Z",
+        "certainty": "strongly_supported",
+        "method": "fas_0b_analysis",
+        "analysis_logic_version": null,
+        "supporting_source_ids": [],
+        "schema_version": "1.0.0",
+        "notes": null
+      },
+      "active": true
+    }
+  ],
+  "repetition_signals": [
+    {
+      "repetition_signal_id": "RS-001",
+      "schema_version": "1.0.0",
+      "signal_type": "short_thesis_opening",
+      "related_style_attribute_id": "SA-001",
+      "description": "Short declarative thesis-style opening, flagged in Fas 0A/0B as overused.",
+      "detection_notes": "Future: count occurrences of this opening pattern across last N publications.",
+      "created_at": "2026-01-15T09:00:00Z",
+      "provenance": {
+        "created_by": "human",
+        "actor_id": "fas0_editorial_process",
+        "created_at": "2026-01-15T09:00:00Z",
+        "certainty": "verified",
+        "method": "fas_0a_analysis",
+        "analysis_logic_version": null,
+        "supporting_source_ids": [],
+        "schema_version": "1.0.0",
+        "notes": null
+      },
+      "active": true
+    },
+    {
+      "repetition_signal_id": "RS-002",
+      "schema_version": "1.0.0",
+      "signal_type": "closing_question",
+      "related_style_attribute_id": "SA-002",
+      "description": "Closing question, flagged in Fas 0A/0B as overused.",
+      "detection_notes": "Future: count occurrences of ending_type=OPEN_QUESTION / cta_type=EXPLICIT_QUESTION.",
+      "created_at": "2026-01-15T09:00:00Z",
+      "provenance": {
+        "created_by": "human",
+        "actor_id": "fas0_editorial_process",
+        "created_at": "2026-01-15T09:00:00Z",
+        "certainty": "verified",
+        "method": "fas_0a_analysis",
+        "analysis_logic_version": null,
+        "supporting_source_ids": [],
+        "schema_version": "1.0.0",
+        "notes": null
+      },
+      "active": true
+    }
+  ],
+  "reader_effects": [
+    {
+      "reader_effect_id": "RE-001",
+      "schema_version": "1.0.0",
+      "category": "emotional",
+      "name": "obehag",
+      "description": "Discomfort.",
+      "examples": [
+        "obehag",
+        "discomfort"
+      ],
+      "created_at": "2026-01-15T09:00:00Z",
+      "provenance": {
+        "created_by": "human",
+        "actor_id": "fas0_editorial_process",
+        "created_at": "2026-01-15T09:00:00Z",
+        "certainty": "verified",
+        "method": "fas_0b_analysis",
+        "analysis_logic_version": null,
+        "supporting_source_ids": [],
+        "schema_version": "1.0.0",
+        "notes": null
+      },
+      "active": true
+    },
+    {
+      "reader_effect_id": "RE-002",
+      "schema_version": "1.0.0",
+      "category": "cognitive",
+      "name": "perspektivskifte",
+      "description": "Perspective shift -- language for pattern, symptom vs. cause.",
+      "examples": [
+        "perspektivskifte",
+        "sprak for monster"
+      ],
+      "created_at": "2026-01-15T09:00:00Z",
+      "provenance": {
+        "created_by": "human",
+        "actor_id": "fas0_editorial_process",
+        "created_at": "2026-01-15T09:00:00Z",
+        "certainty": "verified",
+        "method": "fas_0b_analysis",
+        "analysis_logic_version": null,
+        "supporting_source_ids": [],
+        "schema_version": "1.0.0",
+        "notes": null
+      },
+      "active": true
+    }
+  ],
+  "ideas": [
+    {
+      "idea_id": "IDEA-001",
+      "schema_version": "1.0.0",
+      "created_at": "2026-01-15T09:00:00Z",
+      "raw_input_id": "RI-001",
+      "input_type": "observation",
+      "source_id": "SRC-001",
+      "language": "sv",
+      "intended_market": "SE",
+      "interpretation": {
+        "observed_situation": "En medarbetare avbryts upprepade ganger av sin chef under ett mote.",
+        "human_subject": "Medarbetaren som avbryts.",
+        "human_experience": "Att formuleringar tystnar innan de hinner fardigt.",
+        "visible_problem": "Avbrotten.",
+        "hidden_conflict": "Vem som har ratt att avsluta en tanke i rummet.",
+        "possible_root_causes": [
+          "Informell maktordning",
+          "Otränad motesledning"
+        ],
+        "power_dimension": "Formell roll (chef) anvands for att kontrollera talutrymme.",
+        "relationship_dimension": "Upprepningen eroderar tillit over tid.",
+        "system_dimension": "Ingen i rummet ingriper -- monstret ar tyst accepterat.",
+        "possible_consequence": "Medarbetaren slutar lagga fram ideer.",
+        "provenance": {
+          "created_by": "ai_system",
+          "actor_id": "fas0a_pipeline_v1",
+          "created_at": "2026-01-15T09:00:00Z",
+          "certainty": "analytical_proposal",
+          "method": "fas_0a_analysis",
+          "analysis_logic_version": "fas0a-analysis-logic-1.0",
+          "supporting_source_ids": [],
+          "schema_version": "1.0.0",
+          "notes": null
+        }
+      },
+      "related_series": [
+        "series-dear-001"
+      ],
+      "related_territories": [],
+      "related_thesis_families": [
+        "thesis-symptom-cause-001"
+      ],
+      "related_models": [],
+      "related_characters": [],
+      "related_books": [],
+      "related_previous_content": [],
+      "editorial_potential": "high",
+      "novelty_risk": "medium",
+      "status": "analyzed",
+      "notes": null
+    },
+    {
+      "idea_id": "IDEA-002",
+      "schema_version": "1.0.0",
+      "created_at": "2026-01-15T09:00:00Z",
+      "raw_input_id": "RI-002",
+      "input_type": "observation",
+      "source_id": null,
+      "language": "en",
+      "intended_market": "US",
+      "interpretation": {
+        "observed_situation": "A junior colleague's idea is re-presented by a team lead and only then taken seriously.",
+        "human_subject": "The junior colleague whose idea was not credited.",
+        "human_experience": "Watching your own words become audible only once someone else says them.",
+        "visible_problem": "Repetition without attribution.",
+        "hidden_conflict": "Whose voice counts as a source vs. whose voice counts as an echo.",
+        "possible_root_causes": [
+          "Status-based listening",
+          "No norm for crediting"
+        ],
+        "power_dimension": "Hierarchy determines whose words are heard as original.",
+        "relationship_dimension": "Erodes the junior colleague's willingness to speak up again.",
+        "system_dimension": "No meeting norm exists for acknowledging prior contributions.",
+        "possible_consequence": "Junior colleague disengages from future idea-sharing.",
+        "provenance": {
+          "created_by": "ai_system",
+          "actor_id": "fas0a_pipeline_v1",
+          "created_at": "2026-01-15T09:00:00Z",
+          "certainty": "analytical_proposal",
+          "method": "fas_0a_analysis",
+          "analysis_logic_version": "fas0a-analysis-logic-1.0",
+          "supporting_source_ids": [],
+          "schema_version": "1.0.0",
+          "notes": null
+        }
+      },
+      "related_series": [
+        "series-diagnosis-before-solution-001"
+      ],
+      "related_territories": [],
+      "related_thesis_families": [
+        "thesis-reality-before-story-001"
+      ],
+      "related_models": [],
+      "related_characters": [],
+      "related_books": [],
+      "related_previous_content": [],
+      "editorial_potential": "medium",
+      "novelty_risk": "low",
+      "status": "angled",
+      "notes": null
+    }
+  ],
+  "angles": [
+    {
+      "angle_id": "ANGLE-001",
+      "schema_version": "1.0.0",
+      "idea_id": "IDEA-001",
+      "created_at": "2026-01-15T09:00:00Z",
+      "title": "Ratten att avsluta en tanke",
+      "description": "Angle focused on the moment of interruption itself as the unit of analysis, rather than the outcome of the meeting.",
+      "thesis_family_id": "thesis-symptom-cause-001",
+      "primary_variation_dimension": null,
+      "status": "selected",
+      "rejected_reason": null,
+      "superseded_by": null,
+      "provenance": {
+        "created_by": "ai_system",
+        "actor_id": "fas0a_pipeline_v1",
+        "created_at": "2026-01-15T09:00:00Z",
+        "certainty": "analytical_proposal",
+        "method": "fas_0a_analysis",
+        "analysis_logic_version": "fas0a-analysis-logic-1.0",
+        "supporting_source_ids": [],
+        "schema_version": "1.0.0",
+        "notes": null
+      },
+      "notes": null
+    }
+  ],
+  "reader_feedback": [
+    {
+      "reader_feedback_id": "RF-TEST-ONLY-001",
+      "schema_version": "1.0.0",
+      "source_id": "SRC-002",
+      "content_reference": "CONTENT-001",
+      "feedback_text": "[TEST_ONLY fixture illustration -- not a real review. See canonical_data/ for the real Parastoo Ebrahimzadeh ReaderFeedback.]",
+      "feedback_reference": null,
+      "effect_observations": [
+        "reader reported recognizing the situation described"
+      ],
+      "verification_status": "unverified",
+      "date": "2026-01-15T09:00:00Z",
+      "language": "en",
+      "notes": "TEST_ONLY -- fixture illustration for schema-proof purposes, not derived from any real review."
+    },
+    {
+      "reader_feedback_id": "reader-feedback-parastoo-ebrahimzadeh-leadership-without-filter-001",
+      "schema_version": "1.0.0",
+      "source_id": "source-book-leadership-without-filter",
+      "content_reference": "UNDERLAG SAKNAS",
+      "feedback_text": "Leadership Without Filter was more than just a book about leadership, human relationships, or workplace dynamics for me. It helped me endure one of the most difficult periods of my life by giving me a clearer understanding of the situation I was experiencing.\n\nMost importantly, it reminded me that when we find ourselves in circumstances shaped by manipulation, hidden agendas, or the self-interest of others, those experiences are not necessarily invisible or impossible to explain. There are patterns behind them, and those patterns can be recognized and understood.\n\nIn this book, Jan Stefors attempts to expose, without unnecessary ambiguity or hesitation, realities that often remain unspoken within professional relationships and power structures. He addresses workplace politics, power games, and behind-the-scenes behavior that can cause serious psychological harm to an individual while also damaging trust, motivation, and ultimately the effectiveness of an entire team.\n\nWhat makes this book particularly different for me is the way it speaks to the person who is experiencing manipulation. Many people may suddenly find themselves in situations they do not fully understand, where others impose their beliefs, expectations, or narratives on them and take advantage of their uncertainty, vulnerability, or lack of awareness. In such environments, one of the most damaging consequences is that the person being manipulated may eventually begin to question their own perception, judgment, and understanding of reality.\n\nJan Stefors' writing can help the reader recognize these patterns more clearly. Rather than approaching manipulation only as an abstract psychological concept, the book encourages the reader to reconnect with their own inner voice, emotions, and judgment. In doing so, it can help a person regain a sense of clarity and perhaps begin to see a possible way out of an unhealthy or manipulative situation.\n\nI have read many books dealing with shadow psychology, psychological manipulation, and power dynamics, but very few have affected me as deeply as Jan Stefors' writing. His style is sharp, direct, clear, and unapologetically unambiguous. He does not hide harmful behavior behind complicated terminology or neutral explanations. Instead, he brings responsibility, intention, and consequences into the open.\n\nAnother strength of this book is how easily its ideas can be connected to the world we live in. Control, hidden agendas, and abuse of power can appear in workplaces, professional relationships, organizations, and many other areas of social life.\n\nThis is why I consider Leadership Without Filter, and Jan Stefors' writing more broadly, to be both distinctive and exceptionally valuable. For me, the real power of his work lies in the fact that it does not simply describe manipulation from the outside. It has the potential to help someone who is caught inside such a situation understand what is happening to them, trust their own perception again, and begin to imagine a way forward.\n\nI sincerely hope that Jan Stefors' work becomes more widely recognized around the world. I believe that many people who have experienced manipulative environments, coercive power dynamics, psychological pressure, or unhealthy leadership structures may find something deeply familiar and genuinely illuminating in his writing.",
+      "feedback_reference": null,
+      "effect_observations": [
+        "RE-002 (perspektivskifte / 'sprak for monster') -- stott direkt av originaltexten: \"those experiences are not necessarily invisible or impossible to explain. There are patterns behind them, and those patterns can be recognized and understood.\" och \"Jan Stefors' writing can help the reader recognize these patterns more clearly.\" Inte formaliserad som ReaderEffectAssociation (kraver en ContentRecord, som saknas for denna bokrecension) -- se modulens docstring."
+      ],
+      "verification_status": "verified_verbatim",
+      "date": "2026-08-18T00:00:00Z",
+      "language": "en",
+      "notes": "Reviewer: Parastoo Ebrahimzadeh. Reviewed work: 'Leadership Without Filter' by Jan Stefors. Source type: Direct message from reviewer. Verification: Verified from original direct message and screenshots supplied by project leadership. content_reference intentionally holds an explicit gap marker, not a real reference -- see canonical_data/reader_feedback_registry.py module docstring and docs/PARASTOO_INTEGRATION_GAP_REPORT.md."
+    }
+  ],
+  "content_records": [
+    {
+      "content_id": "CONTENT-001",
+      "schema_version": "1.0.0",
+      "created_at": "2026-01-15T09:00:00Z",
+      "published_at": null,
+      "language": "sv",
+      "market": "SE",
+      "platform": "linkedin",
+      "status": "quality_review",
+      "idea_id": "IDEA-001",
+      "angle_id": "ANGLE-001",
+      "voice_core_snapshot_id": "SNAP-001",
+      "series_ids": [
+        "series-dear-001"
+      ],
+      "territory_ids": [
+        "TER-001"
+      ],
+      "thesis_family_id": "thesis-symptom-cause-001",
+      "what": {
+        "topic": "Tillit",
+        "subtopics": [
+          "moteskultur",
+          "avbrott"
+        ],
+        "core_thesis": "Ratten att avsluta en tanke ar en form av makt.",
+        "human_conflict": "Medarbetaren tystnas upprepade ganger.",
+        "hidden_pattern": "Monstret upprepas utan att nagon namner det.",
+        "root_cause": "Informell maktordning som aldrig görs synlig.",
+        "perspective": "Den som avbryts."
+      },
+      "form_detail": {
+        "form": "linkedin_post",
+        "narrative_mode": "scene",
+        "point_of_view": "observer",
+        "opening_type": "kort_deklarativ_oppning",
+        "opening_text": "Han avbrot henne igen.",
+        "dramaturgy": "single_scene_then_reflection",
+        "paragraph_pattern": "short_paragraphs",
+        "sentence_rhythm": "mixed",
+        "length_class": "medium",
+        "emotional_register": "discomfort",
+        "personal_presence": "low",
+        "solution_degree": "none",
+        "question_count": 0,
+        "contrast_usage": "medium",
+        "metaphor_usage": "none",
+        "dialogue_usage": "low",
+        "scene_usage": "high",
+        "ending_type": "unresolved_scene",
+        "cta_type": "none",
+        "signature_type": "none",
+        "key_phrases": [
+          "avbrot henne igen"
+        ],
+        "rhetorical_patterns": [
+          "scene_then_silence"
+        ]
+      },
+      "reader_effects": [
+        {
+          "reader_effect_id": "RE-001",
+          "mode": "intended",
+          "evidence_reader_feedback_ids": [],
+          "notes": null
+        },
+        {
+          "reader_effect_id": "RE-001",
+          "mode": "observed",
+          "evidence_reader_feedback_ids": [
+            "RF-TEST-ONLY-001"
+          ],
+          "notes": null
+        }
+      ],
+      "variation_fingerprint": {
+        "content_id": "CONTENT-001",
+        "schema_version": "1.0.0",
+        "computed_at": "2026-01-15T09:00:00Z",
+        "form": "scene",
+        "opening": "kort_deklarativ_oppning",
+        "pov": "observer",
+        "length": "medium",
+        "rhythm": "mixed",
+        "emotion": "discomfort",
+        "personal": "low",
+        "question": "none",
+        "contrast": "medium",
+        "solution": "none",
+        "ending": "unresolved_scene",
+        "cta": "none"
+      },
+      "style_attributes_used": [
+        "SA-001"
+      ],
+      "repetition_signals_observed": [
+        "RS-001"
+      ],
+      "related_content_ids": [],
+      "source_ids": [
+        "SRC-001"
+      ],
+      "final_text": null,
+      "provenance": {
+        "created_by": "ai_system",
+        "actor_id": "fixture",
+        "created_at": "2026-01-15T09:00:00Z",
+        "certainty": "analytical_proposal",
+        "method": "draft_generation_fixture",
+        "analysis_logic_version": "draft-gen-fixture-0.1",
+        "supporting_source_ids": [],
+        "schema_version": "1.0.0",
+        "notes": null
+      },
+      "notes": null
+    },
+    {
+      "content_id": "CONTENT-002",
+      "schema_version": "1.0.0",
+      "created_at": "2026-01-15T09:00:00Z",
+      "published_at": "2026-01-15T09:00:00Z",
+      "language": "en",
+      "market": "US",
+      "platform": "linkedin",
+      "status": "published",
+      "idea_id": "IDEA-002",
+      "angle_id": null,
+      "voice_core_snapshot_id": "SNAP-001",
+      "series_ids": [
+        "series-diagnosis-before-solution-001"
+      ],
+      "territory_ids": [],
+      "thesis_family_id": "thesis-reality-before-story-001",
+      "what": {
+        "topic": "Recognition",
+        "subtopics": [
+          "credit",
+          "meetings"
+        ],
+        "core_thesis": "An idea is not 'new' just because a more senior voice said it second.",
+        "human_conflict": "The junior colleague watches their own idea gain legitimacy only once repeated.",
+        "hidden_pattern": "Attribution follows hierarchy, not chronology.",
+        "root_cause": "No norm exists for naming where an idea first came from.",
+        "perspective": "The junior colleague."
+      },
+      "form_detail": {
+        "form": "linkedin_post",
+        "narrative_mode": "argument",
+        "point_of_view": "first_person",
+        "opening_type": "direct_address",
+        "opening_text": "You've had this happen to you.",
+        "dramaturgy": "claim_then_example",
+        "paragraph_pattern": "mixed",
+        "sentence_rhythm": "flowing",
+        "length_class": "short",
+        "emotional_register": "recognition",
+        "personal_presence": "medium",
+        "solution_degree": "low",
+        "question_count": 1,
+        "contrast_usage": "low",
+        "metaphor_usage": "none",
+        "dialogue_usage": "none",
+        "scene_usage": "low",
+        "ending_type": "open_question",
+        "cta_type": "explicit_question",
+        "signature_type": "none",
+        "key_phrases": [
+          "said it second"
+        ],
+        "rhetorical_patterns": [
+          "direct_address_then_question"
+        ]
+      },
+      "reader_effects": [
+        {
+          "reader_effect_id": "RE-002",
+          "mode": "intended",
+          "evidence_reader_feedback_ids": [],
+          "notes": null
+        }
+      ],
+      "variation_fingerprint": {
+        "content_id": "CONTENT-002",
+        "schema_version": "1.0.0",
+        "computed_at": "2026-01-15T09:00:00Z",
+        "form": "argument",
+        "opening": "direct_address",
+        "pov": "first_person",
+        "length": "short",
+        "rhythm": "flowing",
+        "emotion": "recognition",
+        "personal": "medium",
+        "question": "low",
+        "contrast": "low",
+        "solution": "low",
+        "ending": "open_question",
+        "cta": "explicit_question"
+      },
+      "style_attributes_used": [
+        "SA-002"
+      ],
+      "repetition_signals_observed": [
+        "RS-002"
+      ],
+      "related_content_ids": [
+        "CONTENT-001"
+      ],
+      "source_ids": [],
+      "final_text": "You've had this happen to you. [...] (fixture placeholder -- not a publish-ready post)",
+      "provenance": {
+        "created_by": "ai_system",
+        "actor_id": "fixture",
+        "created_at": "2026-01-15T09:00:00Z",
+        "certainty": "analytical_proposal",
+        "method": "draft_generation_fixture",
+        "analysis_logic_version": "draft-gen-fixture-0.1",
+        "supporting_source_ids": [],
+        "schema_version": "1.0.0",
+        "notes": null
+      },
+      "notes": null
+    }
+  ],
+  "quality_assessments": [
+    {
+      "quality_assessment_id": "QA-001",
+      "schema_version": "1.0.0",
+      "content_id": "CONTENT-002",
+      "created_at": "2026-01-15T09:00:00Z",
+      "result": "rework",
+      "findings": [
+        {
+          "triggered_rule": "repetition.closing_question.overused",
+          "evidence": "RS-002 observed on CONTENT-002; also present on 2 of last 5 publications (fixture claim).",
+          "severity": "moderate"
+        }
+      ],
+      "recommended_return_point": "generation",
+      "voice_core_snapshot_id": "SNAP-001",
+      "provenance": {
+        "created_by": "ai_system",
+        "actor_id": "fixture_quality_gate_v0",
+        "created_at": "2026-01-15T09:00:00Z",
+        "certainty": "analytical_proposal",
+        "method": "quality_gate_fixture",
+        "analysis_logic_version": "quality-gate-fixture-0.1",
+        "supporting_source_ids": [],
+        "schema_version": "1.0.0",
+        "notes": null
+      },
+      "notes": null
+    }
+  ],
+  "human_decisions": [
+    {
+      "decision_id": "HD-001",
+      "schema_version": "1.0.0",
+      "target_type": "content_record",
+      "target_id": "CONTENT-002",
+      "decision": "rework",
+      "decided_by": "Janne Stefors",
+      "decided_by_actor": "human",
+      "decided_at": "2026-01-15T09:00:00Z",
+      "based_on_quality_assessment_id": "QA-001",
+      "reason": "Haller med Quality Assessment: slutfragan ar overanvand just nu.",
+      "notes": null
+    }
+  ]
+}
