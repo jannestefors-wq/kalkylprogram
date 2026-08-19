@@ -177,6 +177,52 @@ def test_unknown_default_collision_unrelated_topics_not_flagged_2():
     assert fv.is_false_variation is False, fv.rationale
 
 
+def test_same_entry_different_treatment_not_flagged():
+    """order section 9 (Blocker 3 re-order): both open on the same
+    question-driven entry_mode, but closure/rhetorical-pressure genuinely
+    diverge (open question vs. a stated consequence) -- a single shared
+    entry dimension alone must not be enough."""
+    a = _profile("Varför slutar vi fråga om hjälp? Ingen svarade på det.", "A")
+    b = _profile("Varför slutar vi fråga om hjälp? Konsekvensen blev en tystare arbetsplats.", "B")
+    fv = assess_false_variation(a, b)
+    assert fv.is_false_variation is False, fv.rationale
+
+
+def test_same_closure_different_treatment_not_flagged():
+    """Both close on a question, but entry_mode genuinely diverges
+    (situation-opening vs. imperative-opening) -- a single shared closure
+    dimension alone must not be enough."""
+    a = _profile("Tre kunder klagade samma vecka. Varför märkte ingen mönstret?", "A")
+    b = _profile("Se helheten, agera tidigt. Varför märkte ingen mönstret?", "B")
+    fv = assess_false_variation(a, b)
+    assert fv.is_false_variation is False, fv.rationale
+
+
+def test_different_lexical_surface_preserved_construction_detected():
+    """order section 9: a third, independent low-overlap paraphrase pair
+    (withdrawal-under-pressure construction, unrelated vocabulary from the
+    other OOV tests in this file) -- construction preserved despite an
+    almost entirely different word surface."""
+    a = _profile("Varför stänger vi dörren när det blir jobbigt? Vem öppnar den igen?", "A")
+    b = _profile("Varför drar vi oss undan när trycket ökar? Vem tar första kliv tillbaka?", "B")
+    fv = assess_false_variation(a, b)
+    assert fv.is_false_variation is True, fv.rationale
+    assert fv.sufficient_evidence is True
+
+
+def test_human_situation_boundary_direction_b_same_situation_new_treatment_not_flagged():
+    """order section 11, direction B: the SAME concrete human situation
+    (three managers arriving late to a meeting) narrated through a
+    genuinely different construction (motive-assumption vs.
+    observe-before-judging) -- shared situation must not, by itself, force
+    a False Variation verdict. (Direction A -- same construction, different
+    situation -- is already covered by the HSB tests above.)"""
+    a = _profile("Tre chefer kom sent till mötet. Gruppen antog att de inte brydde sig.", "A")
+    b = _profile("Se mönstret. Fråga om orsaken innan du dömer. Tre chefer kom sent till mötet.", "B")
+    fv = assess_false_variation(a, b)
+    assert fv.is_false_variation is False, fv.rationale
+
+
 def test_question_pattern_variant_workplace_topic_detected():
     a = _profile("Varför väntar vi alltid till sist med det svåra samtalet? Vem tar första ordet?", "A")
     b = _profile("Varför skjuter vi upp det obekväma beslutet varje gång? Vem bryter tystnaden?", "B")

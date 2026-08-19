@@ -3,6 +3,15 @@
 **Status:** Targeted correction report. No PR created (order: correction requires a separate, later
 independent verification before any PR decision).
 
+**Addendum (V1C FALSE VARIATION BLOCKER 3. SHORT-FORM CORRECTION re-order):** a second, more detailed order
+covering the same Blocker 3 arrived after this report and commit `c84a0a9` were already pushed (it references
+checkpoints `203405b`/`57c7558`/`5984a1a` but not `c84a0a9`, so it was evidently drafted before that commit
+landed). The mechanism, root cause, and test battery below are unchanged from that commit; this addendum adds
+the 4 explicitly-required categories the re-order names that were not yet separately covered (`same entry /
+different treatment`, `same closure / different treatment`, a third independent `different lexical surface /
+preserved construction` pair, and Human Situation Boundary direction B), and section 12 below evaluates all
+10 of the re-order's hard acceptance gates explicitly, one by one.
+
 **Scope:** False Variation's behavior when Structural Movement is INSUFFICIENT_EVIDENCE only.
 Structural Movement itself (`profiler.py::_assess_structural_movement()`, the 3-sentence floor,
 `comparison.py::compare_structural_movements()`) is unmodified.
@@ -126,36 +135,41 @@ behavior rather than extended on a weaker basis.
 
 ## 6. New adversarial scenarios and negative controls (order sections 8-9)
 
-`tests/test_v1c_false_variation_short_form_correction_3.py` -- **33 new permanent tests**, none copied or
+`tests/test_v1c_false_variation_short_form_correction_3.py` -- **37 new permanent tests**, none copied or
 paraphrased from the frozen Challenge Pack, covering every required category:
 
-| Category (order section 8) | Result |
+| Category (order section 8/9 of both orders) | Result |
 |---|---|
 | Short same construction / low lexical (2 pairs: question-pattern, imperative-pattern) | detected (2/2) |
-| Short OOV paraphrase (2 pairs) | detected (2/2) |
+| Short OOV paraphrase (2 pairs + 1 third independent pair, see below) | detected (3/3) |
 | Short high lexical / different construction (2 pairs) | correctly NOT flagged (2/2) |
 | Short same thesis / new treatment (1 pair) | correctly NOT flagged |
 | Short different thesis / similar construction (2 pairs) | detected (2/2) |
-| Short Human Situation Boundary (2 pairs) | correctly NOT flagged (2/2) |
+| Short Human Situation Boundary, direction A (same construction, different situation, 2 pairs) | correctly NOT flagged (2/2) |
+| Short Human Situation Boundary, direction B (same situation, new construction, 1 pair) | correctly NOT flagged |
 | Short ambiguous evidence (2 pairs) | correctly NOT locked (2/2) |
 | 1-meningstext, genuinely insufficient | `sufficient_evidence=False` |
 | 1-meningstext, genuinely substantive | `sufficient_evidence=True`, not flagged |
 | 2-meningstext (2 pairs) | 1 detected, 1 correctly not flagged |
 | Asymmetric evidence (1 pair) | correctly NOT flagged |
 | UNKNOWN/default collision (2 pairs) | correctly NOT flagged (2/2) |
+| Same entry / different treatment (1 pair) | correctly NOT flagged |
+| Same closure / different treatment (1 pair) | correctly NOT flagged |
+| Different lexical surface / preserved construction (1 dedicated pair, 3rd independent OOV example) | detected |
 
-Plus 2 more independent detection variants (question/imperative pattern on unrelated topics) = **21 positive/
+Plus 2 more independent detection variants (question/imperative pattern on unrelated topics) = **25 positive/
 generalization scenarios total** (order required >= 20).
 
-**10 negative controls** (order required >= 10), each constructing partial/coincidental dimension overlap and
+**12 negative controls** (order required >= 10), each constructing partial/coincidental dimension overlap and
 verifying the mechanism still refuses False Variation: a genuine contradiction on a third dimension blocks a
 2-dimension match; asymmetric richness blocks a shared-opening match; movement-available pairs never even
 reach the short-form path; a shared `lens` keyword alone never corroborates; a single matching dimension
-alone is never enough; three more single-contradiction variants (direct address, system-level, close-human);
-and confirmation that both new short-form outcomes (`sufficient_evidence=False` and the substantive
-one-sentence pair) never resolve to `is_false_variation=True`.
+alone is never enough (`same entry / different treatment`, `same closure / different treatment`, and three
+more single-contradiction variants: direct address, system-level, close-human); Human Situation Boundary
+direction B (shared situation, new construction); and confirmation that both new short-form outcomes
+(`sufficient_evidence=False` and the substantive one-sentence pair) never resolve to `is_false_variation=True`.
 
-**All 33 pass. Zero new false positives were found or accepted anywhere in this battery.**
+**All 37 pass. Zero new false positives were found or accepted anywhere in this battery.**
 
 ## 7. Known, disclosed residual limitation
 
@@ -247,3 +261,51 @@ mechanism on different vocabulary successfully.
   current five-dimension evidence set on very short text.
 - Movement classification remains heuristic/keyword-driven (unchanged, out of scope here, tracked since
   `V1C_FALSE_VARIATION_BLIND_REAUDIT_REPORT.md` section 8).
+
+## 12. Hard acceptance gates (re-order section 14) -- evaluated explicitly
+
+| # | Gate | Met? | Basis |
+|---|---|---|---|
+| 1 | Same construction / low lexical improves materially from 0/10 | **NO** | SC01-10 unchanged at 0/10 (section 8) |
+| 2 | OOV/paraphrase improves materially from 0/4 | **NO** | SC41-44 unchanged at 0/4 (section 8) |
+| 3 | Short FULL/default semantics corrected | PARTIAL | SC50 fixed (was 0/3, now includes a passing case); SC48/SC49 remain disclosed misses (section 7/8) |
+| 4 | UNKNOWN never used as similarity evidence | YES | unchanged since Correction 2; verified by permanent tests |
+| 5 | Absence of evidence not treated as evidence of difference | YES | new `sufficient_evidence` field; section 4 |
+| 6 | False positives remain very low | YES | 0 before, 0 after -- across the Challenge Pack AND all 37 new independent tests |
+| 7 | New independent adversarial tests show generalization | YES | 25 positive scenarios across all required categories, all pass on genuinely new vocabulary (section 6) |
+| 8 | >=10 negative controls show recall wasn't bought via aggressive flagging | YES | 12 negative controls, all pass, 0 false positives (section 6) |
+| 9 | Structural Movement undamaged | YES | zero diff on `profiler.py`'s movement functions and `compare_structural_movements()`; verdict unchanged (section 3, 9) |
+| 10 | Human Authority intact | YES | `human_decision.py`/`options.py` decision flow untouched (section 2) |
+
+**Gates 1 and 2 are the two the re-order marks as making this "correction reported as fixed" ("Blocker 3 får
+endast rapporteras korrigerad om följande håller samtidigt"). They do not hold, and root-cause testing
+(section 2) found this is not a gap in effort but a hard architectural ceiling under the order's own stated
+constraints:**
+
+SC01-10 and SC41-44 were independently authored (by Work) to have deliberately **low lexical overlap** while
+sharing construction -- e.g. SC01's pair shares essentially no content words at all ("Hon log ... Sedan
+slutade hon boka in folk" vs. "... tackade hon ja till färre uppdrag. Till sist försvann hennes initiativ").
+Diagnostic testing found **zero** confidently-detected signal on the four surface construction dimensions on
+at least one side of 11 of these 14 pairs (the other 3 have partial signal but not the two independently
+agreeing dimensions the false-positive testing in section 7 found necessary to keep). There is no remaining,
+legitimate combination of *already-available* evidence types that can turn a genuinely zero-signal pair into
+a confident verdict:
+
+- **Structural Movement** cannot be used -- forbidden by this same order (section 3) and architecturally
+  unavailable below 3 sentences.
+- **Lexical evidence** cannot rescue these specific pairs -- they were deliberately constructed with almost
+  no shared words; a lexical-overlap signal would correctly find nothing here (it would help a *different*
+  category, high-lexical-overlap pairs, which already pass).
+- **Thesis relation / angle** are not computable from a raw text pair at all -- they live in V1A/V1B
+  (`ThesisFamily` classification, `CandidateAngle`), one level above `assess_false_variation(a, b)`'s
+  two-`VariationProfile` signature, and Work's own coverage table for this exact Challenge Pack maps SC01-10
+  to "Different Thesis / Same Construction" -- meaning even a working thesis-match signal would not agree on
+  these specific pairs, by the ground truth's own design.
+- The only remaining route to detect what these pairs share (a genuinely paraphrased editorial construction)
+  is semantic/meaning-level similarity -- embeddings or a similarity model -- which this order (section 3)
+  and every prior V1C order explicitly and repeatedly forbid.
+
+Widening the keyword lists to catch this specific vocabulary was considered and rejected: order section 3
+explicitly forbids "keyword-expansion för att jaga SC01–SC50", and any expansion narrow enough to catch these
+14 pairs specifically would, by construction, be tuned to this one Challenge Pack rather than a generalizable
+signal -- the opposite of what section 9's negative-control requirement is checking for.
