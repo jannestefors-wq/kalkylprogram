@@ -20,7 +20,12 @@ from .models import AnalysisLayer, InsufficientContextError, LabeledStatement
 MIN_WORDS_FOR_INTERPRETATION = 6
 
 REPETITION_MARKERS = {"ganger", "gånger", "upprepade", "upprepat", "igen", "alltid", "varje", "flera"}
-QUANTITY_WORDS = {"en", "ett", "tva", "två", "tre", "fyra", "fem"}
+QUANTITY_WORDS = {"tva", "två", "tre", "fyra", "fem"}
+"""V1B Correction Order (docs/V1B_CORRECTION_REPORT.md, Defect 2): "en"/"ett" (the
+Swedish indefinite articles "a"/"an") were removed. They mean singular -- the
+opposite of the repeated-occurrence signal this set exists to detect -- and their
+presence made is_sufficient()/detected_repetition fire on almost any Swedish
+sentence, independent of whether anything was actually described as repeated."""
 ROLE_WORDS = {
     "chef", "chefen", "medarbetare", "medarbetaren", "kollega", "kollegan",
     "ledare", "ledaren", "team", "teamet", "grupp", "gruppen", "person", "personen",
@@ -130,13 +135,21 @@ class RuleBasedAnalysisProvider:
                     text="Om monstret upprepas over tid kan det (hypotes, ej faststallt) paverka viljan att tala fritt i rummet.",
                 )
             )
-        affected_party = detected_roles[-1] if detected_roles else "den som paverkas"
-        layers.append(
-            LabeledStatement(
-                layer=AnalysisLayer.INFERENCE,
-                text=f"Mojlig konsekvens (hypotes): {affected_party} kan over tid lagga fram farre ideer eller synpunkter. Inte verifierat.",
+        # V1B Correction Order (Defect 2): this clause was previously unconditional --
+        # appended for EVERY sufficient input regardless of any detected signal, which
+        # meant the word "konsekvens" (and the canonical Thesis Family it matches)
+        # appeared in essentially every analysis output. Gated on the same signal its
+        # own text is actually about (a repeated/interrupted pattern), consistent with
+        # its sibling clause above and with order section 8's requirement that a term
+        # never be added to analysis output without support in the raw input.
+        if detected_repetition or detected_interruption:
+            affected_party = detected_roles[-1] if detected_roles else "den som paverkas"
+            layers.append(
+                LabeledStatement(
+                    layer=AnalysisLayer.INFERENCE,
+                    text=f"Mojlig konsekvens (hypotes): {affected_party} kan over tid lagga fram farre ideer eller synpunkter. Inte verifierat.",
+                )
             )
-        )
 
         return layers
 

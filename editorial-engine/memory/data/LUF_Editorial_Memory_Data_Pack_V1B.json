@@ -1,0 +1,589 @@
+{
+  "pack_id": "luf-editorial-memory-data-pack-v1b",
+  "scope": "Verified available corpus only. Not a complete publication history.",
+  "data_quality": "medium",
+  "records": [
+    {
+      "content_id": "content-work-001",
+      "source_facts": {
+        "original_text": "Företagsutveckling börjar inte i rapporten. Den börjar i verkligheten.",
+        "language": "sv",
+        "channel": "work_deck",
+        "publication_status": "unverified_draft_or_work_material",
+        "dates": {
+          "source_created": "2026-07-16",
+          "verified_publication_date": null
+        },
+        "source": "Ledarskap utan filter. WORK LinkedIn, slide 1",
+        "publication_evidence": null
+      },
+      "analytical_enrichment": {
+        "thesis_family_id": "thesis-reality-before-story-001",
+        "series_id": null,
+        "territory_relation": null,
+        "topic_labels": [
+          "verklighet",
+          "företagsutveckling"
+        ],
+        "confidence": "strongly_supported"
+      },
+      "text_completeness": "full"
+    },
+    {
+      "content_id": "content-work-002",
+      "source_facts": {
+        "original_text": "Resultatet är fördröjd verklighet. Det vi ser i siffrorna idag började ofta långt tidigare. I ett samtal som aldrig hölls. I ett ansvar som var otydligt. I ett beteende som fick fortsätta.",
+        "language": "sv",
+        "channel": "work_deck",
+        "publication_status": "unverified_draft_or_work_material",
+        "dates": {
+          "source_created": "2026-07-16",
+          "verified_publication_date": null
+        },
+        "source": "WORK LinkedIn, slide 2",
+        "publication_evidence": null
+      },
+      "analytical_enrichment": {
+        "thesis_family_id": "thesis-symptom-cause-001",
+        "series_id": null,
+        "territory_relation": null,
+        "topic_labels": [
+          "resultat",
+          "ansvar",
+          "konsekvens"
+        ],
+        "confidence": "strongly_supported"
+      },
+      "text_completeness": "full"
+    },
+    {
+      "content_id": "content-work-003",
+      "source_facts": {
+        "original_text": "De flesta företag behandlar symptomen. Låg lönsamhet. Konflikter. Kvalitetsbrister. Sjukfrånvaro. Personalomsättning. Viktiga signaler. Men sällan själva kärnan.",
+        "language": "sv",
+        "channel": "work_deck",
+        "publication_status": "unverified_draft_or_work_material",
+        "dates": {
+          "source_created": "2026-07-16",
+          "verified_publication_date": null
+        },
+        "source": "WORK LinkedIn, slide 3",
+        "publication_evidence": null
+      },
+      "analytical_enrichment": {
+        "thesis_family_id": "thesis-symptom-cause-001",
+        "series_id": "series-diagnosis-before-solution-001",
+        "territory_relation": null,
+        "topic_labels": [
+          "symptom",
+          "orsak",
+          "organisation"
+        ],
+        "confidence": "strongly_supported"
+      },
+      "text_completeness": "full"
+    },
+    {
+      "content_id": "content-work-004",
+      "source_facts": {
+        "original_text": "Vi söker det som skapade problemet. Symptom. Samband. Kärna. När kärnan blir synlig kan verksamheten förändras på riktigt.",
+        "language": "sv",
+        "channel": "work_deck",
+        "publication_status": "unverified_draft_or_work_material",
+        "dates": {
+          "source_created": "2026-07-16",
+          "verified_publication_date": null
+        },
+        "source": "WORK LinkedIn, slide 4",
+        "publication_evidence": null
+      },
+      "analytical_enrichment": {
+        "thesis_family_id": "thesis-symptom-cause-001",
+        "series_id": "series-diagnosis-before-solution-001",
+        "territory_relation": null,
+        "topic_labels": [
+          "symptom",
+          "samband",
+          "förändring"
+        ],
+        "confidence": "strongly_supported"
+      },
+      "text_completeness": "full"
+    },
+    {
+      "content_id": "content-work-005",
+      "source_facts": {
+        "original_text": "Trianglarna är punkterna. Trianguleringen är modellen. Tid. Kostnad. Kvalitet. Se. Höra. Känna. Struktur. Kultur. Mindset. En punkt ger en uppgift. Flera perspektiv ger en sannare bild.",
+        "language": "sv",
+        "channel": "work_deck",
+        "publication_status": "unverified_draft_or_work_material",
+        "dates": {
+          "source_created": "2026-07-16",
+          "verified_publication_date": null
+        },
+        "source": "WORK LinkedIn, slide 5",
+        "publication_evidence": null
+      },
+      "analytical_enrichment": {
+        "thesis_family_id": "thesis-reality-before-story-001",
+        "series_id": null,
+        "territory_relation": null,
+        "topic_labels": [
+          "triangulering",
+          "perspektiv",
+          "verklighet"
+        ],
+        "confidence": "strongly_supported"
+      },
+      "text_completeness": "full"
+    },
+    {
+      "content_id": "content-work-006",
+      "source_facts": {
+        "original_text": "Observation före tolkning. Observation: Tre personer kom sent till mötet. Tolkning: De bryr sig inte. Problemet börjar när vi behandlar tolkningen som fakta. Se först. Förstå sedan.",
+        "language": "sv",
+        "channel": "work_deck",
+        "publication_status": "unverified_draft_or_work_material",
+        "dates": {
+          "source_created": "2026-07-16",
+          "verified_publication_date": null
+        },
+        "source": "WORK LinkedIn, slide 6",
+        "publication_evidence": null
+      },
+      "analytical_enrichment": {
+        "thesis_family_id": "thesis-reality-before-story-001",
+        "series_id": null,
+        "territory_relation": null,
+        "topic_labels": [
+          "observation",
+          "tolkning",
+          "möten"
+        ],
+        "confidence": "strongly_supported"
+      },
+      "text_completeness": "full"
+    },
+    {
+      "content_id": "content-work-007",
+      "source_facts": {
+        "original_text": "Så flyttar vi verksamheten. Se. Förstå. Prioritera. Agera. Mäta. Korrigera. Mäta igen. En förändring är inte färdig när beslutet är fattat. Den är färdig när verkligheten har förändrats.",
+        "language": "sv",
+        "channel": "work_deck",
+        "publication_status": "unverified_draft_or_work_material",
+        "dates": {
+          "source_created": "2026-07-16",
+          "verified_publication_date": null
+        },
+        "source": "WORK LinkedIn, slide 7",
+        "publication_evidence": null
+      },
+      "analytical_enrichment": {
+        "thesis_family_id": "thesis-change-over-time-001",
+        "series_id": null,
+        "territory_relation": null,
+        "topic_labels": [
+          "förändring",
+          "uppföljning",
+          "beteende"
+        ],
+        "confidence": "strongly_supported"
+      },
+      "text_completeness": "full"
+    },
+    {
+      "content_id": "content-work-008",
+      "source_facts": {
+        "original_text": "Fyra ord håller ihop förändringen. Verklighet: Våga se vad som faktiskt händer. Språk: Sätt gemensamma ord på det ni ser. Ansvar: Gör nästa handling och ägare tydliga. Konsekvens: Låt överenskommelser få betydelse.",
+        "language": "sv",
+        "channel": "work_deck",
+        "publication_status": "unverified_draft_or_work_material",
+        "dates": {
+          "source_created": "2026-07-16",
+          "verified_publication_date": null
+        },
+        "source": "WORK LinkedIn, slide 8",
+        "publication_evidence": null
+      },
+      "analytical_enrichment": {
+        "thesis_family_id": "thesis-change-over-time-001",
+        "series_id": null,
+        "territory_relation": null,
+        "topic_labels": [
+          "förändring",
+          "ansvar",
+          "konsekvens"
+        ],
+        "confidence": "strongly_supported"
+      },
+      "text_completeness": "full"
+    },
+    {
+      "content_id": "content-work-009",
+      "source_facts": {
+        "original_text": "Människan först betyder inte resultatet sist. Resultat. Relation. Krav. Stöd. Tydlighet. Tillit. Bra ledarskap väljer inte sida. Det håller ihop helheten.",
+        "language": "sv",
+        "channel": "work_deck",
+        "publication_status": "unverified_draft_or_work_material",
+        "dates": {
+          "source_created": "2026-07-16",
+          "verified_publication_date": null
+        },
+        "source": "WORK LinkedIn, slide 9",
+        "publication_evidence": null
+      },
+      "analytical_enrichment": {
+        "thesis_family_id": "thesis-relation-results-001",
+        "series_id": null,
+        "territory_relation": null,
+        "topic_labels": [
+          "relation",
+          "resultat",
+          "tillit"
+        ],
+        "confidence": "strongly_supported"
+      },
+      "text_completeness": "full"
+    },
+    {
+      "content_id": "content-work-010",
+      "source_facts": {
+        "original_text": "Katalysatorn gör det osynliga synligt. Ser mönster mellan avdelningar. Hör det som sägs mellan raderna. Ställer frågan organisationen slutat ställa. Inte för att skapa beroende. För att göra verksamheten starkare och mer självgående.",
+        "language": "sv",
+        "channel": "work_deck",
+        "publication_status": "unverified_draft_or_work_material",
+        "dates": {
+          "source_created": "2026-07-16",
+          "verified_publication_date": null
+        },
+        "source": "WORK LinkedIn, slide 10",
+        "publication_evidence": null
+      },
+      "analytical_enrichment": {
+        "thesis_family_id": "thesis-invisible-governs-001",
+        "series_id": null,
+        "territory_relation": null,
+        "topic_labels": [
+          "katalysator",
+          "undertext",
+          "mönster"
+        ],
+        "confidence": "strongly_supported"
+      },
+      "text_completeness": "full"
+    },
+    {
+      "content_id": "content-work-011",
+      "source_facts": {
+        "original_text": "Om du ser problemet så äger du problemet. Det betyder inte att du måste lösa allt själv. Det betyder att du inte får gå förbi. Lyft frågan. Samla rätt människor. Be om hjälp. Men låt inte problemet växa i tystnad.",
+        "language": "sv",
+        "channel": "work_deck",
+        "publication_status": "unverified_draft_or_work_material",
+        "dates": {
+          "source_created": "2026-07-16",
+          "verified_publication_date": null
+        },
+        "source": "WORK LinkedIn, slide 11",
+        "publication_evidence": null
+      },
+      "analytical_enrichment": {
+        "thesis_family_id": "thesis-responsibility-not-passed-001",
+        "series_id": null,
+        "territory_relation": null,
+        "topic_labels": [
+          "ansvar",
+          "problem",
+          "tystnad"
+        ],
+        "confidence": "strongly_supported"
+      },
+      "text_completeness": "full"
+    },
+    {
+      "content_id": "content-work-012",
+      "source_facts": {
+        "original_text": "Vad visar er verklighet innan det syns i siffrorna? Ett system för att se tidigare, förstå djupare och agera medan det fortfarande går att påverka.",
+        "language": "sv",
+        "channel": "work_deck",
+        "publication_status": "unverified_draft_or_work_material",
+        "dates": {
+          "source_created": "2026-07-16",
+          "verified_publication_date": null
+        },
+        "source": "WORK LinkedIn, slide 12",
+        "publication_evidence": null
+      },
+      "analytical_enrichment": {
+        "thesis_family_id": "thesis-reality-before-story-001",
+        "series_id": null,
+        "territory_relation": null,
+        "topic_labels": [
+          "tidiga signaler",
+          "verklighet",
+          "agerande"
+        ],
+        "confidence": "strongly_supported"
+      },
+      "text_completeness": "full"
+    },
+    {
+      "content_id": "content-other-001",
+      "source_facts": {
+        "original_text": "Det farligaste en människa kan förlora är inte sitt jobb. Det är sin röst.",
+        "language": "sv",
+        "channel": "conversation_draft",
+        "publication_status": "unknown",
+        "dates": {
+          "created": "2026-06-28",
+          "verified_publication_date": null
+        },
+        "source": "Fas 0A identifierbar text",
+        "publication_evidence": null
+      },
+      "analytical_enrichment": {
+        "thesis_family_id": "thesis-silence-price-001",
+        "series_id": null,
+        "territory_relation": null,
+        "topic_labels": [
+          "tystnad",
+          "röst",
+          "identitet"
+        ],
+        "confidence": "strongly_supported"
+      },
+      "text_completeness": "partial"
+    },
+    {
+      "content_id": "content-other-002",
+      "source_facts": {
+        "original_text": "Då snurrar vår värld. När allt går för fort …",
+        "language": "sv",
+        "channel": "conversation_draft",
+        "publication_status": "unknown",
+        "dates": {
+          "created": "2025-11-05",
+          "verified_publication_date": null
+        },
+        "source": "Fas 0A identifierbar text",
+        "publication_evidence": null
+      },
+      "analytical_enrichment": {
+        "thesis_family_id": null,
+        "series_id": null,
+        "territory_relation": null,
+        "topic_labels": [
+          "tempo",
+          "riktning"
+        ],
+        "confidence": "analytical_proposal"
+      },
+      "text_completeness": "partial"
+    },
+    {
+      "content_id": "content-other-003",
+      "source_facts": {
+        "original_text": "Det handlar inte om att vara bäst. Det handlar om att vara tydlig.",
+        "language": "sv",
+        "channel": "conversation_draft",
+        "publication_status": "unknown",
+        "dates": {
+          "created": "2025-11-08",
+          "verified_publication_date": null
+        },
+        "source": "Fas 0A identifierbar text",
+        "publication_evidence": null
+      },
+      "analytical_enrichment": {
+        "thesis_family_id": "thesis-clarity-creates-choice-001",
+        "series_id": "series-easy-to-choose-001",
+        "territory_relation": null,
+        "topic_labels": [
+          "tydlighet",
+          "val"
+        ],
+        "confidence": "strongly_supported"
+      },
+      "text_completeness": "partial"
+    },
+    {
+      "content_id": "content-other-004",
+      "source_facts": {
+        "original_text": "Reaktion är underlägsen närvaro.",
+        "language": "sv",
+        "channel": "conversation_draft",
+        "publication_status": "unknown",
+        "dates": {
+          "created": "2026-01-05",
+          "verified_publication_date": null
+        },
+        "source": "Fas 0A identifierbar text",
+        "publication_evidence": null
+      },
+      "analytical_enrichment": {
+        "thesis_family_id": null,
+        "series_id": null,
+        "territory_relation": null,
+        "topic_labels": [
+          "närvaro",
+          "reaktion"
+        ],
+        "confidence": "analytical_proposal"
+      },
+      "text_completeness": "partial"
+    },
+    {
+      "content_id": "content-other-005",
+      "source_facts": {
+        "original_text": "En ny stor systematisk översikt och meta-analys …",
+        "language": "sv",
+        "channel": "conversation_draft",
+        "publication_status": "unknown",
+        "dates": {
+          "created": "2026-01-29",
+          "verified_publication_date": null
+        },
+        "source": "Fas 0A identifierbar text; revised draft also documented",
+        "publication_evidence": null
+      },
+      "analytical_enrichment": {
+        "thesis_family_id": "thesis-invisible-governs-001",
+        "series_id": null,
+        "territory_relation": null,
+        "topic_labels": [
+          "informella ledare",
+          "tillit",
+          "resultat"
+        ],
+        "confidence": "strongly_supported"
+      },
+      "text_completeness": "partial",
+      "relations": [
+        {
+          "type": "version_revision",
+          "target": "same content record; earlier draft and later revised opening documented"
+        }
+      ]
+    },
+    {
+      "content_id": "content-other-006",
+      "source_facts": {
+        "original_text": "Ubuntu is a simple word with a deep human truth: ‘I am because we are.’",
+        "language": "en",
+        "channel": "conversation_draft",
+        "publication_status": "unknown",
+        "dates": {
+          "created": "2025-11-07",
+          "verified_publication_date": null
+        },
+        "source": "Fas 0A identifierbar text",
+        "publication_evidence": null
+      },
+      "analytical_enrichment": {
+        "thesis_family_id": null,
+        "series_id": "series-ubuntu-human-001",
+        "territory_relation": null,
+        "topic_labels": [
+          "ömsesidighet",
+          "människovärde"
+        ],
+        "confidence": "strongly_supported"
+      },
+      "text_completeness": "partial"
+    },
+    {
+      "content_id": "content-published-001",
+      "source_facts": {
+        "original_text": "Most companies do not have an accountability problem.",
+        "language": "en",
+        "channel": "linkedin",
+        "publication_status": "published_verified",
+        "dates": {
+          "verified_publication_date": null,
+          "publication_window": "shown as published five days before screenshot dated 2026-08-06"
+        },
+        "source": "LinkedIn analytics screenshot Screenshot_20260806_215709.jpg",
+        "publication_evidence": "LinkedIn analytics UI identifies Jan Stefors post and shows 8,388 views and 5,713 members reached.",
+        "url": null,
+        "post_id": null
+      },
+      "analytical_enrichment": {
+        "thesis_family_id": null,
+        "series_id": null,
+        "territory_relation": null,
+        "topic_labels": [
+          "accountability"
+        ],
+        "confidence": "analytical_proposal"
+      },
+      "text_completeness": "partial"
+    },
+    {
+      "content_id": "content-published-002",
+      "source_facts": {
+        "original_text": "STÅ UPP FÖR DIG SJÄLV. DET DÄR ÄR INTE OKEJ. SÅ DÄR PRATAR DU INTE MED MIG. RESPEKT ÄR INTE VALFRITT. NÄR DU STÅR UPP FÖR DIG SJÄLV GÖR DU DET LÄTTARE FÖR ANDRA ATT RESA SIG.",
+        "language": "sv",
+        "channel": "linkedin",
+        "publication_status": "published_verified",
+        "dates": {
+          "verified_publication_date": null
+        },
+        "source": "LinkedIn screenshot sc(20260808-064458).jpeg",
+        "publication_evidence": "LinkedIn UI explicitly shows the visual as published.",
+        "url": null,
+        "post_id": null
+      },
+      "analytical_enrichment": {
+        "thesis_family_id": null,
+        "series_id": null,
+        "territory_relation": null,
+        "topic_labels": [
+          "respekt",
+          "gränssättning"
+        ],
+        "confidence": "analytical_proposal"
+      },
+      "text_completeness": "partial"
+    },
+    {
+      "content_id": "content-published-003",
+      "source_facts": {
+        "original_text": "THE PLAN. GOOD LEADERSHIP ISN’T ABOUT HAVING ALL THE ANSWERS. IT’S ABOUT CREATING A ROOM WHERE THE TRUTH CAN BE SAID.",
+        "language": "en",
+        "channel": "linkedin",
+        "publication_status": "published_verified",
+        "dates": {
+          "verified_publication_date": null
+        },
+        "source": "LinkedIn screenshot Screenshot_20260806_220429.jpg",
+        "publication_evidence": "LinkedIn feed UI confirms publication by Jan Stefors.",
+        "url": null,
+        "post_id": null
+      },
+      "analytical_enrichment": {
+        "thesis_family_id": "thesis-invisible-governs-001",
+        "series_id": null,
+        "territory_relation": null,
+        "topic_labels": [
+          "truth",
+          "psychological safety",
+          "leadership"
+        ],
+        "confidence": "strongly_supported"
+      },
+      "text_completeness": "partial"
+    }
+  ],
+  "taxonomy_gaps": [
+    "No canonical territory IDs or mapping rules were available in Work. Territory relations remain null rather than inferred.",
+    "No agreed canonical taxonomy for format, opening type, ending type, emotional register or narrator perspective was available."
+  ],
+  "canonical_review_needed": [],
+  "duplicate_relations": {
+    "exact_duplicates": [],
+    "version_revisions": [
+      "content-other-005 has a documented earlier draft and later revised opening."
+    ],
+    "adaptations": [],
+    "related_but_distinct": []
+  }
+}
