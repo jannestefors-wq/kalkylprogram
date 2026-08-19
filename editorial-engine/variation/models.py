@@ -1,0 +1,451 @@
+"""
+V1C Variation Analysis models (order sections 3-4, 7-8, 17-25).
+
+Everything here is PROTOTYPE ANALYSIS OUTPUT, not canonical data -- mirrors
+`engine/models.py`'s own module docstring discipline. None of it is
+exported from `schema/`, none of it is written into `canonical_data/`,
+and none of it changes Canonical Foundation V1. `VariationProfile` is
+built from real text but is itself never mistaken for content metadata:
+it lives only in `variation/`, is never written back onto
+`schema.ContentRecord` or an Editorial Memory record's `original_text`.
+
+Work's Variation Foundation report identified 9 candidate dimensions with
+DIFFERENT evidence strength (order section 5). This module encodes that
+distinction as DATA (`DIMENSION_EVIDENCE_STATUS`), not just prose, so
+downstream logic can structurally refuse to treat an EXPLORATORY
+dimension the same as an OBSERVED one. Sustained Narrative Form
+(EXPLORATORY) is not implemented at all (order section 6, 29) -- there is
+no enum, no field, no code path for it anywhere in `variation/`.
+
+Reuses existing engine-output vocabulary rather than inventing parallel
+ones: `engine.models.ConfidenceLevel` (LOW/MEDIUM/HIGH) for per-field
+analysis confidence, and `schema.Provenance` for who/when/how each
+profile was produced.
+"""
+
+from __future__ import annotations
+
+from enum import Enum
+from typing import Optional
+
+from pydantic import BaseModel, Field
+
+from schema import Provenance
+
+from engine.models import ConfidenceLevel
+
+
+class DimensionEvidenceStatus(str, Enum):
+    """How well-supported a VARIATION DIMENSION ITSELF is by Work's Variation
+    Foundation analysis -- a fixed property of the dimension, not of any one
+    analysis run. Distinct from `ConfidenceLevel`, which is per-field,
+    per-analysis. A dimension can be OBSERVED while one particular analysis
+    of it is still LOW confidence (little evidence in that specific text)."""
+
+    OBSERVED = "observed"
+    SUPPORTED_HYPOTHESIS = "supported_hypothesis"
+    EXPLORATORY = "exploratory"
+
+
+DIMENSION_EVIDENCE_STATUS: dict[str, DimensionEvidenceStatus] = {
+    "entry_mode": DimensionEvidenceStatus.OBSERVED,
+    "lens": DimensionEvidenceStatus.OBSERVED,
+    "narrative_distance": DimensionEvidenceStatus.OBSERVED,
+    "structural_arc": DimensionEvidenceStatus.OBSERVED,
+    "structural_movement": DimensionEvidenceStatus.OBSERVED,
+    "rhetorical_pressure": DimensionEvidenceStatus.OBSERVED,
+    "closure_mode": DimensionEvidenceStatus.OBSERVED,
+    "disclosure_pace": DimensionEvidenceStatus.SUPPORTED_HYPOTHESIS,
+    "emotional_temperature": DimensionEvidenceStatus.SUPPORTED_HYPOTHESIS,
+}
+"""order section 5. Sustained Narrative Form (EXPLORATORY) is deliberately
+absent -- order section 29 forbids implementing it as a stable dimension."""
+
+OBSERVED_DIMENSIONS: tuple[str, ...] = (
+    "entry_mode",
+    "lens",
+    "narrative_distance",
+    "structural_arc",
+    "rhetorical_pressure",
+    "closure_mode",
+)
+"""order section 6: the six-dimension prototype core. Only these may ever
+drive repetition/recommendation decisions on their own (order section 28)."""
+
+
+class EntryMode(str, Enum):
+    SITUATION = "situation"
+    CLAIM = "claim"
+    QUESTION = "question"
+    PROCESS = "process"
+    CONSEQUENCE = "consequence"
+    UNKNOWN = "unknown"
+
+
+class Lens(str, Enum):
+    RESPONSIBILITY = "responsibility"
+    POWER = "power"
+    RELATION = "relation"
+    SYSTEM = "system"
+    CONSEQUENCE = "consequence"
+    INDIVIDUAL_EXPERIENCE = "individual_experience"
+    UNKNOWN = "unknown"
+
+
+class NarrativeDistance(str, Enum):
+    CLOSE_HUMAN = "close_human"
+    DIRECT_ADDRESS = "direct_address"
+    OBSERVER = "observer"
+    SYSTEM_LEVEL = "system_level"
+    UNKNOWN = "unknown"
+
+
+class StructuralArc(str, Enum):
+    """order section 8 (V1C Correction): kept for V1C's internal contract, but
+    NO LONGER the primary source of structural truth -- it is now a small,
+    SECONDARY label derived FROM `MovementStage` sequence (see
+    `StructuralMovementAssessment` below), never derived directly from
+    entry_mode/closure_mode. See `profiler.py::_assess_structural_arc()`."""
+
+    SCENE_TO_INSIGHT = "scene_to_insight"
+    CLAIM_TO_EVIDENCE = "claim_to_evidence"
+    FRAMEWORK_TO_DIRECTION = "framework_to_direction"
+    ESCALATION_TO_CONSEQUENCE = "escalation_to_consequence"
+    DILEMMA_TO_OPEN_END = "dilemma_to_open_end"
+    UNKNOWN = "unknown"
+
+
+class MovementStage(str, Enum):
+    """order section 6-7 (V1C Correction): a small, bounded, transparent
+    vocabulary of observable mid-text editorial movements -- NOT an attempt
+    to catalogue every possible narrative structure (order section 7). Each
+    stage must be explainable from a concrete textual signal, the same
+    discipline every other dimension in this module already follows."""
+
+    CLAIM = "claim"
+    PRINCIPLE = "principle"
+    CONCRETE_SITUATION = "concrete_situation"
+    SYMPTOM_INVENTORY = "symptom_inventory"
+    REFRAMING = "reframing"
+    DISTINCTION = "distinction"
+    TENSION = "tension"
+    QUESTION = "question"
+    DIRECTION = "direction"
+    CONSEQUENCE = "consequence"
+    OBSERVATION = "observation"
+    UNKNOWN = "unknown"
+
+
+class MovementStep(BaseModel):
+    """One observed segment of the text's editorial movement."""
+
+    model_config = {"extra": "forbid"}
+
+    stage: MovementStage
+    confidence: ConfidenceLevel
+    evidence: str
+
+
+class StructuralMovementAssessment(BaseModel):
+    """order section 6, 9, 10 (V1C Correction): the ordered sequence of
+    observed editorial movements a text makes -- the PRIMARY structural
+    evidence. `structural_arc` is derived FROM this, never the reverse
+    (order section 8). Typically 1-5 steps; consecutive segments that
+    classify to the same stage are collapsed (order section 7: no
+    padding for its own sake).
+
+    `sufficient_evidence=False` (order section 10) means the text was too
+    short to support a genuine movement observation (fewer than 3
+    sentences -- there is no room for anything between an opening and a
+    closing) -- this is DIFFERENT from FULL/PARTIAL text completeness
+    (order section 11): a FULL text can still be too short for structural
+    inference."""
+
+    model_config = {"extra": "forbid"}
+
+    steps: list[MovementStep] = Field(default_factory=list)
+    sufficient_evidence: bool
+    evidence_status: DimensionEvidenceStatus
+
+    def known_stage_sequence(self) -> list[str]:
+        return [s.stage.value for s in self.steps if s.stage != MovementStage.UNKNOWN]
+
+
+class LocalEditorialFunctionAssessment(BaseModel):
+    """V1C Blocker 3 (V1C_LOCAL_EDITORIAL_FUNCTION_IMPLEMENTATION_REPORT.md), locked to the scope of
+    `V1C_LOCAL_EDITORIAL_FUNCTION_FEASIBILITY_ASSESSMENT.md`'s Architecture Verdict B. PARTIALLY VIABLE.
+
+    A minimal, non-canonical, source-traced representation of the smallest defensible local relation:
+    `observerad situation eller handling -> funktionell forandring -> observerbar foljd`. This is NOT a
+    Voice Core property, NOT a Variation Rule, NOT a Thesis Family, and NOT a permanent metadata field
+    list -- it is a PROTOTYPE ANALYSIS representation, scoped only to explicit, textnear local relations.
+
+    Deliberately källspårad före kategoriserad (feasibility assessment section 2): `situation_span` and
+    `consequence_span` are literal, verifiable substrings of the analyzed text -- never a category label,
+    never an inferred meaning. Any internal grouping used to decide whether two assessments' consequence
+    spans plausibly describe the SAME kind of functional change lives only in `comparison.py`'s private
+    matching logic, never as an enum on this model -- so this representation cannot calcify into the
+    forbidden canonical taxonomy (feasibility assessment section 12; order section 9: 'agency loss, voice
+    suppression, judgment loss, dependency, responsibility displacement, information loss' must never
+    become a permanent LUF facit list)."""
+
+    model_config = {"extra": "forbid"}
+
+    sufficient_evidence: bool
+    situation_span: Optional[str] = None
+    consequence_span: Optional[str] = None
+    capability_change_words: list[str] = Field(default_factory=list)
+    """The literal, source-quoted words in `consequence_span` that indicate a change in capability, voice,
+    judgment, responsibility, dependency, or information flow -- never a category label (see docstring)."""
+    confidence: ConfidenceLevel
+    evidence: str
+
+
+class RhetoricalPressure(str, Enum):
+    CONTRAST = "contrast"
+    QUESTION = "question"
+    CONSEQUENCE = "consequence"
+    IMPERATIVE = "imperative"
+    QUIET_OBSERVATION = "quiet_observation"
+    UNKNOWN = "unknown"
+
+
+class ClosureMode(str, Enum):
+    ACTION = "action"
+    CONSEQUENCE = "consequence"
+    OPEN_QUESTION = "open_question"
+    STILL_STATEMENT = "still_statement"
+    UNRESOLVED_TENSION = "unresolved_tension"
+    UNKNOWN = "unknown"
+
+
+class DisclosurePace(str, Enum):
+    GRADUAL = "gradual"
+    IMMEDIATE = "immediate"
+    UNKNOWN = "unknown"
+
+
+class EmotionalTemperature(str, Enum):
+    WARM = "warm"
+    COOL = "cool"
+    NEUTRAL = "neutral"
+    UNKNOWN = "unknown"
+
+
+class DimensionAssessment(BaseModel):
+    """One dimension's analysis result. `evidence_status` is copied from the
+    fixed `DIMENSION_EVIDENCE_STATUS` table (order section 5) -- never set
+    per-analysis -- so a SUPPORTED_HYPOTHESIS field can never silently read
+    as though it were OBSERVED."""
+
+    model_config = {"extra": "forbid"}
+
+    value: str = Field(description="One of the dimension's enum values, or 'unknown'.")
+    confidence: ConfidenceLevel = Field(description="Confidence of THIS analysis run. Never a canonical status.")
+    evidence: str = Field(description="Human-readable reason the analysis reached this value. No black box.")
+    evidence_status: DimensionEvidenceStatus
+
+
+class SourceKind(str, Enum):
+    EDITORIAL_MEMORY_RECORD = "editorial_memory_record"
+    CANDIDATE_ANGLE = "candidate_angle"
+
+
+class VariationProfile(BaseModel):
+    """PROTOTYPE ANALYSIS OUTPUT (order section 4, 7) -- never canonical
+    content metadata. `source_id` is an Editorial Memory `content_id` or a
+    V1A `CandidateAngle.angle.angle_id`, never a new canonical id."""
+
+    model_config = {"extra": "forbid"}
+
+    profile_id: str
+    source_id: str
+    source_kind: SourceKind
+
+    entry_mode: DimensionAssessment
+    lens: DimensionAssessment
+    narrative_distance: DimensionAssessment
+    structural_arc: DimensionAssessment
+    structural_movement: StructuralMovementAssessment
+    rhetorical_pressure: DimensionAssessment
+    closure_mode: DimensionAssessment
+
+    disclosure_pace: Optional[DimensionAssessment] = None
+    emotional_temperature: Optional[DimensionAssessment] = None
+
+    sentence_count: int = 0
+    word_count: int = 0
+    """V1C False Variation Blocker 3: plain OBSERVED facts (counts, never
+    which words) -- not a hypothesis dimension, not derived meaning. Lets
+    False Variation's short-form path (`comparison.py`) tell a text that
+    is too sparse to support ANY confident structural judgment apart from
+    one that merely triggered none of the keyword heuristics (order
+    section 6's 'evidence of difference' vs 'absence of evidence for
+    similarity', applied to the profiler's own coverage rather than to a
+    pairwise comparison)."""
+
+    local_editorial_function: Optional[LocalEditorialFunctionAssessment] = None
+    """V1C Blocker 3: computed only for the locked, explicit-relation scope (see
+    `profiler.py::_assess_local_editorial_function()`). `None` means the profiler did not attempt this
+    analysis for this source kind; a present assessment with `sufficient_evidence=False` means it was
+    attempted but the text did not support a source-traced relation. Optional and additive -- never
+    required by any existing OBSERVED-dimension contract."""
+
+    analysis_logic_version: str
+    provenance: Provenance
+
+    def observed_values(self) -> dict[str, str]:
+        """The six OBSERVED dimensions only -- what repetition/comparison logic
+        is allowed to use (order section 28: hypothesis dimensions never decide
+        anything alone)."""
+        return {name: getattr(self, name).value for name in OBSERVED_DIMENSIONS}
+
+
+class DimensionComparison(BaseModel):
+    model_config = {"extra": "forbid"}
+
+    dimension: str
+    profile_a_value: str
+    profile_b_value: str
+    same: bool
+
+
+class VariationDistanceCategory(str, Enum):
+    """order section 18: explainable categories, never a fabricated precise
+    score."""
+
+    TOO_SIMILAR = "TOO_SIMILAR"
+    PARTIALLY_DISTINCT = "PARTIALLY_DISTINCT"
+    STRUCTURALLY_DISTINCT = "STRUCTURALLY_DISTINCT"
+    INSUFFICIENT_EVIDENCE = "INSUFFICIENT_EVIDENCE"
+
+
+class MovementSimilarityCategory(str, Enum):
+    """order section 12 (V1C Correction): allowed structural-MOVEMENT
+    comparison outcomes -- explicitly not a fabricated precise score."""
+
+    STRONGLY_SIMILAR = "STRONGLY_SIMILAR"
+    PARTIALLY_SIMILAR = "PARTIALLY_SIMILAR"
+    STRUCTURALLY_DISTINCT = "STRUCTURALLY_DISTINCT"
+    INSUFFICIENT_EVIDENCE = "INSUFFICIENT_EVIDENCE"
+
+
+class StructuralMovementComparisonResult(BaseModel):
+    """order section 12 (V1C Correction): compares two observed movement
+    SEQUENCES position-by-position (small, transparent, explainable -- not
+    an edit-distance/embedding similarity score). This -- not the single
+    `structural_arc` label -- is now the primary structural-truth input
+    `compare_variation_profiles()` folds into the six-dimension contract
+    (see `comparison.py::compare_structural_movements()`)."""
+
+    model_config = {"extra": "forbid"}
+
+    profile_a_id: str
+    profile_b_id: str
+    profile_a_sequence: list[str]
+    profile_b_sequence: list[str]
+    matched_positions: int
+    compared_length: int
+    category: MovementSimilarityCategory
+    rationale: str
+
+
+class StructuralComparisonResult(BaseModel):
+    model_config = {"extra": "forbid"}
+
+    profile_a_id: str
+    profile_b_id: str
+    dimension_comparisons: list[DimensionComparison] = Field(default_factory=list)
+    same_count: int
+    different_count: int
+    overall: VariationDistanceCategory
+    movement_comparison: StructuralMovementComparisonResult
+
+
+class RepetitionAxis(str, Enum):
+    """order section 19: these must never collapse into one signal."""
+
+    THESIS = "thesis"
+    ANGLE = "angle"
+    STRUCTURAL = "structural"
+    OPENING = "opening"
+    ENDING = "ending"
+    LEXICAL = "lexical"
+
+
+class RepetitionAxisAssessment(BaseModel):
+    model_config = {"extra": "forbid"}
+
+    axis: RepetitionAxis
+    detected: bool
+    rationale: str
+
+
+class MultiAxisRepetitionResult(BaseModel):
+    model_config = {"extra": "forbid"}
+
+    assessments: list[RepetitionAxisAssessment] = Field(default_factory=list)
+
+    def detected_axes(self) -> list[RepetitionAxis]:
+        return [a.axis for a in self.assessments if a.detected]
+
+
+class FalseVariationAssessment(BaseModel):
+    """order section 17: is a proposed alternative genuinely structurally
+    different, or the same construction in new words?
+
+    `sufficient_evidence` (V1C False Variation Blocker 3): a text pair can
+    reach a point where NEITHER a confident False Variation call NOR a
+    confident Legitimate Variation call is honest -- Structural Movement is
+    unavailable (fewer than 3 sentences on one/both sides) AND none of the
+    non-movement construction dimensions produced anything beyond their
+    LOW-confidence default fallback on either side. `is_false_variation`
+    is always `False` when this is `False` (order section 5's "Systemet
+    far alltsa inte losa recallproblemet genom att flagga allt osakert som
+    False Variation" -- absence of evidence is never treated as if it were
+    evidence of difference, so it must never silently read as a confident
+    LEGITIMATE_VARIATION either). Callers needing the three-way outcome
+    (order section 5.A/B/C) branch on this field first, `is_false_variation`
+    second."""
+
+    model_config = {"extra": "forbid"}
+
+    is_false_variation: bool
+    sufficient_evidence: bool = True
+    rationale: str
+    identical_dimensions: list[str] = Field(default_factory=list)
+    changed_dimensions: list[str] = Field(default_factory=list)
+
+
+class ControlledVariationOption(BaseModel):
+    model_config = {"extra": "forbid"}
+
+    option_id: str
+    relates_to_angle_id: str
+    proposed_changes: dict[str, str] = Field(description="OBSERVED dimension name -> new proposed value.")
+    stable_dimensions: dict[str, str] = Field(description="OBSERVED dimension name -> value held constant.")
+    memory_relation: str = Field(description="How this option relates to/differs from relevant Editorial Memory.")
+    distinctiveness: VariationDistanceCategory
+    false_variation: FalseVariationAssessment
+    confidence: ConfidenceLevel
+    evidence: list[str] = Field(default_factory=list)
+    provenance: Provenance
+
+
+class VariationRecommendationOutcome(str, Enum):
+    RECOMMENDED = "RECOMMENDED"
+    NO_MEANINGFUL_VARIATION = "NO_MEANINGFUL_VARIATION"
+    INSUFFICIENT_VARIATION_EVIDENCE = "INSUFFICIENT_VARIATION_EVIDENCE"
+
+
+MAX_CONTROLLED_VARIATION_OPTIONS = 3
+"""order section 24: never more, and 0/1/2 are all legitimate."""
+
+
+class VariationRecommendationResult(BaseModel):
+    model_config = {"extra": "forbid"}
+
+    outcome: VariationRecommendationOutcome
+    options: list[ControlledVariationOption] = Field(default_factory=list)
+    recommended_option_id: Optional[str] = None
+    rationale: str
