@@ -1,0 +1,373 @@
+"""
+V1C Variation Profiler (order sections 6, 11-14).
+
+Smallest transparent, deterministic, rule-based analysis that works -- no
+embeddings, no external NLP library, no LLM call required (order section
+31). Every dimension value is derived from an explainable textual
+signal, carries its own evidence string, and can legitimately be
+`UNKNOWN` when the signal isn't there (order section 12: "Det ar battre
+an falsk precision").
+
+Only ever called on text a caller has already confirmed is safe to treat
+as full, structurally-analyzable prose -- see
+`build_variation_profile_for_memory_record()`, which is the one place
+the FULL/PARTIAL boundary (order section 10) is technically enforced,
+not just documented.
+"""
+
+from __future__ import annotations
+
+import re
+import uuid
+from datetime import datetime, timezone
+
+from schema import Provenance
+from schema.enums import Actor, EvidenceCertainty
+
+from engine.models import ConfidenceLevel
+from memory.models import EditorialMemoryRecord, TextCompleteness
+
+from .models import (
+    DIMENSION_EVIDENCE_STATUS,
+    ClosureMode,
+    DimensionAssessment,
+    DisclosurePace,
+    EmotionalTemperature,
+    EntryMode,
+    Lens,
+    NarrativeDistance,
+    RhetoricalPressure,
+    SourceKind,
+    StructuralArc,
+    VariationProfile,
+)
+
+ANALYSIS_LOGIC_VERSION = "variation-v1c-001"
+"""order section 8: reuses Provenance.analysis_logic_version, no parallel versioning system."""
+
+_IMPERATIVE_VERBS = {"se", "forsta", "agera", "prioritera", "mat", "matt", "korrigera", "lyft", "samla", "lat", "gor", "satt", "be"}
+_ROLE_WORDS = {"person", "personer", "chef", "chefen", "medarbetare", "kollega", "kollegan", "ledare", "team", "teamet"}
+_SECOND_PERSON = {"du", "dig", "din", "dina", "ni", "er", "era"}
+_SYSTEM_WORDS = {"verksamheten", "organisationen", "system", "systemet"}
+_QUANTITY_WORDS = {"tva", "tre", "fyra", "fem"}
+_CONCRETE_EVENT_VERBS = {"kom", "sa", "hande", "gjorde", "kande"}
+
+_LENS_KEYWORDS = [
+    ("ansvar", Lens.RESPONSIBILITY),
+    ("makt", Lens.POWER),
+    ("konsekvens", Lens.CONSEQUENCE),
+    ("relation", Lens.RELATION),
+    ("tillit", Lens.RELATION),
+    ("verksamheten", Lens.SYSTEM),
+    ("organisationen", Lens.SYSTEM),
+    ("jag ", Lens.INDIVIDUAL_EXPERIENCE),
+]
+
+
+def _normalize(text: str) -> str:
+    return "".join(ch.lower() if ch.isalnum() or ch.isspace() else " " for ch in text)
+
+
+def _words(text: str) -> set[str]:
+    return set(_normalize(text).split())
+
+
+def _sentences(text: str) -> list[str]:
+    parts = re.split(r"(?<=[.!?])\s+", text.strip())
+    return [p for p in parts if p]
+
+
+def _assess_entry_mode(text: str) -> DimensionAssessment:
+    sentences = _sentences(text)
+    window = " ".join(sentences[:4])
+    window_words = _words(window)
+
+    if sentences and sentences[0].rstrip().endswith("?"):
+        return DimensionAssessment(
+            value=EntryMode.QUESTION.value, confidence=ConfidenceLevel.HIGH,
+            evidence="Forsta meningen slutar med frageteck.",
+            evidence_status=DIMENSION_EVIDENCE_STATUS["entry_mode"],
+        )
+    if (window_words & _QUANTITY_WORDS) and (window_words & (_CONCRETE_EVENT_VERBS | {"motet", "mote"})):
+        return DimensionAssessment(
+            value=EntryMode.SITUATION.value, confidence=ConfidenceLevel.MEDIUM,
+            evidence=f"Konkret hande/antal-markor tidigt i texten: {sorted(window_words & (_QUANTITY_WORDS | _CONCRETE_EVENT_VERBS | {'motet','mote'}))}.",
+            evidence_status=DIMENSION_EVIDENCE_STATUS["entry_mode"],
+        )
+    imperative_hits = window_words & _IMPERATIVE_VERBS
+    if len(imperative_hits) >= 2:
+        return DimensionAssessment(
+            value=EntryMode.PROCESS.value, confidence=ConfidenceLevel.MEDIUM,
+            evidence=f"Flera korta imperativ tidigt i texten: {sorted(imperative_hits)}.",
+            evidence_status=DIMENSION_EVIDENCE_STATUS["entry_mode"],
+        )
+    if sentences and _normalize(sentences[0]).split()[:1] and _normalize(sentences[0]).startswith(("resultatet", "konsekvensen", "effekten")):
+        return DimensionAssessment(
+            value=EntryMode.CONSEQUENCE.value, confidence=ConfidenceLevel.MEDIUM,
+            evidence="Forsta meningen inleds med ett resultat-/konsekvensord.",
+            evidence_status=DIMENSION_EVIDENCE_STATUS["entry_mode"],
+        )
+    if sentences:
+        return DimensionAssessment(
+            value=EntryMode.CLAIM.value, confidence=ConfidenceLevel.LOW,
+            evidence="Ingen konkret situation, process, fraga eller konsekvens-markor hittad -- generell paststaende antas som standard, lag confidence.",
+            evidence_status=DIMENSION_EVIDENCE_STATUS["entry_mode"],
+        )
+    return DimensionAssessment(
+        value=EntryMode.UNKNOWN.value, confidence=ConfidenceLevel.LOW,
+        evidence="For lite text for att avgora.", evidence_status=DIMENSION_EVIDENCE_STATUS["entry_mode"],
+    )
+
+
+def _assess_lens(text: str) -> DimensionAssessment:
+    lowered = _normalize(text)
+    best: tuple[int, str, Lens] | None = None
+    for keyword, lens in _LENS_KEYWORDS:
+        idx = lowered.find(keyword)
+        if idx != -1 and (best is None or idx < best[0]):
+            best = (idx, keyword, lens)
+    if best is None:
+        return DimensionAssessment(
+            value=Lens.UNKNOWN.value, confidence=ConfidenceLevel.LOW,
+            evidence="Ingen av de kanda lens-nyckelorden hittades i texten.",
+            evidence_status=DIMENSION_EVIDENCE_STATUS["lens"],
+        )
+    _, keyword, lens = best
+    return DimensionAssessment(
+        value=lens.value, confidence=ConfidenceLevel.MEDIUM,
+        evidence=f"Forsta forekommande lens-nyckelordet i texten ar {keyword!r}.",
+        evidence_status=DIMENSION_EVIDENCE_STATUS["lens"],
+    )
+
+
+def _assess_narrative_distance(text: str) -> DimensionAssessment:
+    words = _words(text)
+    if words & _SECOND_PERSON:
+        return DimensionAssessment(
+            value=NarrativeDistance.DIRECT_ADDRESS.value, confidence=ConfidenceLevel.HIGH,
+            evidence=f"Andra person-tilltal hittat: {sorted(words & _SECOND_PERSON)}.",
+            evidence_status=DIMENSION_EVIDENCE_STATUS["narrative_distance"],
+        )
+    if words & _ROLE_WORDS:
+        return DimensionAssessment(
+            value=NarrativeDistance.CLOSE_HUMAN.value, confidence=ConfidenceLevel.MEDIUM,
+            evidence=f"Namngiven mansklig roll i texten: {sorted(words & _ROLE_WORDS)}.",
+            evidence_status=DIMENSION_EVIDENCE_STATUS["narrative_distance"],
+        )
+    if words & _SYSTEM_WORDS:
+        return DimensionAssessment(
+            value=NarrativeDistance.SYSTEM_LEVEL.value, confidence=ConfidenceLevel.MEDIUM,
+            evidence=f"Systemniva-ord i texten: {sorted(words & _SYSTEM_WORDS)}.",
+            evidence_status=DIMENSION_EVIDENCE_STATUS["narrative_distance"],
+        )
+    return DimensionAssessment(
+        value=NarrativeDistance.OBSERVER.value, confidence=ConfidenceLevel.LOW,
+        evidence="Varken tilltal, namngiven roll eller systemord hittades -- observatorsposition antas som standard, lag confidence.",
+        evidence_status=DIMENSION_EVIDENCE_STATUS["narrative_distance"],
+    )
+
+
+def _assess_rhetorical_pressure(text: str) -> DimensionAssessment:
+    lowered = _normalize(text)
+    words = set(lowered.split())
+    if "?" in text:
+        return DimensionAssessment(
+            value=RhetoricalPressure.QUESTION.value, confidence=ConfidenceLevel.HIGH,
+            evidence="Texten innehaller ett frageteck.", evidence_status=DIMENSION_EVIDENCE_STATUS["rhetorical_pressure"],
+        )
+    if "men" in words:
+        return DimensionAssessment(
+            value=RhetoricalPressure.CONTRAST.value, confidence=ConfidenceLevel.MEDIUM,
+            evidence="Texten innehaller kontrastordet 'men'.", evidence_status=DIMENSION_EVIDENCE_STATUS["rhetorical_pressure"],
+        )
+    if "konsekvens" in lowered:
+        return DimensionAssessment(
+            value=RhetoricalPressure.CONSEQUENCE.value, confidence=ConfidenceLevel.MEDIUM,
+            evidence="Texten innehaller ordet 'konsekvens'.", evidence_status=DIMENSION_EVIDENCE_STATUS["rhetorical_pressure"],
+        )
+    imperative_hits = words & _IMPERATIVE_VERBS
+    if len(imperative_hits) >= 2:
+        return DimensionAssessment(
+            value=RhetoricalPressure.IMPERATIVE.value, confidence=ConfidenceLevel.MEDIUM,
+            evidence=f"Flera imperativ i texten: {sorted(imperative_hits)}.", evidence_status=DIMENSION_EVIDENCE_STATUS["rhetorical_pressure"],
+        )
+    return DimensionAssessment(
+        value=RhetoricalPressure.QUIET_OBSERVATION.value, confidence=ConfidenceLevel.LOW,
+        evidence="Inga kontrast-, fraga-, konsekvens- eller imperativsignaler hittades.",
+        evidence_status=DIMENSION_EVIDENCE_STATUS["rhetorical_pressure"],
+    )
+
+
+def _assess_closure_mode(text: str) -> DimensionAssessment:
+    sentences = _sentences(text)
+    if not sentences:
+        return DimensionAssessment(
+            value=ClosureMode.UNKNOWN.value, confidence=ConfidenceLevel.LOW,
+            evidence="For lite text.", evidence_status=DIMENSION_EVIDENCE_STATUS["closure_mode"],
+        )
+    tail = " ".join(sentences[-2:])
+    if sentences[-1].rstrip().endswith("?"):
+        return DimensionAssessment(
+            value=ClosureMode.OPEN_QUESTION.value, confidence=ConfidenceLevel.HIGH,
+            evidence="Sista meningen slutar med frageteck.", evidence_status=DIMENSION_EVIDENCE_STATUS["closure_mode"],
+        )
+    tail_words = _words(tail)
+    imperative_hits = tail_words & _IMPERATIVE_VERBS
+    if imperative_hits:
+        return DimensionAssessment(
+            value=ClosureMode.ACTION.value, confidence=ConfidenceLevel.MEDIUM,
+            evidence=f"Imperativ nara slutet: {sorted(imperative_hits)}.", evidence_status=DIMENSION_EVIDENCE_STATUS["closure_mode"],
+        )
+    if "konsekvens" in _normalize(tail):
+        return DimensionAssessment(
+            value=ClosureMode.CONSEQUENCE.value, confidence=ConfidenceLevel.MEDIUM,
+            evidence="Ordet 'konsekvens' nara slutet.", evidence_status=DIMENSION_EVIDENCE_STATUS["closure_mode"],
+        )
+    if sentences[-1].strip().lower().startswith("men") and len(sentences[-1].split()) <= 6:
+        return DimensionAssessment(
+            value=ClosureMode.UNRESOLVED_TENSION.value, confidence=ConfidenceLevel.LOW,
+            evidence="Sista, korta meningen inleds med kontrastordet 'men' -- olost spanning.",
+            evidence_status=DIMENSION_EVIDENCE_STATUS["closure_mode"],
+        )
+    return DimensionAssessment(
+        value=ClosureMode.STILL_STATEMENT.value, confidence=ConfidenceLevel.LOW,
+        evidence="Ingen fraga, imperativ, konsekvens- eller spanningsmarkor nara slutet -- stilla paststaende antas som standard.",
+        evidence_status=DIMENSION_EVIDENCE_STATUS["closure_mode"],
+    )
+
+
+_ARC_TABLE = {
+    ("situation", None): StructuralArc.SCENE_TO_INSIGHT,
+    ("process", None): StructuralArc.FRAMEWORK_TO_DIRECTION,
+    ("consequence", None): StructuralArc.ESCALATION_TO_CONSEQUENCE,
+    ("claim", None): StructuralArc.CLAIM_TO_EVIDENCE,
+    ("question", None): StructuralArc.DILEMMA_TO_OPEN_END,
+}
+
+
+def _assess_structural_arc(entry: DimensionAssessment, closure: DimensionAssessment) -> DimensionAssessment:
+    if closure.value == ClosureMode.OPEN_QUESTION.value:
+        return DimensionAssessment(
+            value=StructuralArc.DILEMMA_TO_OPEN_END.value, confidence=ConfidenceLevel.MEDIUM,
+            evidence="Texten avslutas med en oppen fraga.", evidence_status=DIMENSION_EVIDENCE_STATUS["structural_arc"],
+        )
+    arc = _ARC_TABLE.get((entry.value, None))
+    if arc is None or entry.value == EntryMode.UNKNOWN.value:
+        return DimensionAssessment(
+            value=StructuralArc.UNKNOWN.value, confidence=ConfidenceLevel.LOW,
+            evidence="Entry mode ar okand -- kan inte harleda en strukturell bage med rimlig sakerhet.",
+            evidence_status=DIMENSION_EVIDENCE_STATUS["structural_arc"],
+        )
+    confidence = ConfidenceLevel.LOW if entry.confidence == ConfidenceLevel.LOW else ConfidenceLevel.MEDIUM
+    return DimensionAssessment(
+        value=arc.value, confidence=confidence,
+        evidence=f"Harledd fran entry_mode={entry.value!r} och closure_mode={closure.value!r}.",
+        evidence_status=DIMENSION_EVIDENCE_STATUS["structural_arc"],
+    )
+
+
+_WARM_WORDS = {"manniskor", "manniska", "hjalp", "tillit", "stod", "manskligt"}
+_COOL_WORDS = {"system", "systemet", "verksamheten", "organisationen", "modellen", "process"}
+
+
+def _assess_disclosure_pace(text: str) -> DimensionAssessment:
+    sentence_count = len(_sentences(text))
+    if sentence_count >= 6:
+        value, confidence, evidence = DisclosurePace.GRADUAL.value, ConfidenceLevel.LOW, f"Manga korta meningar ({sentence_count}) antyder gradvis uppbyggnad. Hypotesniva -- lag confidence per design."
+    elif sentence_count <= 2:
+        value, confidence, evidence = DisclosurePace.IMMEDIATE.value, ConfidenceLevel.LOW, f"Fa meningar ({sentence_count}) antyder ett omedelbart paststaende. Hypotesniva -- lag confidence per design."
+    else:
+        value, confidence, evidence = DisclosurePace.UNKNOWN.value, ConfidenceLevel.LOW, "Otillrackligt tydligt signal for gradvis kontra omedelbar upplysning."
+    return DimensionAssessment(value=value, confidence=confidence, evidence=evidence, evidence_status=DIMENSION_EVIDENCE_STATUS["disclosure_pace"])
+
+
+def _assess_emotional_temperature(text: str) -> DimensionAssessment:
+    words = _words(text)
+    if words & _WARM_WORDS:
+        return DimensionAssessment(
+            value=EmotionalTemperature.WARM.value, confidence=ConfidenceLevel.LOW,
+            evidence=f"Manskligt/varmt ordval: {sorted(words & _WARM_WORDS)}. Hypotesniva -- lag confidence per design.",
+            evidence_status=DIMENSION_EVIDENCE_STATUS["emotional_temperature"],
+        )
+    if words & _COOL_WORDS:
+        return DimensionAssessment(
+            value=EmotionalTemperature.COOL.value, confidence=ConfidenceLevel.LOW,
+            evidence=f"Systeminriktat/svalt ordval: {sorted(words & _COOL_WORDS)}. Hypotesniva -- lag confidence per design.",
+            evidence_status=DIMENSION_EVIDENCE_STATUS["emotional_temperature"],
+        )
+    return DimensionAssessment(
+        value=EmotionalTemperature.UNKNOWN.value, confidence=ConfidenceLevel.LOW,
+        evidence="Ingen tydlig varm/sval markor hittad. Hypotesniva.",
+        evidence_status=DIMENSION_EVIDENCE_STATUS["emotional_temperature"],
+    )
+
+
+def _new_id(prefix: str) -> str:
+    return f"{prefix}-{uuid.uuid4().hex[:8]}"
+
+
+def build_variation_profile(
+    text: str,
+    source_id: str,
+    source_kind: SourceKind,
+    actor_id: str = "v1c_rule_based_profiler",
+    include_hypothesis_dimensions: bool = True,
+) -> VariationProfile:
+    """Builds a VariationProfile from raw text. Callers are responsible for
+    only ever passing text that is safe to analyze structurally in full --
+    see `build_variation_profile_for_memory_record()` for the one enforced
+    FULL/PARTIAL gate (order section 10)."""
+
+    entry = _assess_entry_mode(text)
+    lens = _assess_lens(text)
+    distance = _assess_narrative_distance(text)
+    pressure = _assess_rhetorical_pressure(text)
+    closure = _assess_closure_mode(text)
+    arc = _assess_structural_arc(entry, closure)
+
+    disclosure_pace = _assess_disclosure_pace(text) if include_hypothesis_dimensions else None
+    emotional_temperature = _assess_emotional_temperature(text) if include_hypothesis_dimensions else None
+
+    return VariationProfile(
+        profile_id=_new_id("VPROF-V1C"),
+        source_id=source_id,
+        source_kind=source_kind,
+        entry_mode=entry,
+        lens=lens,
+        narrative_distance=distance,
+        structural_arc=arc,
+        rhetorical_pressure=pressure,
+        closure_mode=closure,
+        disclosure_pace=disclosure_pace,
+        emotional_temperature=emotional_temperature,
+        analysis_logic_version=ANALYSIS_LOGIC_VERSION,
+        provenance=Provenance(
+            created_by=Actor.AI_SYSTEM,
+            actor_id=actor_id,
+            created_at=datetime.now(timezone.utc),
+            certainty=EvidenceCertainty.ANALYTICAL_PROPOSAL,
+            method="v1c_rule_based_variation_profiling",
+            analysis_logic_version=ANALYSIS_LOGIC_VERSION,
+            supporting_source_ids=[],
+        ),
+    )
+
+
+class PartialTextVariationError(Exception):
+    """Raised when a caller attempts to build a full structural VariationProfile
+    from a PARTIAL Editorial Memory record (order section 10). Structurally
+    enforced, not just documented."""
+
+
+def build_variation_profile_for_memory_record(record: EditorialMemoryRecord) -> VariationProfile:
+    if record.source_facts.text_completeness != TextCompleteness.FULL:
+        raise PartialTextVariationError(
+            f"{record.content_id}: text_completeness is "
+            f"{record.source_facts.text_completeness.value!r}, not FULL -- refusing to build a "
+            "structural VariationProfile from partial text (order section 10)."
+        )
+    return build_variation_profile(
+        text=record.source_facts.original_text,
+        source_id=record.content_id,
+        source_kind=SourceKind.EDITORIAL_MEMORY_RECORD,
+    )

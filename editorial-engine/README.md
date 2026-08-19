@@ -1,11 +1,15 @@
 # LUF Editorial Engine
 
 Canonical Foundation V1 (schema + canonical referensdata) plus V1A, den
-forsta vertikala motorkedjan (rent domanlogik, ingen generator), plus V1B,
-ett avgransat Editorial Memory ovanpa V1A. Se `docs/ARCHITECTURE_NOTE.md`
-for Canonical Foundation, `docs/V1A_PURPOSE.md` for vad V1A bevisar,
+forsta vertikala motorkedjan (rent domanlogik, ingen generator), V1B, ett
+avgransat Editorial Memory ovanpa V1A, och V1C, en Controlled Variation
+Prototype ovanpa V1B. Se `docs/ARCHITECTURE_NOTE.md` for Canonical
+Foundation, `docs/V1A_PURPOSE.md` for vad V1A bevisar,
 `docs/V1A_DOES_NOT_DO.md` for dess avgransning, `docs/V1B_PURPOSE.md` for
-vad V1B bevisar och `docs/V1B_MEMORY_BOUNDARY.md` for dess grans.
+vad V1B bevisar, `docs/V1B_MEMORY_BOUNDARY.md` for dess grans,
+`docs/V1C_PURPOSE.md` for vad V1C-prototypen bevisar och
+`docs/V1C_VARIATION_BOUNDARY.md` for varfor den ar en prototyp, inte en
+canonical variationsmodell.
 
 ## Struktur
 
@@ -15,9 +19,10 @@ editorial-engine/
   canonical_data/  verklig canonical referensdata (16 Series, 8 ThesisFamily, Territory, Reader Feedback) + kallfiler
   engine/          V1A: Raw Idea -> Interpretation -> Classification -> Comparison -> Angles -> Recommendation -> Human Decision
   memory/          V1B: bounded Editorial Memory (21 verkliga content-enheter) + Retrieval + memory-medveten Comparison
+  variation/       V1C: prototyp for Variation Analysis + Structural Comparison + Controlled Variation Options (analysis output, inte canonical)
   fixtures/        litet exempeldataset som bevisar att modellen hanger ihop
-  tests/           valideringstester (schema + V1A + V1B, inte en framtida generator)
-  docs/            arkitektur, entitetskarta, versionering, provenance, open questions, V1A/V1B-dokumentation
+  tests/           valideringstester (schema + V1A + V1B + V1C, inte en framtida generator)
+  docs/            arkitektur, entitetskarta, versionering, provenance, open questions, V1A/V1B/V1C-dokumentation
 ```
 
 ## Kom igang
