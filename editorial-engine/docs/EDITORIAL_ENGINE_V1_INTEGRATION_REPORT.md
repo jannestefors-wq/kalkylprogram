@@ -7,19 +7,34 @@
 
 - Branch: `claude/editorial-engine-v1-integration`, branched from `claude/editorial-variation-v1c`. Merge-base with `origin/main` (`34e3fda`) is exact -- V1A + V1B are already on `main`; V1C's full frozen history (through commit `5311743`) is present unmodified on this branch.
 - Baseline regression before this work: 314/314 (`editorial-engine/tests`, pre-existing V1A/V1B/V1C suites).
-- Final regression after this work: **326/326** (`python3 -m pytest tests/ -q`) -- the 314 pre-existing tests plus 12 new integration-contract tests, all green. No pre-existing test was edited.
+- Final regression after the initial integration (commit `ed0f927`): **326/326** (`python3 -m pytest tests/ -q`) -- the 314 pre-existing tests plus 12 new integration-contract tests, all green. No pre-existing test was edited.
 - Canonical JSON Schema regenerates byte-identical (`python3 -m schema.export_json_schema`, diffed against committed `schema/json/*.schema.json` -- no diff).
 - No forbidden capability present: grepped the new code for generator/Quality-Gate/V1D/RAG/embedding/vector-database/LLM-classifier/UI/API/website/autonomous-publishing patterns -- zero matches.
 
+**Follow-up order (RIKTAD INTEGRATIONSKORRIGERING FOR MORE_CONTEXT_REQUIRED OCH RE-EVALUATION), applied on top of `ed0f927`:**
+
+- Baseline re-verified before the correction: HEAD = `ed0f927`, worktree clean, 326/326 PASS.
+- After the targeted `MORE_CONTEXT_REQUIRED` correction + 10 new tests: **336/336 PASS** (326 + 10). No pre-existing test was edited.
+- JSON Schema re-verified byte-identical after the correction.
+- See section 6B for the fix and section 6C for the Run 2 re-evaluation this correction enabled.
+
 ## 2. Actual files changed
 
-New files only (nothing pre-existing edited):
+**Initial integration (`ed0f927`)** -- new files only, nothing pre-existing edited:
 
 - `editorial-engine/integration/__init__.py`
 - `editorial-engine/integration/models.py`
 - `editorial-engine/integration/pipeline.py`
 - `editorial-engine/tests/test_integration_v1.py`
 - `editorial-engine/docs/EDITORIAL_ENGINE_V1_INTEGRATION_REPORT.md` (this file)
+
+**MORE_CONTEXT_REQUIRED correction (this follow-up order)**:
+
+- `editorial-engine/integration/pipeline.py` -- **modified**: added a `HumanAction` import, a module-level `_MORE_CONTEXT_REQUIRED_ACTIONS` constant, and one line (`decision_1_actions = _MORE_CONTEXT_REQUIRED_ACTIONS`) inside the existing `if not input_sufficient:` branch in both `run_v1a_v1b_stage()` and `run_evaluation()`. Nothing else in this file changed; `run_editorial_engine_v1()` inherits the fix automatically because it delegates to `run_v1a_v1b_stage()`.
+- `editorial-engine/tests/test_integration_more_context_required.py` -- **new**: 10 targeted tests.
+- `editorial-engine/docs/EDITORIAL_ENGINE_V1_INTEGRATION_REPORT.md` -- **updated** (this section and sections 6B/6C/7/8/9/10/12 below).
+
+No file under `engine/`, `memory/`, `variation/`, `schema/` or `canonical_data/` was touched by either round. V1A's evidence threshold (the "too thin" gate) was not modified.
 
 ## 3. V1A / V1B / V1C contract mapping
 
@@ -49,7 +64,7 @@ The required flow (`RAW INPUT -> V1A -> V1B -> Human Decision -> V1C -> Human Va
 - `MORE_CONTEXT_REQUIRED` (V1A/V1B insufficient input) propagates all the way to the assessment: `sees.input_sufficient_for_interpretation = False`, the decision-1 rationale carries V1B's own `stopped_reason`, and no field downstream is fabricated (`test_uncertainty_survives_end_to_end`).
 - V1C's `sufficient_evidence == False` (SC48/SC49-style ambiguity) maps to `AMBIGUOUS_HUMAN_DECISION`, never to a hard claim, per the frozen `70b94af` policy.
 
-## 6. Evaluation results -- the 14 real cases
+## 6. Evaluation results -- Run 1 (commit `ed0f927`, the 14 real cases)
 
 Run via `run_evaluation()` against the real `memory.ingestion.load_editorial_memory()` corpus (21 records). For each case, the memory pool passed to that case's own run excludes that case's own record (the case text *is* an existing memory item; comparing it against a corpus that already contains itself would produce a trivial self-match rather than a genuine test of retrieval against the rest of the corpus, which is what the Evaluation Set's own questions -- e.g. EV03/EV04 "same thesis family, different treatment" -- are actually asking). No source text was altered. No run wrote to `memory/data/` (confirmed by `test_evaluation_mode_writes_no_permanent_memory_or_canonical_data`, and independently by an identical before/after `load_editorial_memory()` diff across all 14 real runs plus the harness itself).
 
@@ -74,39 +89,87 @@ Run via `run_evaluation()` against the real `memory.ingestion.load_editorial_mem
 
 Full per-case V1A/V1B/V1C output (classification, interpretation, memory matches, V1C options, and the complete `FinalEditorialAssessment`) was captured to a scratch JSON dump during evaluation and is summarized here; it is not committed (not a required artifact and not source material).
 
+## 6B. MORE_CONTEXT_REQUIRED correction
+
+Run 1's single biggest integration finding was that 10 of 14 real cases (71%) stopped at V1A's `MORE_CONTEXT_REQUIRED` before V1B or V1C could run at all, and the decision point shown for that stop carried an empty `available_actions` list (obs-PATTERN-003 in section 7). This left the composed engine's Memory and Controlled Variation layers essentially untested by the real evaluation set, and left the correct Human Decision point unusable for a human trying to act on it.
+
+Per the follow-up order, the fix is narrowly scoped to the integration layer only:
+
+- `run_v1a_v1b_stage()` and `run_evaluation()` (`integration/pipeline.py`) now populate `human_decision_after_v1a_v1b.available_actions = ["request_more_context", "reject_all"]` whenever `v1b.outcome != PipelineOutcome.COMPLETED`. Both values are the existing `HumanAction.REQUEST_MORE_CONTEXT` / `HumanAction.REJECT_ALL` enum values (`engine/human_decision.py`) -- no parallel decision vocabulary was created.
+- `"request_more_context"` here means: a real caller starts a *new* `run_v1a_v1b_stage()` call once the human has genuinely supplied expanded raw text -- never a re-interpretation of the *same* thin text. `"reject_all"` means the human accepts the Human Boundary and the evaluation ends here with no further automatic analysis.
+- V1A's evidence threshold, `MORE_CONTEXT_REQUIRED`'s trigger condition, and `stopped_reason` text were **not** touched. No angle, candidate, or classification is fabricated at this stage (none existed before the fix, and none exist after it -- confirmed by test).
+- `run_editorial_engine_v1()` was not edited directly; it already delegates to `run_v1a_v1b_stage()` (from the earlier drift-elimination refactor), so it inherits the fix automatically.
+
+10 new tests were added in `tests/test_integration_more_context_required.py`, covering order section 6 items 1-5 and 9 directly, and re-verifying items 6-8/10-12 still hold. Full suite: 326 -> **336/336 PASS**. JSON Schema re-verified byte-identical. The implementation was then frozen -- no further code changes were made before or during Run 2 below.
+
+## 6C. Evaluation results -- Run 2 (post-correction, same 14 cases, same source text, same self-exclusion memory-pool methodology as Run 1)
+
+| Case | Run 1 pipeline depth | Run 2 pipeline depth | Depth changed? | Run 1 usefulness | Run 2 usefulness | Why it changed | Human Boundary still correct? |
+|---|---|---|---|---|---|---|---|
+| EV01 | V1A/V1B, MORE_CONTEXT_REQUIRED | V1A/V1B, MORE_CONTEXT_REQUIRED (unchanged) | No | PARTIALLY_USEFUL | **USEFUL** | Integration only: `available_actions` now `["request_more_context","reject_all"]`; V1A's stop itself was already correct | Yes |
+| EV02 | same | same (unchanged) | No | PARTIALLY_USEFUL | **USEFUL** | Integration only | Yes |
+| EV03 | same | same (unchanged) | No | PARTIALLY_USEFUL | **USEFUL** | Integration only | Yes |
+| EV04 | same | same (unchanged) | No | PARTIALLY_USEFUL | **USEFUL** | Integration only | Yes |
+| EV05 | V1C ran, FALSE_VARIATION_HIGH_RISK | V1C ran, FALSE_VARIATION_HIGH_RISK (unchanged, per order section 11) | No | PARTIALLY_USEFUL | PARTIALLY_USEFUL (unchanged) | Not in scope of this order; V1C untouched | Yes (own V1C finding, see obs-EV05-001) |
+| EV06 | V1A/V1B, NO_STRONG_ANGLE | same (unchanged) | No | USEFUL | USEFUL (unchanged) | Branch already had `available_actions` before this fix | Yes |
+| EV07 | same | same (unchanged) | No | USEFUL | USEFUL (unchanged) | Same | Yes |
+| EV08 | same | same (unchanged) | No | USEFUL | USEFUL (unchanged) | Same | Yes |
+| EV09 | V1A/V1B, MORE_CONTEXT_REQUIRED | same (unchanged) | No | PARTIALLY_USEFUL | **USEFUL** | Integration only | Yes |
+| EV10 | same | same (unchanged) | No | PARTIALLY_USEFUL | **USEFUL** | Integration only | Yes |
+| EV11 | same | same (unchanged) | No | PARTIALLY_USEFUL | **USEFUL** | Integration only | Yes |
+| EV12 | same | same (unchanged) | No | PARTIALLY_USEFUL | **USEFUL** | Integration only | Yes |
+| EV13 | same | same (unchanged) | No | PARTIALLY_USEFUL | **USEFUL** | Integration only (cross-language handoff still not exercised -- V1B never runs) | Yes |
+| EV14 | same | same (unchanged) | No | PARTIALLY_USEFUL | **USEFUL** | Integration only (partial-publication handoff still not exercised) | Yes |
+
+**Totals: Run 1 -- USEFUL 3, PARTIALLY_USEFUL 11, NOT_USEFUL 0. Run 2 -- USEFUL 13, PARTIALLY_USEFUL 1, NOT_USEFUL 0.**
+
+**Answer to the question this order asked:** every one of the 10 reclassified cases has an *identical* `pipeline_depth` in Run 1 and Run 2 -- V1A's `MORE_CONTEXT_REQUIRED` verdict, `stopped_reason` text, and the fact that V1B/V1C never ran are byte-identical between runs. The only thing that changed for any of them is `available_actions` going from `[]` to `["request_more_context", "reject_all"]`. This is direct, case-by-case evidence that all 10 of Run 1's `PARTIALLY_USEFUL` results were **case B from order section 9** ("integrationen gjorde ett legitimt Human Decision-läge oanvändbart"), not case A ("motorn stoppade korrekt men den var faktiskt en svaghet") -- there was no real engine weakness behind them; V1A's stop was already editorially correct, the integration layer just wasn't exposing what a human could do about it. Fixing only the integration layer, without touching V1A at all, was sufficient to resolve all 10.
+
+This also means: **V1B and Controlled Variation are still not end-to-end exercised by 10 of the 14 real cases after this correction.** Pipeline depth did not increase for a single case -- that was explicitly out of scope (section 9: "Malet ar inte att fa 14/14 att na V1C"), and it should not be read as a coverage win. EV13's and EV14's specific integration questions (cross-language handoff, partial-publication handoff) remain untested by this evaluation set, now for a documented reason (V1A's threshold, not integration incompleteness) rather than an undiagnosed one.
+
 ## 7. Observation log
 
-| Observation ID | Case ID(s) | Observed behavior | Human editorial reading | Component | Category | Severity | Pattern scope | Recommendation |
-|---|---|---|---|---|---|---|---|---|
-| obs-PATTERN-001 | EV05, EV06, EV07, EV08 | The 4 cases that reach `COMPLETED` all receive an *identical* `interpretation.observed_situation` string ("Raw input beskriver en upprepad handling.") and near-identical classification (same two thesis families, same territory "Makt") despite materially different content (a triangulation model, a scene-observation text, a 7-step process, a 4-word framework). | Looks like V1A's interpretation/classification step may fall back to a shared generic template rather than differentiating per text; an editor could be misled into thinking the system read the specific content when it may not have. This is existing, frozen V1A behavior surfaced by the integration layer, not something introduced by it. | V1A (pre-existing) | JUDGMENT_MISS | Medium | Systematic (4/4 completed cases) | INVESTIGATE |
-| obs-PATTERN-002 | EV01, EV02, EV03, EV04, EV09, EV10, EV11, EV12, EV13, EV14 | 10 of 14 real cases (71%) stop at `MORE_CONTEXT_REQUIRED` with the same templated rationale ("for fa ord ... Mer kontext kravs"), including texts of 20-30 words with clear thesis content (e.g. EV02's consequence chain, EV11's direct-address responsibility text). | A human editor would likely consider several of these substantive, decision-ready drafts, not "too thin." The gate may be calibrated for shorter synthetic inputs and may be over-conservative on real short-form LinkedIn-style material -- this is V1A's existing threshold, not something the integration layer can or should retune. | V1A (pre-existing) | JUDGMENT_MISS | Medium | Systematic (10/14 real cases) | INVESTIGATE |
-| obs-PATTERN-003 | EV01, EV02, EV03, EV04, EV09, EV10, EV11, EV12, EV13, EV14 | For every `MORE_CONTEXT_REQUIRED` case, `human_decision_after_v1a_v1b.available_actions` is an empty list -- only the `RECOMMENDED` and `NO_STRONG_ANGLE` branches populate an action menu. | The decision point's `status`/`rationale` are visible (contract requirement met literally), but the human is not given an explicit menu of what they can do (e.g. "provide_more_context", "reject_all") for the single most common outcome in this real dataset. | integration (`run_v1a_v1b_stage` / `run_evaluation`, this task's own code) | OTHER | Medium | Systematic (10/14 real cases) | INVESTIGATE |
-| obs-PATTERN-004 | all 14 | Across all 14 real, materially different inputs, both decision points were returned `pending_human_input` with `decision_reference=None` in every Evaluation Mode run -- Human Authority was never bypassed once. | Confirms the integration contract's core Human Authority guarantee holds under real data variety, not only synthetic tests. | integration | CORRECT_HUMAN_ESCALATION | Low | Systematic (14/14) | ACCEPT |
-| obs-EV05-001 | EV05 | The only case reaching V1C produces `FALSE_VARIATION_HIGH_RISK` with `sufficient_evidence=True`, but every one of its 5 supporting memory matches carries `repetition_signal_strength: "weak"` (none "strong"). | The hard high-risk verdict and the weak underlying repetition signal are not reconciled anywhere in the assessment; a human trusting the label at face value could reject a treatment that the same assessment's own memory evidence only weakly supports. Matches the residual risk the `70b94af` Gate 7 policy already predicted ("MEDEL, inte lag") for the loosened LEF-corroboration tier -- this appears to be a live instance of that disclosed risk, not a new defect. | V1C (frozen) | FALSE_POSITIVE | High | Local (only 1/14 cases reached V1C in this run; echoes a previously-disclosed systemic risk) | INVESTIGATE |
+Run 1 entries are preserved unchanged below (history is not overwritten); the **Outcome** column reflects what happened after the follow-up order.
 
-Per the Handoff's explicit instruction, none of these were repaired during the evaluation run -- they are logged and reported here for the project lead's disposition.
+| Observation ID | Case ID(s) | Observed behavior | Human editorial reading | Component | Category | Severity | Pattern scope | Recommendation | Outcome (post follow-up order) |
+|---|---|---|---|---|---|---|---|---|---|
+| obs-PATTERN-001 | EV05, EV06, EV07, EV08 | The 4 cases that reach `COMPLETED` all receive an *identical* `interpretation.observed_situation` string ("Raw input beskriver en upprepad handling.") and near-identical classification (same two thesis families, same territory "Makt") despite materially different content (a triangulation model, a scene-observation text, a 7-step process, a 4-word framework). | Looks like V1A's interpretation/classification step may fall back to a shared generic template rather than differentiating per text; an editor could be misled into thinking the system read the specific content when it may not have. This is existing, frozen V1A behavior surfaced by the integration layer, not something introduced by it. | V1A (pre-existing) | JUDGMENT_MISS | Medium | Systematic (4/4 completed cases) | INVESTIGATE | **Unchanged.** V1A untouched by this order; confirmed persisting in Run 2 (EV05-08 identical). Reported to project lead, not acted on. |
+| obs-PATTERN-002 | EV01, EV02, EV03, EV04, EV09, EV10, EV11, EV12, EV13, EV14 | 10 of 14 real cases (71%) stop at `MORE_CONTEXT_REQUIRED` with the same templated rationale ("for fa ord ... Mer kontext kravs"), including texts of 20-30 words with clear thesis content (e.g. EV02's consequence chain, EV11's direct-address responsibility text). | A human editor would likely consider several of these substantive, decision-ready drafts, not "too thin." The gate may be calibrated for shorter synthetic inputs and may be over-conservative on real short-form LinkedIn-style material -- this is V1A's existing threshold, not something the integration layer can or should retune. | V1A (pre-existing) | JUDGMENT_MISS | Medium | Systematic (10/14 real cases) | INVESTIGATE | **Unchanged, explicitly not addressed.** Forbidden by this order's own scope (section 2: do not lower the thin-input threshold). Confirmed persisting in Run 2 -- same 10 cases, byte-identical `stopped_reason`. Now the *sole* remaining limiter on these 10 cases' usefulness (they moved PARTIALLY_USEFUL -> USEFUL once obs-PATTERN-003 was fixed, but the rationale is still generic/non-case-specific). Still project-lead territory. |
+| obs-PATTERN-003 | EV01, EV02, EV03, EV04, EV09, EV10, EV11, EV12, EV13, EV14 | For every `MORE_CONTEXT_REQUIRED` case, `human_decision_after_v1a_v1b.available_actions` is an empty list -- only the `RECOMMENDED` and `NO_STRONG_ANGLE` branches populate an action menu. | The decision point's `status`/`rationale` are visible (contract requirement met literally), but the human is not given an explicit menu of what they can do (e.g. "provide_more_context", "reject_all") for the single most common outcome in this real dataset. | integration (`run_v1a_v1b_stage` / `run_evaluation`, this task's own code) | OTHER | Medium | Systematic (10/14 real cases) | INVESTIGATE | **RESOLVED.** Fixed in this follow-up order (section 6B). All 10 cases now show `available_actions = ["request_more_context", "reject_all"]` in Run 2, confirmed both by the new targeted tests and by the real re-evaluation. |
+| obs-PATTERN-004 | all 14 | Across all 14 real, materially different inputs, both decision points were returned `pending_human_input` with `decision_reference=None` in every Evaluation Mode run -- Human Authority was never bypassed once. | Confirms the integration contract's core Human Authority guarantee holds under real data variety, not only synthetic tests. | integration | CORRECT_HUMAN_ESCALATION | Low | Systematic (14/14) | ACCEPT | **Reconfirmed in Run 2.** Still 14/14; adding `available_actions` did not weaken Human Authority (status/decision_reference unaffected). |
+| obs-EV05-001 | EV05 | The only case reaching V1C produces `FALSE_VARIATION_HIGH_RISK` with `sufficient_evidence=True`, but every one of its 5 supporting memory matches carries `repetition_signal_strength: "weak"` (none "strong"). | The hard high-risk verdict and the weak underlying repetition signal are not reconciled anywhere in the assessment; a human trusting the label at face value could reject a treatment that the same assessment's own memory evidence only weakly supports. Matches the residual risk the `70b94af` Gate 7 policy already predicted ("MEDEL, inte lag") for the loosened LEF-corroboration tier -- this appears to be a live instance of that disclosed risk, not a new defect. | V1C (frozen) | FALSE_POSITIVE | High | Local (only 1/14 cases reached V1C in this run; echoes a previously-disclosed systemic risk) | INVESTIGATE | **Unchanged, per order section 11 ("EV05 ska inte repareras").** Re-ran EV05 with zero code changes; label, rationale, directions, corpus_size and all supporting `repetition_signal_strength` values are identical to Run 1. Finding stands as evaluation evidence for the project lead. |
+
+Per both orders' explicit instructions, none of these were repaired mid-evaluation except obs-PATTERN-003, which this follow-up order specifically authorized and scoped.
 
 ## 8. Measurement summary
 
 (Counting distinct observed patterns/instances, not per-affected-case tallies -- see column "Pattern scope" above for how many real cases each one touches.)
 
-- Total cases: 14
-- USEFUL: 3 -- PARTIALLY_USEFUL: 11 -- NOT_USEFUL: 0
-- False Positives: 1 (obs-EV05-001)
-- False Negatives: 0
-- Memory Misses: 0
-- Judgment Misses: 2 (obs-PATTERN-001, obs-PATTERN-002)
-- Structural Misses: 0
-- Uncertainty Misses: 0
-- Bad Variation Directions: 0
-- Correct Human Escalations: 1 pattern, holding on 14/14 cases (obs-PATTERN-004)
-- Integration Defects: 0 confirmed contract/handoff/provenance failures; 1 completeness gap logged as OTHER (obs-PATTERN-003)
-- Repeated (systematic) patterns: 4 (obs-PATTERN-001 through 004)
-- Isolated (local) observations: 1 (obs-EV05-001)
+| Metric | Run 1 | Run 2 |
+|---|---|---|
+| Total cases | 14 | 14 |
+| USEFUL | 3 | **13** |
+| PARTIALLY_USEFUL | 11 | **1** |
+| NOT_USEFUL | 0 | 0 |
+| False Positives | 1 (obs-EV05-001) | 1 (obs-EV05-001, unchanged) |
+| False Negatives | 0 | 0 |
+| Memory Misses | 0 | 0 |
+| Judgment Misses | 2 (obs-PATTERN-001, 002) | 2 (unchanged -- both are V1A territory, out of scope) |
+| Structural Misses | 0 | 0 |
+| Uncertainty Misses | 0 | 0 |
+| Bad Variation Directions | 0 | 0 |
+| Correct Human Escalations | 1 pattern, 14/14 cases | 1 pattern, 14/14 cases (reconfirmed) |
+| Integration Defects | 0 confirmed; 1 completeness gap (obs-PATTERN-003) | **0** -- obs-PATTERN-003 resolved |
+| Case korrekt avslutade vid V1A/V1B Human Boundary | 13 (10 MORE_CONTEXT_REQUIRED + 3 NO_STRONG_ANGLE) | 13 (unchanged) |
+| Case som nadde V1C | 1 (EV05) | 1 (unchanged) |
+| Case som nadde Human Variation Decision | 1 (EV05) | 1 (unchanged) |
+| Case med Controlled Variation directions | 1 (EV05, 3 directions) | 1 (unchanged) |
+| Repeated (systematic) patterns | 4 | 4 (one resolved, three persisting) |
+| Isolated (local) observations | 1 (obs-EV05-001) | 1 (unchanged) |
 
 ## 9. Systematic vs. isolated
 
-Three of the four logged patterns are systematic and concern **existing, frozen V1A/V1C behavior surfaced by running real data through the new integration layer for the first time** -- not integration defects. The fourth (obs-PATTERN-003) is systematic and *is* inside the integration layer's own code, and is the one item this report recommends acting on. Only one finding (obs-EV05-001) is local/isolated to a single case, though it corroborates a risk already disclosed in the locked `70b94af` V1C decision record rather than surfacing a new one.
+Of the four Run 1 systematic patterns, one (obs-PATTERN-003) was inside the integration layer's own code and has now been resolved by this follow-up order. The other three concern **existing, frozen V1A/V1C behavior surfaced by running real data through the integration layer** and remain untouched, as required: obs-PATTERN-001 and obs-PATTERN-002 are V1A territory (this order explicitly forbade lowering the thin-input threshold), and obs-EV05-001 is V1C territory (this order explicitly forbade repairing EV05). Only one finding (obs-EV05-001) is local/isolated to a single case, and it corroborates a risk already disclosed in the locked `70b94af` V1C decision record rather than surfacing a new one. No new systematic pattern and no new local observation was produced by this follow-up order's own change.
 
 ## 10. Integration blocker vs. expected prototype limitation
 
@@ -120,6 +183,12 @@ Unchanged and reproducible. `python3 -m schema.export_json_schema` regenerates a
 
 **Worked:** the smallest-possible connective layer was sufficient -- no V1A/V1B/V1C production code needed changing. The two-phase Human Decision API correctly resolves the "decision must survive to a later, independent call" requirement without ever fabricating a `schema.HumanDecision`. Provenance, memory boundary wording, and the `UNKNOWN`-is-not-evidence guarantee all survived unmodified end to end across 14 materially different real texts, not just the synthetic contract tests. Evaluation Mode ran the full chain and wrote nothing to permanent state on every one of the 14 real cases plus the 12 integration tests.
 
-**Did not work / open questions:** 10 of 14 real cases never got far enough to exercise V1B or V1C at all, which means the Evaluation Set's cross-language, partial-publication, and same-thesis-different-treatment integration questions (EV03/04, EV07/08 pairing questions, EV13, EV14) are largely **untested by this run**, through no fault of the integration layer -- V1A's own "too thin" gate stopped them first. This is the single biggest limiter on how much of the Evaluation Set's intent could actually be exercised.
+**Did not work / open questions (Run 1):** 10 of 14 real cases never got far enough to exercise V1B or V1C at all, which means the Evaluation Set's cross-language, partial-publication, and same-thesis-different-treatment integration questions (EV03/04, EV07/08 pairing questions, EV13, EV14) were largely untested by that run, through no fault of the integration layer -- V1A's own "too thin" gate stopped them first.
 
-**One recommended next step:** fix obs-PATTERN-003 (populate `available_actions` on the `after_v1a_v1b` decision point for the `MORE_CONTEXT_REQUIRED` branch, e.g. `["provide_more_context", "reject_all"]`) -- it is a small, integration-layer-only, non-editorial change squarely inside this task's own new code, touches no frozen V1A/V1B/V1C logic, and directly improves usefulness for the majority (10/14) real-case outcome observed in this run. Everything else logged here (obs-PATTERN-001, 002, and obs-EV05-001) concerns frozen or pre-existing component behavior and is reported to the project lead for disposition, not acted on, per the Handoff's explicit instruction not to repair findings during evaluation.
+## 13. Follow-up order: what it answered
+
+This report's Run 1 recommended next step (fix obs-PATTERN-003) was carried out under the follow-up order, and the resulting Run 2 answers the question that order posed directly: **the 10 Run-1 `PARTIALLY_USEFUL` results were an integration completeness gap, not a real weakness in V1A's editorial judgment.** Every one of the 10 reclassified cases has byte-identical `pipeline_depth`, `stopped_reason`, and V1A verdict between Run 1 and Run 2 -- the only change was making the existing, correct Human Decision point actionable. See section 6C for the full case-by-case evidence.
+
+**Still did not work / open after Run 2:** pipeline depth did not increase for a single case -- by design, since deepening coverage was explicitly out of this order's scope. V1B and Controlled Variation remain end-to-end exercised by only 1 of 14 real cases (EV05). The Evaluation Set's cross-language (EV13) and partial-publication (EV14) integration questions remain unexercised, now for a diagnosed reason (V1A's threshold) rather than an undiagnosed one. obs-PATTERN-001 (homogeneous V1A interpretation/classification) and obs-PATTERN-002 (the "too thin" threshold's breadth) both remain open, unactioned V1A findings -- explicitly out of this order's scope, reported for the project lead's disposition. obs-EV05-001 remains an open, unactioned V1C finding, confirmed unchanged in Run 2, per order section 11.
+
+**One recommended next step:** none from the integration layer -- its narrow, authorized scope (obs-PATTERN-003) is now resolved and there is no further integration-only change this report can identify. The one open decision is for the project lead: whether to authorize investigation of obs-PATTERN-002 (the thin-input threshold's real-world breadth on short-form LinkedIn-style text) as a V1A-scoped follow-up order of its own -- it is now the single largest remaining limiter on how much of the real Evaluation Set can be exercised end to end, and this report deliberately does not propose how to resolve it, since that would mean designing a V1A change outside this order's authorization.

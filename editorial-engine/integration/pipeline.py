@@ -40,6 +40,7 @@ from typing import Optional
 from schema import ContentRecord, HumanDecision, Series, Territory, ThesisFamily
 from schema.enums import DecisionTargetType
 
+from engine.human_decision import HumanAction
 from engine.models import CandidateAngle, PipelineOutcome, RecommendationOutcome
 from engine.provider import AnalysisProvider
 
@@ -62,6 +63,22 @@ from .models import (
     HumanDecisionPoint,
     RememberedRecord,
 )
+
+# Human Decision options for a MORE_CONTEXT_REQUIRED stop (order:
+# EDITORIAL_ENGINE_V1_INTEGRATION_HANDOFF re-evaluation follow-up). Reuses
+# the existing `HumanAction` enum values -- no parallel decision system.
+# No Idea exists yet at this stage (V1A stopped before interpretation), so
+# neither maps onto a `build_human_decision(..., idea_id=...)` call the way
+# the RECOMMENDED/NO_STRONG_ANGLE actions do:
+#   "request_more_context" -> the human supplies genuinely expanded raw
+#     text and the caller starts a NEW `run_v1a_v1b_stage()` call on it --
+#     never a bypass of THIS SAME thin input's V1A verdict.
+#   "reject_all" -> the human accepts the Human Boundary; the evaluation
+#     ends here with no further automatic analysis.
+_MORE_CONTEXT_REQUIRED_ACTIONS: list[str] = [
+    HumanAction.REQUEST_MORE_CONTEXT.value,
+    HumanAction.REJECT_ALL.value,
+]
 
 
 def _label_v1c_assessment(
@@ -241,6 +258,7 @@ def run_v1a_v1b_stage(
     decision_1_actions: list[str] = []
     if not input_sufficient:
         decision_1_rationale = v1b.stopped_reason or "Input insufficient for interpretation."
+        decision_1_actions = _MORE_CONTEXT_REQUIRED_ACTIONS
     elif v1b.recommendation is None or v1b.recommendation.outcome != RecommendationOutcome.RECOMMENDED:
         decision_1_rationale = "No strong angle -- human must choose retain-original, request context, or reject."
         decision_1_actions = ["retain_original", "request_more_context", "reject_all"]
@@ -400,6 +418,7 @@ def run_evaluation(
     decision_1_recommendation = None
     if not input_sufficient:
         decision_1_rationale = v1b.stopped_reason or "Input insufficient for interpretation."
+        decision_1_actions = _MORE_CONTEXT_REQUIRED_ACTIONS
     elif v1b.recommendation is None or v1b.recommendation.outcome != RecommendationOutcome.RECOMMENDED:
         decision_1_rationale = "No strong angle -- human must choose retain-original, request context, or reject."
         decision_1_actions = ["retain_original", "request_more_context", "reject_all"]
