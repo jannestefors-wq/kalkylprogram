@@ -69,10 +69,17 @@ def test_repetition_path_finds_contrast_or_abstains():
     """Order section 33: a scenario very close to real material. Repetition
     risk must become HIGH when evidence supports it, and Candidate Angles
     must then either find a genuinely different defensible direction or
-    return NO_STRONG_ANGLE -- never silently recommend the repeat."""
+    return NO_STRONG_ANGLE -- never silently recommend the repeat.
 
-    raw_text = "En chef avbrot samma medarbetare tre ganger under motet, men bad efteratt om arlig feedback."
-    r = run_v1b_pipeline(raw_text)  # full real corpus -- strong overlap on thesis-reality-before-story-001
+    V1B Correction Order (Defect 2): uses text sharing real, named vocabulary
+    with content-work-006 ("observation", "tolkning") -- a genuine corroborated
+    match, not a canonical-relation-only artifact."""
+
+    raw_text = (
+        "Chefen gjorde en tydlig observation om vad som hande pa kontoret tre ganger, "
+        "men var forsta tolkning av situationen visade sig vara helt fel."
+    )
+    r = run_v1b_pipeline(raw_text)  # full real corpus -- strong, corroborated overlap with content-work-006
 
     assert any(c.repetition_risk == RepetitionRiskLevel.HIGH for c in r.candidate_angles)
     assert r.recommendation.outcome in (RecommendationOutcome.NO_STRONG_ANGLE, RecommendationOutcome.RECOMMENDED)

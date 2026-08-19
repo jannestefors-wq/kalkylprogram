@@ -126,8 +126,12 @@ def run_v1b_pipeline(
 
     classification = classify(combined_text, series_registry, thesis_family_registry, territory_registry)
 
-    memory_retrieval = retrieve_relevant_memory(combined_text, classification, memory_records)
-    memory_comparison = compare_to_editorial_memory(combined_text, classification, memory_records)
+    # V1B Correction Order (Defect 2): canonical classification still runs on the
+    # interpretation text (unchanged V1A mechanism, above). Memory retrieval/comparison's
+    # CONTENT-level signals run on raw_text -- what the human actually wrote -- not on
+    # the provider's generated interpretation text. See memory/comparison.py.
+    memory_retrieval = retrieve_relevant_memory(raw_text, classification, memory_records)
+    memory_comparison = compare_to_editorial_memory(raw_text, classification, memory_records)
     legacy_comparison = to_legacy_comparison_result(memory_comparison)
 
     candidates = propose_candidate_angles(

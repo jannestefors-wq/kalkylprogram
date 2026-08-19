@@ -24,8 +24,8 @@ def test_3_partial_records_never_produce_text_overlap_terms():
 
     # "manniska" appears literally in content-other-001's partial original_text,
     # but partial text must never be used for literal text-overlap comparison.
-    interpretation_text = "En manniska kande sig osedd i mötet."
-    result = compare_to_editorial_memory(interpretation_text, _NO_MATCH_CLASSIFICATION, [partial_record])
+    raw_text = "En manniska kande sig osedd i mötet."
+    result = compare_to_editorial_memory(raw_text, _NO_MATCH_CLASSIFICATION, [partial_record])
 
     for match in result.matches:
         assert match.text_overlap_terms == []
@@ -36,8 +36,8 @@ def test_15_fulltext_overlap_only_computed_for_full_records():
     full_record = next(r for r in records if r.content_id == "content-work-006")  # "Observation fore tolkning..."
     partial_record = next(r for r in records if r.content_id == "content-other-001")
 
-    interpretation_text = "Observation och tolkning skiljer sig at i motet."
-    result = compare_to_editorial_memory(interpretation_text, _NO_MATCH_CLASSIFICATION, [full_record, partial_record])
+    raw_text = "Observation och tolkning skiljer sig at i motet."
+    result = compare_to_editorial_memory(raw_text, _NO_MATCH_CLASSIFICATION, [full_record, partial_record])
 
     full_match = next((m for m in result.matches if m.content_id == "content-work-006"), None)
     assert full_match is not None
@@ -61,8 +61,8 @@ def test_evidence_boundary_note_differs_by_publication_status():
     published = next(r for r in records if r.content_id == "content-published-003")
     unknown = next(r for r in records if r.content_id == "content-other-001")
 
-    interpretation_text = "foretagsutveckling verklighet rost tystnad truth leadership"
-    result = compare_to_editorial_memory(interpretation_text, _NO_MATCH_CLASSIFICATION, [work, published, unknown])
+    raw_text = "foretagsutveckling verklighet rost tystnad truth leadership"
+    result = compare_to_editorial_memory(raw_text, _NO_MATCH_CLASSIFICATION, [work, published, unknown])
 
     notes = {m.content_id: m.evidence_boundary_note for m in result.matches}
     if "content-work-001" in notes:

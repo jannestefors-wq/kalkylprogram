@@ -49,11 +49,15 @@ class MemoryRetrievalResult(BaseModel):
 
 
 def retrieve_relevant_memory(
-    interpretation_text: str,
+    raw_text: str,
     classification: ClassificationResult,
     memory_records: list[EditorialMemoryRecord],
 ) -> MemoryRetrievalResult:
-    text_words = normalize_words(interpretation_text)
+    """V1B Correction Order (Defect 2): topic/term signals are matched against
+    `raw_text` (what the human actually wrote), not the provider's generated
+    interpretation text -- see memory/comparison.py's module-level note for why."""
+
+    text_words = normalize_words(raw_text)
     classified_thesis_family_ids = {m.canonical_id for m in classification.thesis_family_matches}
     classified_territory_ids = {m.canonical_id for m in classification.territory_matches}
 

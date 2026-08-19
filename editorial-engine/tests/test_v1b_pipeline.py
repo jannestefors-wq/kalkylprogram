@@ -10,6 +10,19 @@ from memory.pipeline import run_v1b_pipeline
 GOLDEN_LIKE_TEXT = "En chef avbrot samma medarbetare tre ganger under motet, men bad efteratt om arlig feedback."
 THIN_TEXT = "Daligt mote idag."
 
+# V1B Correction Order (Defect 2): GOLDEN_LIKE_TEXT alone shares no real,
+# threshold-clearing content evidence with any single fulltext record (only
+# canonical classification matches, which the correction no longer treats as
+# sufficient on their own -- see memory/comparison.py). RELEVANT_TEXT is
+# deliberately crafted to share real vocabulary with content-work-006's
+# original_text AND topic_labels ("observation", "tolkning"), so it
+# demonstrates genuine, explainable evidence-driven HIGH repetition, not a
+# structural artifact.
+RELEVANT_TEXT = (
+    "Chefen gjorde en tydlig observation om vad som hande pa kontoret tre ganger, "
+    "men var forsta tolkning av situationen visade sig vara helt fel."
+)
+
 
 def test_12_repetition_low_when_no_memory_overlap():
     r = run_v1b_pipeline(GOLDEN_LIKE_TEXT, memory_records=[])
@@ -21,36 +34,71 @@ def test_12_repetition_low_when_no_memory_overlap():
 def test_13_repetition_medium_on_weak_topic_only_overlap():
     all_records = load_editorial_memory()
     weak_only_record = next(r for r in all_records if r.content_id == "content-work-002")
-    r = run_v1b_pipeline(GOLDEN_LIKE_TEXT, memory_records=[weak_only_record])
+    # Shares content-work-002's own topic labels ("resultat", "ansvar", "konsekvens")
+    # literally with the RAW INPUT, but the input's canonical classification does not
+    # match content-work-002's thesis_family_id (thesis-symptom-cause-001) -- so this
+    # is real content-level overlap with no canonical corroboration: genuinely "weak".
+    text = "Chefen sag samma resultat tre ganger men forstod aldrig konsekvens och ansvar bakom."
+    r = run_v1b_pipeline(text, memory_records=[weak_only_record])
 
     assert r.memory_comparison.outcome.value == "MATCHES_FOUND"
     match = r.memory_comparison.matches[0]
     assert match.repetition_signal_strength == "weak"
+    assert match.topic_overlap  # real, named lexical evidence -- not a lone generic word
     assert any(c.repetition_risk == RepetitionRiskLevel.MEDIUM for c in r.candidate_angles)
 
 
-def test_14_repetition_high_on_shared_canonical_relation():
+def test_14_repetition_high_on_shared_canonical_relation_and_content_evidence():
+    all_records = load_editorial_memory()
+    strong_record = next(r for r in all_records if r.content_id == "content-work-001")
+    # Shares content-work-001's topic label ("verklighet") literally with the raw
+    # input AND triggers a genuine shared Thesis Family match -- both signals
+    # together, per order section 8's "HIGH ska krava flera relevanta signaler".
+    text = "Chefen pratade om verklighet pa kontoret tre ganger men ingen lyssnade pa vad som faktiskt hande."
+    r = run_v1b_pipeline(text, memory_records=[strong_record])
+
+    match = r.memory_comparison.matches[0]
+    assert match.repetition_signal_strength == "strong"
+    assert match.shared_thesis_family_ids  # canonical signal
+    assert match.topic_overlap  # AND content signal -- neither alone would be enough
+    assert any(c.repetition_risk == RepetitionRiskLevel.HIGH for c in r.candidate_angles)
+
+
+def test_14b_lone_canonical_relation_without_content_evidence_is_not_high():
+    """The exact scenario order section 8 named as the failure mode: a shared
+    canonical relation with NO content-level corroboration must not drive HIGH."""
     all_records = load_editorial_memory()
     strong_record = next(r for r in all_records if r.content_id == "content-work-001")
     r = run_v1b_pipeline(GOLDEN_LIKE_TEXT, memory_records=[strong_record])
 
+    assert r.memory_comparison.outcome.value == "MATCHES_FOUND"
     match = r.memory_comparison.matches[0]
-    assert match.repetition_signal_strength == "strong"
-    assert any(c.repetition_risk == RepetitionRiskLevel.HIGH for c in r.candidate_angles)
+    assert match.shared_thesis_family_ids  # canonical signal alone IS present
+    assert not match.topic_overlap and not match.text_overlap_terms  # but no content signal
+    assert match.repetition_signal_strength == "weak"
+    assert all(c.repetition_risk == RepetitionRiskLevel.LOW for c in r.candidate_angles)
 
 
-def test_17_memory_influences_candidate_angles():
-    r_empty = run_v1b_pipeline(GOLDEN_LIKE_TEXT, memory_records=[])
-    r_loaded = run_v1b_pipeline(GOLDEN_LIKE_TEXT)  # real, full corpus
+def test_17_memory_influences_candidate_angles_for_genuinely_relevant_input():
+    r_empty = run_v1b_pipeline(RELEVANT_TEXT, memory_records=[])
+    r_loaded = run_v1b_pipeline(RELEVANT_TEXT)  # real, full corpus
 
     empty_risks = [c.repetition_risk for c in r_empty.candidate_angles]
     loaded_risks = [c.repetition_risk for c in r_loaded.candidate_angles]
     assert empty_risks != loaded_risks
     assert r_empty.recommendation.outcome != r_loaded.recommendation.outcome
 
+    # The difference must be explainable by real evidence, not a structural artifact:
+    # at least one LOADED match must be "strong" (canonical + content signal together).
+    strong_matches = [m for m in r_loaded.memory_comparison.matches if m.repetition_signal_strength == "strong"]
+    assert strong_matches
+    for m in strong_matches:
+        assert m.shared_thesis_family_ids or m.shared_territory_ids
+        assert m.topic_overlap or m.text_overlap_terms
+
 
 def test_18_high_repetition_can_yield_no_strong_angle():
-    r = run_v1b_pipeline(GOLDEN_LIKE_TEXT)  # full real corpus -- multiple strong overlaps
+    r = run_v1b_pipeline(RELEVANT_TEXT)  # full real corpus -- genuine, corroborated overlap
     assert r.recommendation.outcome == RecommendationOutcome.NO_STRONG_ANGLE
     assert r.recommendation.recommended_angle_id is None
     # Candidates are still shown -- high repetition does not hide them from the human.
