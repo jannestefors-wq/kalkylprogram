@@ -339,7 +339,7 @@ def assess_false_variation_from_values(
     # has either, so `lef_corroborates` is always False here.
     is_false, reason = _false_variation_verdict(
         category, movement_cat, movement_matched_positions, len(construction_same), len(construction_diff),
-        -1, -1, 999, 999, False,
+        -1, -1, 999, 999, False, False,
     )
 
     if reason in ("movement_strongly_corroborated", "movement_partially_corroborated", "movement_uncontradicted", "weakly_corroborated"):

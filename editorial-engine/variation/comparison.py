@@ -336,6 +336,7 @@ def _false_variation_verdict(
     max_sentence_count: int,
     combined_word_count: int,
     lef_corroborates: bool,
+    lef_no_material_difference: bool,
 ) -> tuple[bool, str]:
     """order section 6, 15 (V1C Correction 2), the second blocker's actual
     fix: False Variation reasons over a COMBINATION of evidence -- the
@@ -401,26 +402,30 @@ def _false_variation_verdict(
     if (
         movement_category == MovementSimilarityCategory.INSUFFICIENT_EVIDENCE
         and lef_corroborates
-        and n_same_construction_dims >= 1
-        and n_diff_construction_dims == 0
+        and lef_no_material_difference
     ):
-        # V1C Blocker 3 (Local Editorial Function, locked scope per
-        # V1C_LOCAL_EDITORIAL_FUNCTION_FEASIBILITY_ASSESSMENT.md, Architecture
-        # Verdict B. PARTIALLY VIABLE): both profiles independently found a
-        # source-traced situation-to-consequence relation whose
-        # capability-change words share a category, corroborated by at
-        # least one independently-agreeing construction dimension, and
-        # nothing confidently contradicts. Order section 11: Local Editorial
-        # Function is evidence, never a sole decider -- testing found that
-        # LEF-match alone (with only "nothing contradicts", no independent
-        # confirmation) produced a real Human Situation Boundary false
-        # positive: two texts sharing only the single capability word
-        # "sjalv" ("alone"/"by themselves") read as the same construction
-        # despite a workplace vs. family human situation. The `n_same >= 1`
-        # floor requires a second, independent signal to agree -- mirroring
-        # the `>= 2` floor construction-dimensions-alone needed for the
-        # same reason (see `short_form_corroborated` below).
-        return True, "short_form_local_function_corroborated"
+        # V1C Final Scope and Decision Assessment, Gate 7 (DECISION-POLICY
+        # DEFECT correction): a DIRECTLY_OBSERVABLE, source-traced Local
+        # Editorial Function relation (both profiles sufficient, sharing a
+        # capability-change category -- `lef_corroborates`) is STRONG
+        # corroboration on its own once verified against `lef_no_material_
+        # difference`: no confident (non-default, bilateral) difference on
+        # ANY of entry_mode, narrative_distance, lens, or closure_mode (the
+        # affected position, discovery order, topic, and closure function
+        # named in the assessment's ten-condition list). This replaces the
+        # earlier `n_same_construction_dims >= 1` requirement, which the
+        # assessment found "för restriktiv": requiring an ADDITIONAL
+        # independently-agreeing dimension on top of a high-confidence
+        # source-traced functional relation ignored the relation's own
+        # evidentiary weight. `lens` is included in the difference check
+        # here (unlike its exclusion from `_CONSTRUCTION_CORROBORATION_
+        # DIMENSIONS`'s MATCH role since Correction 2) because the
+        # assessment's condition 7 explicitly names it as a difference
+        # signal to guard against, even though it still never counts as
+        # match evidence on its own (order's "Thesis similarity != Structural
+        # repetition" is unaffected -- lens still cannot corroborate,
+        # it can only veto).
+        return True, "gate7_local_function_strong_corroboration"
     if (
         movement_category == MovementSimilarityCategory.INSUFFICIENT_EVIDENCE
         and a_confident_construction_dims == 0
@@ -541,22 +546,27 @@ def assess_false_variation(a: VariationProfile, b: VariationProfile) -> FalseVar
     a_confident = sum(1 for d in _CONSTRUCTION_CORROBORATION_DIMENSIONS if _dimension_has_confident_signal(getattr(a, d)))
     b_confident = sum(1 for d in _CONSTRUCTION_CORROBORATION_DIMENSIONS if _dimension_has_confident_signal(getattr(b, d)))
     lef_corroborates = _local_editorial_functions_corroborate(a.local_editorial_function, b.local_editorial_function)
+    lef_no_material_difference = not any(
+        _dimension_diff_is_evidence(getattr(a, d), getattr(b, d))
+        for d in ("entry_mode", "narrative_distance", "lens", "closure_mode")
+    )
     is_false, reason = _false_variation_verdict(
         result.overall, result.movement_comparison.category, result.movement_comparison.matched_positions,
         len(construction_same), len(construction_diff), a_confident, b_confident,
-        max(a.sentence_count, b.sentence_count), a.word_count + b.word_count, lef_corroborates,
+        max(a.sentence_count, b.sentence_count), a.word_count + b.word_count,
+        lef_corroborates, lef_no_material_difference,
     )
     sufficient_evidence = reason != "short_form_insufficient_evidence"
 
-    if reason == "short_form_local_function_corroborated":
+    if reason == "gate7_local_function_strong_corroboration":
         a_lef, b_lef = a.local_editorial_function, b.local_editorial_function
         rationale = (
             "Structural Movement ar INSUFFICIENT_EVIDENCE, men bada profilerna har en kallsparad Local "
             f"Editorial Function-relation ({a_lef.situation_span!r} -> {a_lef.consequence_span!r} respektive "
             f"{b_lef.situation_span!r} -> {b_lef.consequence_span!r}) vars kallsparbara ord "
             f"({a_lef.capability_change_words} / {b_lef.capability_change_words}) delar samma interna "
-            "kategori, och ingen konstruktionsdimension motsager -- tunt men kallsparat bevis for samma "
-            "lokala redaktionella mekanism i kort text."
+            "kategori, och ingen av entry_mode/narrative_distance/lens/closure_mode motsager materiellt -- "
+            "stark kallsparad evidens for samma lokala redaktionella mekanism i kort text."
         )
     elif reason == "short_form_insufficient_evidence":
         rationale = (
