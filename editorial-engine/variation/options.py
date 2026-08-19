@@ -334,10 +334,12 @@ def assess_false_variation_from_values(
     # two new Blocker 3 short-form tiers are both kept permanently
     # unreachable here by passing an impossible sentinel count (-1, which
     # can never equal `n_same_construction_dims` or 0) -- exact prior
-    # behavior preserved for this path, out of scope for Blocker 3.
+    # behavior preserved for this path, out of scope for Blocker 3. Local
+    # Editorial Function needs raw source text this value-dict path never
+    # has either, so `lef_corroborates` is always False here.
     is_false, reason = _false_variation_verdict(
         category, movement_cat, movement_matched_positions, len(construction_same), len(construction_diff),
-        -1, -1, 999, 999,
+        -1, -1, 999, 999, False,
     )
 
     if reason in ("movement_strongly_corroborated", "movement_partially_corroborated", "movement_uncontradicted", "weakly_corroborated"):

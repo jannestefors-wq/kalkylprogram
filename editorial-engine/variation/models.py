@@ -171,6 +171,36 @@ class StructuralMovementAssessment(BaseModel):
         return [s.stage.value for s in self.steps if s.stage != MovementStage.UNKNOWN]
 
 
+class LocalEditorialFunctionAssessment(BaseModel):
+    """V1C Blocker 3 (V1C_LOCAL_EDITORIAL_FUNCTION_IMPLEMENTATION_REPORT.md), locked to the scope of
+    `V1C_LOCAL_EDITORIAL_FUNCTION_FEASIBILITY_ASSESSMENT.md`'s Architecture Verdict B. PARTIALLY VIABLE.
+
+    A minimal, non-canonical, source-traced representation of the smallest defensible local relation:
+    `observerad situation eller handling -> funktionell forandring -> observerbar foljd`. This is NOT a
+    Voice Core property, NOT a Variation Rule, NOT a Thesis Family, and NOT a permanent metadata field
+    list -- it is a PROTOTYPE ANALYSIS representation, scoped only to explicit, textnear local relations.
+
+    Deliberately källspårad före kategoriserad (feasibility assessment section 2): `situation_span` and
+    `consequence_span` are literal, verifiable substrings of the analyzed text -- never a category label,
+    never an inferred meaning. Any internal grouping used to decide whether two assessments' consequence
+    spans plausibly describe the SAME kind of functional change lives only in `comparison.py`'s private
+    matching logic, never as an enum on this model -- so this representation cannot calcify into the
+    forbidden canonical taxonomy (feasibility assessment section 12; order section 9: 'agency loss, voice
+    suppression, judgment loss, dependency, responsibility displacement, information loss' must never
+    become a permanent LUF facit list)."""
+
+    model_config = {"extra": "forbid"}
+
+    sufficient_evidence: bool
+    situation_span: Optional[str] = None
+    consequence_span: Optional[str] = None
+    capability_change_words: list[str] = Field(default_factory=list)
+    """The literal, source-quoted words in `consequence_span` that indicate a change in capability, voice,
+    judgment, responsibility, dependency, or information flow -- never a category label (see docstring)."""
+    confidence: ConfidenceLevel
+    evidence: str
+
+
 class RhetoricalPressure(str, Enum):
     CONTRAST = "contrast"
     QUESTION = "question"
@@ -253,6 +283,13 @@ class VariationProfile(BaseModel):
     section 6's 'evidence of difference' vs 'absence of evidence for
     similarity', applied to the profiler's own coverage rather than to a
     pairwise comparison)."""
+
+    local_editorial_function: Optional[LocalEditorialFunctionAssessment] = None
+    """V1C Blocker 3: computed only for the locked, explicit-relation scope (see
+    `profiler.py::_assess_local_editorial_function()`). `None` means the profiler did not attempt this
+    analysis for this source kind; a present assessment with `sufficient_evidence=False` means it was
+    attempted but the text did not support a source-traced relation. Optional and additive -- never
+    required by any existing OBSERVED-dimension contract."""
 
     analysis_logic_version: str
     provenance: Provenance

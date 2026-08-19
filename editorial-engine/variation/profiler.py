@@ -35,6 +35,7 @@ from .models import (
     EmotionalTemperature,
     EntryMode,
     Lens,
+    LocalEditorialFunctionAssessment,
     MovementStage,
     MovementStep,
     NarrativeDistance,
@@ -367,6 +368,94 @@ def _assess_structural_arc(movement: StructuralMovementAssessment) -> DimensionA
     )
 
 
+_LOCAL_FUNCTION_CONNECTORS = ("till slut", "till sist", "sedan", "därför", "efteråt", "men")
+"""V1C Blocker 3 (feasibility assessment section 2's minimal form: 'observerad
+situation eller handling -> funktionell forandring -> observerbar foljd'):
+small, generic Swedish discourse connectives marking a shift from an opening
+situation to its consequence -- not Challenge-specific, the same class of
+generic connective already used elsewhere in this file (`men` for
+rhetorical_pressure, `_REFRAMING_MARKERS`, `_DISTINCTION_MARKERS`)."""
+
+_CAPABILITY_CHANGE_STEMS = (
+    "tystnad", "tyst", "röst", "våga",
+    "omdöm", "tänk", "instruktion", "bedöm", "ansvar", "mandat", "skuld", "förklar", "kritik",
+    "beroend", "ensam",
+    "initiativ", "kapacitet", "kapabel",
+    "signal", "varning",
+    "straff",
+    "slutad", "sluta", "upphör", "vänta",
+)
+"""V1C Blocker 3: a small, general vocabulary of Swedish words about a change
+in voice, judgment/accountability, dependency, initiative, information flow,
+social consequence for dissent, or cessation of an activity -- derived from
+the feasibility assessment's own named concepts (section 2: 'vad situationen
+gor i lasarens forstaelse och vilken mojlighet som darmed minskar, oppnas
+eller forskjuts'), not from any single challenge scenario text. Prefix-matched to absorb
+ordinary Swedish inflection (tystnad/tystnaden/tystnadens). This is NOT a
+canonical taxonomy -- it is only ever used to find literal, source-quotable
+words in the analyzed text; any grouping of these words into related concepts
+for comparison purposes lives in `comparison.py`, never persisted as a label
+on `LocalEditorialFunctionAssessment` (order section 9: 'kallsparad fore
+kategoriserad')."""
+
+
+def _capability_change_words(words: set[str]) -> list[str]:
+    return sorted(w for w in words if any(w.startswith(stem) for stem in _CAPABILITY_CHANGE_STEMS))
+
+
+def _assess_local_editorial_function(text: str) -> LocalEditorialFunctionAssessment:
+    """V1C Blocker 3, locked scope per
+    V1C_LOCAL_EDITORIAL_FUNCTION_FEASIBILITY_ASSESSMENT.md (Architecture
+    Verdict B. PARTIALLY VIABLE): extracts the smallest defensible local
+    relation -- a situation/handling span and a consequence span, split at
+    the earliest generic connector (or, absent one, at the first sentence
+    boundary) -- and only asserts `sufficient_evidence=True` when the
+    consequence span itself contains a source-quotable capability-change
+    word. No inference, no filling gaps with what the text 'probably'
+    means (order section 8): absence of a connector, absence of a second
+    part, or absence of a capability-change word in the consequence span
+    all fall through to `sufficient_evidence=False`, never a guess."""
+
+    lowered = _normalize(text)
+    connector_idx = None
+    for connector in _LOCAL_FUNCTION_CONNECTORS:
+        idx = lowered.find(connector)
+        if idx != -1 and (connector_idx is None or idx < connector_idx):
+            connector_idx = idx
+
+    if connector_idx is not None:
+        situation = text[:connector_idx].strip()
+        consequence = text[connector_idx:].strip()
+    else:
+        sentences = _sentences(text)
+        if len(sentences) < 2:
+            return LocalEditorialFunctionAssessment(
+                sufficient_evidence=False, confidence=ConfidenceLevel.LOW,
+                evidence="Ingen konnektor och for lite text (under tva meningar) for att urskilja en situation- och en foljd-del.",
+            )
+        situation, consequence = sentences[0], " ".join(sentences[1:])
+
+    if not situation or not consequence:
+        return LocalEditorialFunctionAssessment(
+            sufficient_evidence=False, confidence=ConfidenceLevel.LOW,
+            evidence="Situation- eller foljd-delen ar tom efter uppdelning -- ingen relation kan kallsparas.",
+        )
+
+    hits = _capability_change_words(_words(consequence))
+    if not hits:
+        return LocalEditorialFunctionAssessment(
+            sufficient_evidence=False, confidence=ConfidenceLevel.LOW,
+            situation_span=situation, consequence_span=consequence,
+            evidence="Situation- och foljd-delar identifierade, men foljd-delen innehaller inget kallsparbart ord om formaga, rost, ansvar, beroende eller informationsflode -- INSUFFICIENT_EVIDENCE, ingen gissning.",
+        )
+
+    return LocalEditorialFunctionAssessment(
+        sufficient_evidence=True, confidence=ConfidenceLevel.MEDIUM,
+        situation_span=situation, consequence_span=consequence, capability_change_words=hits,
+        evidence=f"Situation ({situation!r}) foljs av en observerbar konsekvens ({consequence!r}) som innehaller kallsparbara ord: {hits}.",
+    )
+
+
 _WARM_WORDS = {"manniskor", "manniska", "hjalp", "tillit", "stod", "manskligt"}
 _COOL_WORDS = {"system", "systemet", "verksamheten", "organisationen", "modellen", "process"}
 
@@ -429,6 +518,7 @@ def build_variation_profile(
 
     disclosure_pace = _assess_disclosure_pace(text) if include_hypothesis_dimensions else None
     emotional_temperature = _assess_emotional_temperature(text) if include_hypothesis_dimensions else None
+    local_editorial_function = _assess_local_editorial_function(text)
 
     return VariationProfile(
         profile_id=_new_id("VPROF-V1C"),
@@ -445,6 +535,7 @@ def build_variation_profile(
         emotional_temperature=emotional_temperature,
         sentence_count=len(_sentences(text)),
         word_count=len(_words(text)),
+        local_editorial_function=local_editorial_function,
         analysis_logic_version=ANALYSIS_LOGIC_VERSION,
         provenance=Provenance(
             created_by=Actor.AI_SYSTEM,
