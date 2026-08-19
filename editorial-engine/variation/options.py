@@ -23,7 +23,7 @@ from engine.models import ConfidenceLevel
 
 from .comparison import (
     MIN_KNOWN_DIMENSIONS_FOR_COMPARISON,
-    _corroborated_false_variation_verdict,
+    _false_variation_verdict,
     category_for_value_dicts,
     compare_structural_movements,
     compare_variation_profiles,
@@ -44,6 +44,7 @@ from .models import (
     RhetoricalPressure,
     StructuralArc,
     StructuralMovementAssessment,
+    StructuralMovementComparisonResult,
     VariationDistanceCategory,
     VariationProfile,
     VariationRecommendationOutcome,
@@ -96,7 +97,7 @@ def _next_movement_sequence(current: list[str]) -> list[str] | None:
     return None
 
 
-def _movement_sequence_category(seq_a: list[str], seq_b: list[str]) -> MovementSimilarityCategory:
+def _movement_sequence_comparison(seq_a: list[str], seq_b: list[str]) -> StructuralMovementComparisonResult:
     """order section 23 (V1C Correction): lets an option's False-Variation
     risk be judged against relevant memory using the REAL observed (or
     hypothetically proposed) movement sequence, even when the swapped
@@ -105,7 +106,11 @@ def _movement_sequence_category(seq_a: list[str], seq_b: list[str]) -> MovementS
     can still be correctly flagged as risky."""
 
     if not seq_a or not seq_b:
-        return MovementSimilarityCategory.INSUFFICIENT_EVIDENCE
+        return StructuralMovementComparisonResult(
+            profile_a_id="OPT-A", profile_b_id="OPT-B", profile_a_sequence=seq_a, profile_b_sequence=seq_b,
+            matched_positions=0, compared_length=0, category=MovementSimilarityCategory.INSUFFICIENT_EVIDENCE,
+            rationale="Ingen rorelsesekvens att jamfora.",
+        )
     assessment_a = StructuralMovementAssessment(
         steps=[MovementStep(stage=MovementStage(s), confidence=ConfidenceLevel.MEDIUM, evidence="Harledd for jamforelse.") for s in seq_a],
         sufficient_evidence=True, evidence_status=DIMENSION_EVIDENCE_STATUS["structural_movement"],
@@ -114,7 +119,7 @@ def _movement_sequence_category(seq_a: list[str], seq_b: list[str]) -> MovementS
         steps=[MovementStep(stage=MovementStage(s), confidence=ConfidenceLevel.MEDIUM, evidence="Harledd for jamforelse.") for s in seq_b],
         sufficient_evidence=True, evidence_status=DIMENSION_EVIDENCE_STATUS["structural_movement"],
     )
-    return compare_structural_movements(assessment_a, assessment_b, "OPT-A", "OPT-B").category
+    return compare_structural_movements(assessment_a, assessment_b, "OPT-A", "OPT-B")
 
 
 def _next_value(dimension: str, current: str) -> str | None:
@@ -214,7 +219,8 @@ def generate_controlled_variation_options(
         if closest_memory is not None:
             memory_values = closest_memory.observed_values()
             memory_movement_sequence = closest_memory.structural_movement.known_stage_sequence()
-            movement_category = _movement_sequence_category(effective_movement_sequence, memory_movement_sequence)
+            movement_comparison = _movement_sequence_comparison(effective_movement_sequence, memory_movement_sequence)
+            movement_category = movement_comparison.category
             movement_same = movement_category == MovementSimilarityCategory.STRONGLY_SIMILAR
 
             hypothetical_values = dict(angle_values)
@@ -227,7 +233,8 @@ def generate_controlled_variation_options(
                 f"(rorelsesekvens: {effective_movement_sequence} mot {memory_movement_sequence})."
             )
             false_variation = assess_false_variation_from_values(
-                hypothetical_values, memory_values, structural_arc_same_override=movement_same, movement_category=movement_category,
+                hypothetical_values, memory_values, structural_arc_same_override=movement_same,
+                movement_category=movement_category, movement_matched_positions=movement_comparison.matched_positions,
             )
         else:
             memory_category = VariationDistanceCategory.STRUCTURALLY_DISTINCT
@@ -284,12 +291,27 @@ def generate_controlled_variation_options(
     )
 
 
+_NON_MOVEMENT_DIMS_FOR_VALUES = tuple(d for d in OBSERVED_DIMENSIONS if d != "structural_arc")
+_CONSTRUCTION_CORROBORATION_DIMS_FOR_VALUES = tuple(d for d in _NON_MOVEMENT_DIMS_FOR_VALUES if d != "lens")
+"""order section 6 (V1C Correction 2), mirrors `comparison.py`'s
+`_CONSTRUCTION_CORROBORATION_DIMENSIONS` -- `lens` reflects topic/theme,
+not construction, and is excluded from corroboration (kept only in the
+flat six-slot `identical`/`changed` reporting above)."""
+
+
 def assess_false_variation_from_values(
     a_values: dict[str, str],
     b_values: dict[str, str],
     structural_arc_same_override: bool | None = None,
     movement_category: MovementSimilarityCategory | None = None,
+    movement_matched_positions: int = 0,
 ) -> FalseVariationAssessment:
+    """Hypothetical value-dict path (option previews have no recomputed
+    `DimensionAssessment.confidence`, only a plain proposed string value)
+    -- falls back to naive value equality per dimension, unlike the real
+    profile-to-profile `assess_false_variation()` which is evidence-aware
+    (order section 7, V1C Correction 2)."""
+
     category, same_count, different_count = category_for_value_dicts(a_values, b_values, structural_arc_same_override=structural_arc_same_override)
     identical = [
         d for d in OBSERVED_DIMENSIONS
@@ -297,17 +319,22 @@ def assess_false_variation_from_values(
     ]
     changed = [d for d in OBSERVED_DIMENSIONS if d not in identical]
 
-    lens_same = a_values.get("lens") == b_values.get("lens") and a_values.get("lens") != "unknown"
-    distance_same = a_values.get("narrative_distance") == b_values.get("narrative_distance") and a_values.get("narrative_distance") != "unknown"
-    is_false, reason = _corroborated_false_variation_verdict(
-        category, movement_category if movement_category is not None else MovementSimilarityCategory.INSUFFICIENT_EVIDENCE, lens_same, distance_same,
-    )
+    construction_same = [d for d in identical if d in _CONSTRUCTION_CORROBORATION_DIMS_FOR_VALUES]
+    construction_diff = [
+        d for d in _CONSTRUCTION_CORROBORATION_DIMS_FOR_VALUES
+        if a_values.get(d) != "unknown" and b_values.get(d) != "unknown" and a_values.get(d) != b_values.get(d)
+    ]
+    movement_cat = movement_category if movement_category is not None else MovementSimilarityCategory.INSUFFICIENT_EVIDENCE
+    is_false, reason = _false_variation_verdict(category, movement_cat, movement_matched_positions, len(construction_same), len(construction_diff))
 
-    if reason == "movement_corroborated":
+    if reason in ("movement_strongly_corroborated", "movement_partially_corroborated", "movement_uncontradicted", "weakly_corroborated"):
         rationale = (
-            f"Rorelsesekvensen ar {movement_category.value} och {'lens' if lens_same else 'narrative_distance'} delas "
-            f"-- redaktionell konstruktion bestar aven om {', '.join(changed) or 'inga andra dimensioner'} skiljer sig."
+            f"Rorelsesekvensen ar {movement_cat.value} och {len(construction_same)} av {len(_CONSTRUCTION_CORROBORATION_DIMS_FOR_VALUES)} "
+            f"konstruktionsdimensioner ({', '.join(construction_same) or 'inga'}) bekraftar oberoende "
+            f"-- redaktionell konstruktion bestar aven om {', '.join(construction_diff) or 'inga andra dimensioner'} skiljer sig."
         )
+    elif reason == "construction_majority":
+        rationale = f"{len(construction_same)} av {len(_CONSTRUCTION_CORROBORATION_DIMS_FOR_VALUES)} konstruktionsdimensioner ar lika ({', '.join(construction_same)}) -- overvagande bevis for samma konstruktion."
     elif is_false:
         rationale = f"{len(identical)} av {len(OBSERVED_DIMENSIONS)} OBSERVED-dimensioner identiska ({', '.join(identical)})."
     else:

@@ -35,18 +35,27 @@ def test_10_lexical_overlap_does_not_automatically_become_structural_repetition(
 
 
 def test_11_false_variation_detected_for_synonym_only_change():
-    """V1C Correction: both sentences here are a single sentence each (one
-    period at the very end), below the 3-sentence movement-evidence floor
-    (order section 10) -- structural_arc legitimately goes UNKNOWN on both
-    (INSUFFICIENT_EVIDENCE on the movement comparison, not silently counted
-    as "same"), so 5 of 6 -- not 6 of 6 -- OBSERVED dimensions are
-    identical. 5/6 still clears the TOO_SIMILAR threshold (>=5)."""
-    a = build_variation_profile("Vi matte samma resultat tre ganger men fann aldrig karnan bakom det.", "A", SourceKind.CANDIDATE_ANGLE)
-    b = build_variation_profile("Vi observerade samma utfall tre ganger men hittade aldrig grunden till det.", "B", SourceKind.CANDIDATE_ANGLE)
+    """V1C Correction 2: the original fixture here was a single sentence
+    each, whose apparent 5/6 similarity turned out to rest entirely on
+    coincidentally shared LOW-confidence DEFAULT values (order section 7:
+    "UNKNOWN/default == UNKNOWN/default" must not count as similarity
+    evidence) -- not genuine signal. Replaced with a 4-sentence synonym
+    rewrite that shares genuine HIGH-confidence signals (both open and
+    close on a real question mark) so the match is real evidence, not
+    coincidence."""
+    a = build_variation_profile(
+        "Varfor slutar vi lyssna nar det blir obekvamt? Manga chefer backar undan just da. "
+        "Det ar precis da det viktigaste sags. Har du markt samma monster hos dig sjalv?",
+        "A", SourceKind.CANDIDATE_ANGLE,
+    )
+    b = build_variation_profile(
+        "Varfor tystnar vi sa fort samtalet blir jobbigt? Flera ledare drar sig undan i just det ogonblicket. "
+        "Det ar dar den viktigaste informationen finns. Kanner du igen det monstret hos dig sjalv?",
+        "B", SourceKind.CANDIDATE_ANGLE,
+    )
     fv = assess_false_variation(a, b)
     assert fv.is_false_variation is True
     assert len(fv.identical_dimensions) == 5
-    assert "structural_arc" in fv.changed_dimensions
 
 
 def test_12_same_thesis_family_can_still_be_legitimate_variation():

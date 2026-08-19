@@ -53,14 +53,22 @@ def test_false_variation_path_detects_cosmetic_only_difference():
     """order section 39: two alternatives differing only by synonym/cosmetic
     opening must be identified as NOT genuine variation.
 
-    V1C Correction: both texts are a single sentence (below the 3-sentence
-    movement-evidence floor, order section 10), so structural_arc
-    legitimately goes UNKNOWN/INSUFFICIENT_EVIDENCE on both rather than
-    being silently counted "same" -- 5 of 6 dimensions match, which still
-    clears the TOO_SIMILAR threshold (>=5)."""
+    V1C Correction 2: the original single-sentence fixture's apparent 5/6
+    similarity rested entirely on coincidentally shared LOW-confidence
+    DEFAULT values (order section 7: default coincidence is not similarity
+    evidence). Replaced with a 4-sentence synonym rewrite sharing genuine
+    HIGH-confidence signals (both open and close on a real question mark)."""
 
-    a = build_variation_profile("Vi matte samma resultat tre ganger men fann aldrig karnan bakom det.", "OPT-A", SourceKind.CANDIDATE_ANGLE)
-    b = build_variation_profile("Vi observerade samma utfall tre ganger men hittade aldrig grunden till det.", "OPT-B", SourceKind.CANDIDATE_ANGLE)
+    a = build_variation_profile(
+        "Varfor slutar vi lyssna nar det blir obekvamt? Manga chefer backar undan just da. "
+        "Det ar precis da det viktigaste sags. Har du markt samma monster hos dig sjalv?",
+        "OPT-A", SourceKind.CANDIDATE_ANGLE,
+    )
+    b = build_variation_profile(
+        "Varfor tystnar vi sa fort samtalet blir jobbigt? Flera ledare drar sig undan i just det ogonblicket. "
+        "Det ar dar den viktigaste informationen finns. Kanner du igen det monstret hos dig sjalv?",
+        "OPT-B", SourceKind.CANDIDATE_ANGLE,
+    )
 
     result = compare_variation_profiles(a, b)
     assert result.overall == VariationDistanceCategory.TOO_SIMILAR
