@@ -32,6 +32,28 @@ consumes the result (ultimately a human, via Human Variation Decision).
 V1C proposes, so a human reviewing options can see this risk assessment
 per option, not just as a pass/fail gate.
 
+## [V1C Correction] Not decided by keywords alone
+
+The Final Audit found this page's "cannot be fooled by synonym
+substitution" claim was overstated: it only held when a rewrite happened
+to avoid the small keyword vocabulary each dimension's own heuristic
+reads. A realistic paraphrase (`kom` -> `anlände`, `konsekvensen` ->
+`följden`) could flip `entry_mode`/`closure_mode`'s individual keyword
+triggers and cause a genuinely repeated construction to read as
+STRUCTURALLY_DISTINCT -- a false negative, the opposite of what this
+page promised.
+
+`assess_false_variation()` now weighs corroborating evidence instead of
+requiring every individual dimension to agree: if the observed
+`structural_movement` sequence is `STRONGLY_SIMILAR` (order section 12's
+whole-text, LCS-based comparison -- see `V1C_STRUCTURAL_COMPARISON.md`)
+AND at least one of `lens`/`narrative_distance` also matches, the pair
+is treated as False Variation even when `entry_mode`/`closure_mode`
+individually diverge. Keywords alone can no longer excuse a repeated
+construction, but they also cannot alone convict one: the six-dimension
+flat comparison (`TOO_SIMILAR`) is still checked first and remains
+sufficient on its own.
+
 ## Relationship to Controlled Variation Options
 
 `variation/options.py::generate_controlled_variation_options()` only ever

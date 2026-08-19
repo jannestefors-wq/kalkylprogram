@@ -52,6 +52,7 @@ DIMENSION_EVIDENCE_STATUS: dict[str, DimensionEvidenceStatus] = {
     "lens": DimensionEvidenceStatus.OBSERVED,
     "narrative_distance": DimensionEvidenceStatus.OBSERVED,
     "structural_arc": DimensionEvidenceStatus.OBSERVED,
+    "structural_movement": DimensionEvidenceStatus.OBSERVED,
     "rhetorical_pressure": DimensionEvidenceStatus.OBSERVED,
     "closure_mode": DimensionEvidenceStatus.OBSERVED,
     "disclosure_pace": DimensionEvidenceStatus.SUPPORTED_HYPOTHESIS,
@@ -100,12 +101,74 @@ class NarrativeDistance(str, Enum):
 
 
 class StructuralArc(str, Enum):
+    """order section 8 (V1C Correction): kept for V1C's internal contract, but
+    NO LONGER the primary source of structural truth -- it is now a small,
+    SECONDARY label derived FROM `MovementStage` sequence (see
+    `StructuralMovementAssessment` below), never derived directly from
+    entry_mode/closure_mode. See `profiler.py::_assess_structural_arc()`."""
+
     SCENE_TO_INSIGHT = "scene_to_insight"
     CLAIM_TO_EVIDENCE = "claim_to_evidence"
     FRAMEWORK_TO_DIRECTION = "framework_to_direction"
     ESCALATION_TO_CONSEQUENCE = "escalation_to_consequence"
     DILEMMA_TO_OPEN_END = "dilemma_to_open_end"
     UNKNOWN = "unknown"
+
+
+class MovementStage(str, Enum):
+    """order section 6-7 (V1C Correction): a small, bounded, transparent
+    vocabulary of observable mid-text editorial movements -- NOT an attempt
+    to catalogue every possible narrative structure (order section 7). Each
+    stage must be explainable from a concrete textual signal, the same
+    discipline every other dimension in this module already follows."""
+
+    CLAIM = "claim"
+    PRINCIPLE = "principle"
+    CONCRETE_SITUATION = "concrete_situation"
+    SYMPTOM_INVENTORY = "symptom_inventory"
+    REFRAMING = "reframing"
+    DISTINCTION = "distinction"
+    TENSION = "tension"
+    QUESTION = "question"
+    DIRECTION = "direction"
+    CONSEQUENCE = "consequence"
+    OBSERVATION = "observation"
+    UNKNOWN = "unknown"
+
+
+class MovementStep(BaseModel):
+    """One observed segment of the text's editorial movement."""
+
+    model_config = {"extra": "forbid"}
+
+    stage: MovementStage
+    confidence: ConfidenceLevel
+    evidence: str
+
+
+class StructuralMovementAssessment(BaseModel):
+    """order section 6, 9, 10 (V1C Correction): the ordered sequence of
+    observed editorial movements a text makes -- the PRIMARY structural
+    evidence. `structural_arc` is derived FROM this, never the reverse
+    (order section 8). Typically 1-5 steps; consecutive segments that
+    classify to the same stage are collapsed (order section 7: no
+    padding for its own sake).
+
+    `sufficient_evidence=False` (order section 10) means the text was too
+    short to support a genuine movement observation (fewer than 3
+    sentences -- there is no room for anything between an opening and a
+    closing) -- this is DIFFERENT from FULL/PARTIAL text completeness
+    (order section 11): a FULL text can still be too short for structural
+    inference."""
+
+    model_config = {"extra": "forbid"}
+
+    steps: list[MovementStep] = Field(default_factory=list)
+    sufficient_evidence: bool
+    evidence_status: DimensionEvidenceStatus
+
+    def known_stage_sequence(self) -> list[str]:
+        return [s.stage.value for s in self.steps if s.stage != MovementStage.UNKNOWN]
 
 
 class RhetoricalPressure(str, Enum):
@@ -173,6 +236,7 @@ class VariationProfile(BaseModel):
     lens: DimensionAssessment
     narrative_distance: DimensionAssessment
     structural_arc: DimensionAssessment
+    structural_movement: StructuralMovementAssessment
     rhetorical_pressure: DimensionAssessment
     closure_mode: DimensionAssessment
 
@@ -208,6 +272,36 @@ class VariationDistanceCategory(str, Enum):
     INSUFFICIENT_EVIDENCE = "INSUFFICIENT_EVIDENCE"
 
 
+class MovementSimilarityCategory(str, Enum):
+    """order section 12 (V1C Correction): allowed structural-MOVEMENT
+    comparison outcomes -- explicitly not a fabricated precise score."""
+
+    STRONGLY_SIMILAR = "STRONGLY_SIMILAR"
+    PARTIALLY_SIMILAR = "PARTIALLY_SIMILAR"
+    STRUCTURALLY_DISTINCT = "STRUCTURALLY_DISTINCT"
+    INSUFFICIENT_EVIDENCE = "INSUFFICIENT_EVIDENCE"
+
+
+class StructuralMovementComparisonResult(BaseModel):
+    """order section 12 (V1C Correction): compares two observed movement
+    SEQUENCES position-by-position (small, transparent, explainable -- not
+    an edit-distance/embedding similarity score). This -- not the single
+    `structural_arc` label -- is now the primary structural-truth input
+    `compare_variation_profiles()` folds into the six-dimension contract
+    (see `comparison.py::compare_structural_movements()`)."""
+
+    model_config = {"extra": "forbid"}
+
+    profile_a_id: str
+    profile_b_id: str
+    profile_a_sequence: list[str]
+    profile_b_sequence: list[str]
+    matched_positions: int
+    compared_length: int
+    category: MovementSimilarityCategory
+    rationale: str
+
+
 class StructuralComparisonResult(BaseModel):
     model_config = {"extra": "forbid"}
 
@@ -217,6 +311,7 @@ class StructuralComparisonResult(BaseModel):
     same_count: int
     different_count: int
     overall: VariationDistanceCategory
+    movement_comparison: StructuralMovementComparisonResult
 
 
 class RepetitionAxis(str, Enum):

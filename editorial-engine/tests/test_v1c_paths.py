@@ -51,14 +51,20 @@ def test_golden_variation_path_end_to_end():
 
 def test_false_variation_path_detects_cosmetic_only_difference():
     """order section 39: two alternatives differing only by synonym/cosmetic
-    opening must be identified as NOT genuine variation."""
+    opening must be identified as NOT genuine variation.
+
+    V1C Correction: both texts are a single sentence (below the 3-sentence
+    movement-evidence floor, order section 10), so structural_arc
+    legitimately goes UNKNOWN/INSUFFICIENT_EVIDENCE on both rather than
+    being silently counted "same" -- 5 of 6 dimensions match, which still
+    clears the TOO_SIMILAR threshold (>=5)."""
 
     a = build_variation_profile("Vi matte samma resultat tre ganger men fann aldrig karnan bakom det.", "OPT-A", SourceKind.CANDIDATE_ANGLE)
     b = build_variation_profile("Vi observerade samma utfall tre ganger men hittade aldrig grunden till det.", "OPT-B", SourceKind.CANDIDATE_ANGLE)
 
     result = compare_variation_profiles(a, b)
     assert result.overall == VariationDistanceCategory.TOO_SIMILAR
-    assert result.same_count == 6
+    assert result.same_count == 5
 
 
 def test_structural_repetition_path_flags_closeness_despite_different_topic():

@@ -21,9 +21,11 @@ from memory.models import EditorialMemoryRecord, TextCompleteness
 
 from .comparison import assess_multi_axis_repetition, compare_variation_profiles
 from .models import (
+    MovementSimilarityCategory,
     MultiAxisRepetitionResult,
     SourceKind,
     StructuralComparisonResult,
+    StructuralMovementComparisonResult,
     VariationDistanceCategory,
     VariationProfile,
     VariationRecommendationResult,
@@ -80,6 +82,12 @@ def run_v1c_variation_analysis(
         closest_comparison = StructuralComparisonResult(
             profile_a_id=angle_profile.profile_id, profile_b_id="", dimension_comparisons=[],
             same_count=0, different_count=0, overall=VariationDistanceCategory.INSUFFICIENT_EVIDENCE,
+            movement_comparison=StructuralMovementComparisonResult(
+                profile_a_id=angle_profile.profile_id, profile_b_id="",
+                profile_a_sequence=angle_profile.structural_movement.known_stage_sequence(), profile_b_sequence=[],
+                matched_positions=0, compared_length=0, category=MovementSimilarityCategory.INSUFFICIENT_EVIDENCE,
+                rationale="Inget relevant memory att jamfora rorelsesekvens mot.",
+            ),
         )
 
     repetition = assess_multi_axis_repetition(

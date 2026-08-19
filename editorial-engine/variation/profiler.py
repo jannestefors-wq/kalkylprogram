@@ -35,10 +35,13 @@ from .models import (
     EmotionalTemperature,
     EntryMode,
     Lens,
+    MovementStage,
+    MovementStep,
     NarrativeDistance,
     RhetoricalPressure,
     SourceKind,
     StructuralArc,
+    StructuralMovementAssessment,
     VariationProfile,
 )
 
@@ -49,7 +52,7 @@ _IMPERATIVE_VERBS = {"se", "forsta", "agera", "prioritera", "mat", "matt", "korr
 _ROLE_WORDS = {"person", "personer", "chef", "chefen", "medarbetare", "kollega", "kollegan", "ledare", "team", "teamet"}
 _SECOND_PERSON = {"du", "dig", "din", "dina", "ni", "er", "era"}
 _SYSTEM_WORDS = {"verksamheten", "organisationen", "system", "systemet"}
-_QUANTITY_WORDS = {"tva", "tre", "fyra", "fem"}
+_QUANTITY_WORDS = {"tva", "tre", "fyra", "fem", "sex", "sju", "atta", "nio", "tio"}
 _CONCRETE_EVENT_VERBS = {"kom", "sa", "hande", "gjorde", "kande"}
 
 _LENS_KEYWORDS = [
@@ -62,6 +65,11 @@ _LENS_KEYWORDS = [
     ("organisationen", Lens.SYSTEM),
     ("jag ", Lens.INDIVIDUAL_EXPERIENCE),
 ]
+
+_REFRAMING_MARKERS = ("egentligen", "i grunden", "handlar om", "i sjalva verket", "pa riktigt")
+_DISTINCTION_MARKERS = ("skiljer sig", "till skillnad", "inte detsamma", "ar inte samma sak")
+_PRINCIPLE_WORDS = {"ansvar", "princip", "roll", "grundregel", "princippen", "makt"}
+_INVENTORY_WORDS = {"flera", "manga", "aterkommande"}
 
 
 def _normalize(text: str) -> str:
@@ -236,32 +244,125 @@ def _assess_closure_mode(text: str) -> DimensionAssessment:
     )
 
 
-_ARC_TABLE = {
-    ("situation", None): StructuralArc.SCENE_TO_INSIGHT,
-    ("process", None): StructuralArc.FRAMEWORK_TO_DIRECTION,
-    ("consequence", None): StructuralArc.ESCALATION_TO_CONSEQUENCE,
-    ("claim", None): StructuralArc.CLAIM_TO_EVIDENCE,
-    ("question", None): StructuralArc.DILEMMA_TO_OPEN_END,
-}
+_MIN_SENTENCES_FOR_MOVEMENT = 3
+"""order section 10 (V1C Correction): a text with fewer sentences than this
+has no room for anything between an opening and a closing -- it cannot
+support a genuine movement observation, regardless of FULL/PARTIAL text
+completeness (order section 11: these are two different boundaries)."""
+
+_MAX_MOVEMENT_STEPS = 5
+"""order section 6, 9: three to five observed movements is the target
+granularity -- small and bounded, not an attempt at full narrative analysis."""
 
 
-def _assess_structural_arc(entry: DimensionAssessment, closure: DimensionAssessment) -> DimensionAssessment:
-    if closure.value == ClosureMode.OPEN_QUESTION.value:
-        return DimensionAssessment(
-            value=StructuralArc.DILEMMA_TO_OPEN_END.value, confidence=ConfidenceLevel.MEDIUM,
-            evidence="Texten avslutas med en oppen fraga.", evidence_status=DIMENSION_EVIDENCE_STATUS["structural_arc"],
+def _segment_sentences(sentences: list[str], max_steps: int = _MAX_MOVEMENT_STEPS) -> list[list[str]]:
+    """Splits sentences into up to `max_steps` contiguous, roughly equal
+    groups -- e.g. 4 sentences -> 4 one-sentence segments, 12 sentences ->
+    5 groups of ~2-3. Guarantees at least one segment strictly between the
+    first and last for any text with >= 3 sentences (order section 9)."""
+
+    n = len(sentences)
+    if n == 0:
+        return []
+    k = min(max_steps, n)
+    return [sentences[(i * n) // k : ((i + 1) * n) // k] for i in range(k)]
+
+
+def _classify_movement_segment(window_text: str) -> tuple[MovementStage, ConfidenceLevel, str]:
+    """order section 6-7: the same small, keyword-explainable style already
+    used for entry/closure/pressure, but applied to EVERY segment of the
+    text (order section 9), not just the first/last window -- so the middle
+    of the text can now actually change the observed sequence."""
+
+    lowered = _normalize(window_text)
+    words = set(lowered.split())
+
+    if "?" in window_text:
+        return MovementStage.QUESTION, ConfidenceLevel.HIGH, "Segmentet innehaller ett frageteck."
+    if "men" in words:
+        return MovementStage.TENSION, ConfidenceLevel.MEDIUM, "Segmentet innehaller kontrastordet 'men'."
+    imperative_hits = words & _IMPERATIVE_VERBS
+    if len(imperative_hits) >= 2:
+        return MovementStage.DIRECTION, ConfidenceLevel.MEDIUM, f"Flera imperativ i segmentet: {sorted(imperative_hits)}."
+    if "konsekvens" in lowered:
+        return MovementStage.CONSEQUENCE, ConfidenceLevel.MEDIUM, "Ordet 'konsekvens' i segmentet."
+    if words & _CONCRETE_EVENT_VERBS or ((words & _QUANTITY_WORDS) and (words & _ROLE_WORDS)):
+        return MovementStage.CONCRETE_SITUATION, ConfidenceLevel.MEDIUM, "Konkret handelse-/rollmarkor i segmentet."
+    if any(marker in lowered for marker in _REFRAMING_MARKERS):
+        return MovementStage.REFRAMING, ConfidenceLevel.MEDIUM, "Omramningsmarkor (t.ex. 'egentligen'/'i grunden') i segmentet."
+    if any(marker in lowered for marker in _DISTINCTION_MARKERS):
+        return MovementStage.DISTINCTION, ConfidenceLevel.MEDIUM, "Distinktionsmarkor (t.ex. 'skiljer sig fran') i segmentet."
+    if words & _INVENTORY_WORDS:
+        return MovementStage.SYMPTOM_INVENTORY, ConfidenceLevel.LOW, f"Uppräkningsord i segmentet: {sorted(words & _INVENTORY_WORDS)}."
+    if words & _PRINCIPLE_WORDS:
+        return MovementStage.PRINCIPLE, ConfidenceLevel.MEDIUM, f"Princip-/rollord i segmentet: {sorted(words & _PRINCIPLE_WORDS)}."
+    return MovementStage.OBSERVATION, ConfidenceLevel.LOW, "Ingen stark rorelsesignal i segmentet -- neutral observation antagen, lag confidence."
+
+
+def _assess_structural_movement(text: str) -> StructuralMovementAssessment:
+    """order section 6, 8, 9, 10 (V1C Correction, the central fix): the
+    PRIMARY structural-truth signal. Segments the WHOLE text (not just the
+    first-4/last-2-sentence windows entry_mode/closure_mode use) and
+    classifies each segment independently, so genuinely different
+    mid-text construction is now observable and comparable -- see
+    `comparison.py::compare_structural_movements()`."""
+
+    sentences = _sentences(text)
+    if len(sentences) < _MIN_SENTENCES_FOR_MOVEMENT:
+        return StructuralMovementAssessment(
+            steps=[], sufficient_evidence=False, evidence_status=DIMENSION_EVIDENCE_STATUS["structural_movement"],
         )
-    arc = _ARC_TABLE.get((entry.value, None))
-    if arc is None or entry.value == EntryMode.UNKNOWN.value:
+
+    segments = _segment_sentences(sentences)
+    steps: list[MovementStep] = []
+    for segment in segments:
+        stage, confidence, evidence = _classify_movement_segment(" ".join(segment))
+        if steps and steps[-1].stage == stage:
+            continue  # order section 7: collapse consecutive duplicates, no padding for its own sake
+        steps.append(MovementStep(stage=stage, confidence=confidence, evidence=evidence))
+
+    return StructuralMovementAssessment(
+        steps=steps, sufficient_evidence=True, evidence_status=DIMENSION_EVIDENCE_STATUS["structural_movement"],
+    )
+
+
+_ARC_FROM_FIRST_MOVEMENT = {
+    MovementStage.CONCRETE_SITUATION: StructuralArc.SCENE_TO_INSIGHT,
+    MovementStage.PRINCIPLE: StructuralArc.FRAMEWORK_TO_DIRECTION,
+    MovementStage.CONSEQUENCE: StructuralArc.ESCALATION_TO_CONSEQUENCE,
+    MovementStage.CLAIM: StructuralArc.CLAIM_TO_EVIDENCE,
+    MovementStage.QUESTION: StructuralArc.DILEMMA_TO_OPEN_END,
+}
+"""order section 8 (V1C Correction): `structural_arc` is now a SECONDARY,
+small summary label derived from the observed movement sequence's
+endpoints -- never the primary source of structural truth. The primary
+comparison (`comparison.py::compare_structural_movements()`) uses the full
+`StructuralMovementAssessment.steps` sequence, not this label."""
+
+
+def _assess_structural_arc(movement: StructuralMovementAssessment) -> DimensionAssessment:
+    if not movement.sufficient_evidence or not movement.steps:
         return DimensionAssessment(
             value=StructuralArc.UNKNOWN.value, confidence=ConfidenceLevel.LOW,
-            evidence="Entry mode ar okand -- kan inte harleda en strukturell bage med rimlig sakerhet.",
+            evidence="Otillrackligt observerad rorelsesekvens (kravs minst 3 meningar) -- kan inte harleda en sekundar arc-etikett.",
             evidence_status=DIMENSION_EVIDENCE_STATUS["structural_arc"],
         )
-    confidence = ConfidenceLevel.LOW if entry.confidence == ConfidenceLevel.LOW else ConfidenceLevel.MEDIUM
+
+    step_labels = " -> ".join(s.stage.value for s in movement.steps)
+    last_stage = movement.steps[-1].stage
+    if last_stage == MovementStage.QUESTION:
+        return DimensionAssessment(
+            value=StructuralArc.DILEMMA_TO_OPEN_END.value, confidence=ConfidenceLevel.MEDIUM,
+            evidence=f"Sekundar etikett harledd fran observerad rorelsesekvens ({step_labels}) -- avslutas med en oppen fraga.",
+            evidence_status=DIMENSION_EVIDENCE_STATUS["structural_arc"],
+        )
+
+    first_step = movement.steps[0]
+    arc = _ARC_FROM_FIRST_MOVEMENT.get(first_step.stage, StructuralArc.CLAIM_TO_EVIDENCE)
+    confidence = ConfidenceLevel.LOW if first_step.confidence == ConfidenceLevel.LOW else ConfidenceLevel.MEDIUM
     return DimensionAssessment(
         value=arc.value, confidence=confidence,
-        evidence=f"Harledd fran entry_mode={entry.value!r} och closure_mode={closure.value!r}.",
+        evidence=f"Sekundar etikett harledd fran observerad rorelsesekvens: {step_labels}.",
         evidence_status=DIMENSION_EVIDENCE_STATUS["structural_arc"],
     )
 
@@ -323,7 +424,8 @@ def build_variation_profile(
     distance = _assess_narrative_distance(text)
     pressure = _assess_rhetorical_pressure(text)
     closure = _assess_closure_mode(text)
-    arc = _assess_structural_arc(entry, closure)
+    movement = _assess_structural_movement(text)
+    arc = _assess_structural_arc(movement)
 
     disclosure_pace = _assess_disclosure_pace(text) if include_hypothesis_dimensions else None
     emotional_temperature = _assess_emotional_temperature(text) if include_hypothesis_dimensions else None
@@ -336,6 +438,7 @@ def build_variation_profile(
         lens=lens,
         narrative_distance=distance,
         structural_arc=arc,
+        structural_movement=movement,
         rhetorical_pressure=pressure,
         closure_mode=closure,
         disclosure_pace=disclosure_pace,

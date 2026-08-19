@@ -35,11 +35,18 @@ def test_10_lexical_overlap_does_not_automatically_become_structural_repetition(
 
 
 def test_11_false_variation_detected_for_synonym_only_change():
+    """V1C Correction: both sentences here are a single sentence each (one
+    period at the very end), below the 3-sentence movement-evidence floor
+    (order section 10) -- structural_arc legitimately goes UNKNOWN on both
+    (INSUFFICIENT_EVIDENCE on the movement comparison, not silently counted
+    as "same"), so 5 of 6 -- not 6 of 6 -- OBSERVED dimensions are
+    identical. 5/6 still clears the TOO_SIMILAR threshold (>=5)."""
     a = build_variation_profile("Vi matte samma resultat tre ganger men fann aldrig karnan bakom det.", "A", SourceKind.CANDIDATE_ANGLE)
     b = build_variation_profile("Vi observerade samma utfall tre ganger men hittade aldrig grunden till det.", "B", SourceKind.CANDIDATE_ANGLE)
     fv = assess_false_variation(a, b)
     assert fv.is_false_variation is True
-    assert len(fv.identical_dimensions) == 6
+    assert len(fv.identical_dimensions) == 5
+    assert "structural_arc" in fv.changed_dimensions
 
 
 def test_12_same_thesis_family_can_still_be_legitimate_variation():
@@ -71,7 +78,12 @@ def test_13_different_topic_can_still_carry_structural_repetition_risk():
 def test_14_same_structural_form_is_advisory_not_an_absolute_block():
     """order section 14/'TEST 14': identical structure is a flag for human
     judgment, not an automatic hard veto -- the option is still surfaced
-    with its true distinctiveness category, never silently discarded."""
+    with its true distinctiveness category, never silently discarded.
+
+    V1C Correction: these two texts genuinely have the same observed
+    movement sequence (both read as observation -> concrete_situation),
+    so all six OBSERVED dimensions -- including the now movement-derived
+    structural_arc -- legitimately match."""
     a = build_variation_profile("Se. Forsta. Agera. Sa flyttar vi verksamheten snabbt framat.", "A", SourceKind.CANDIDATE_ANGLE)
     b = build_variation_profile("Se. Forsta. Agera. Sa flyttar vi verksamheten gradvis framat.", "B", SourceKind.CANDIDATE_ANGLE)
     structural = compare_variation_profiles(a, b)

@@ -6,6 +6,30 @@ OBSERVED dimensions (order section 21). No embedding, no vector database,
 no RAG, no similarity model, no fabricated precise score (order section
 18, 21, 34) -- a plain field-by-field diff with a named category.
 
+## [V1C Correction] `compare_structural_movements()` -- the primary signal
+
+The Final Audit's central finding was that the old `structural_arc`
+label (derived only from `entry_mode` + `closure_mode`) let two
+genuinely different treatments read as identical, and let two genuinely
+similar treatments read as different, whenever a single trigger word
+shifted. `compare_structural_movements()` fixes this by comparing the
+full observed `structural_movement` sequences with a longest-common-
+subsequence match (order-preserving, tolerant of an inserted/removed
+step such as a changed hook) instead of a single derived label:
+
+- `STRONGLY_SIMILAR` -- matched/compared ratio >= 0.75.
+- `PARTIALLY_SIMILAR` -- matched/compared ratio >= 0.34.
+- `STRUCTURALLY_DISTINCT` -- below that.
+- `INSUFFICIENT_EVIDENCE` -- either profile's movement sequence is too
+  short (<3 sentences of source text) or the compared length is below 2
+  steps (a single shared, often generic step is too little evidence for
+  a firm claim).
+
+This result feeds the `structural_arc` DIMENSION SLOT in the six-
+dimension comparison above (`STRONGLY_SIMILAR` -> "same", anything else
+-> "different") -- so the slot's verdict is now grounded in whole-text
+observed movement, not a single entry/closure-derived label.
+
 ## Categories (order section 18)
 
 - `TOO_SIMILAR` -- 5 or 6 of 6 OBSERVED dimensions match.
