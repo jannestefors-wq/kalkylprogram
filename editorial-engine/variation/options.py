@@ -325,7 +325,20 @@ def assess_false_variation_from_values(
         if a_values.get(d) != "unknown" and b_values.get(d) != "unknown" and a_values.get(d) != b_values.get(d)
     ]
     movement_cat = movement_category if movement_category is not None else MovementSimilarityCategory.INSUFFICIENT_EVIDENCE
-    is_false, reason = _false_variation_verdict(category, movement_cat, movement_matched_positions, len(construction_same), len(construction_diff))
+    # order section 6 (V1C False Variation Blocker 3): this value-dict path has
+    # no per-dimension confidence at all (plain strings, "naive value equality"
+    # per this function's own docstring) -- it cannot distinguish a genuinely
+    # detected signal from a coincidental default, nor apply the
+    # asymmetric-richness guard the real profile path uses
+    # (`a_confident_construction_dims == n_same_construction_dims`), so the
+    # two new Blocker 3 short-form tiers are both kept permanently
+    # unreachable here by passing an impossible sentinel count (-1, which
+    # can never equal `n_same_construction_dims` or 0) -- exact prior
+    # behavior preserved for this path, out of scope for Blocker 3.
+    is_false, reason = _false_variation_verdict(
+        category, movement_cat, movement_matched_positions, len(construction_same), len(construction_diff),
+        -1, -1, 999, 999,
+    )
 
     if reason in ("movement_strongly_corroborated", "movement_partially_corroborated", "movement_uncontradicted", "weakly_corroborated"):
         rationale = (

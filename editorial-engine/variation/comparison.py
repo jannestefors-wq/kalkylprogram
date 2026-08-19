@@ -49,6 +49,14 @@ the flat six-slot `same_count`/`overall` contract -- unchanged in meaning
 from V1C Correction 1, still what `NO_MEANINGFUL_VARIATION`, options
 ranking, and the multi-axis STRUCTURAL axis all read."""
 
+_SHORT_FORM_MAX_COMBINED_WORDS = 6
+"""order section 6 (V1C False Variation Blocker 3): the combined word count
+(both texts together) below which a zero-confident-signal short pair is
+treated as INSUFFICIENT_EVIDENCE rather than the default LEGITIMATE_VARIATION
+fall-through -- see `_false_variation_verdict()`'s `short_form_insufficient_evidence`
+tier. Deliberately small: only meant to catch genuinely fragment-level text
+("Ingen svarade." / "Ingen lyssnade."), never a real single sentence."""
+
 _CONSTRUCTION_CORROBORATION_DIMENSIONS = tuple(d for d in _NON_MOVEMENT_OBSERVED_DIMENSIONS if d != "lens")
 """order section 6 (V1C Correction 2): entry_mode, narrative_distance,
 rhetorical_pressure, closure_mode -- the subset of construction dimensions
@@ -89,6 +97,19 @@ def _dimension_match_is_evidence(a: DimensionAssessment, b: DimensionAssessment)
     if a.confidence == ConfidenceLevel.LOW and b.confidence == ConfidenceLevel.LOW:
         return False
     return True
+
+
+def _dimension_has_confident_signal(d: DimensionAssessment) -> bool:
+    """order section 3/6 (V1C False Variation Blocker 3): true iff this
+    dimension carries an actually-detected signal, not just its
+    keyword-heuristic's LOW-confidence fallback value (`profiler.py`
+    always assigns LOW to every dimension's default branch). Used to tell
+    'we looked and found nothing on this text' apart from 'we found
+    something, it just happens not to match the other side' -- the
+    'absence of evidence is not evidence of difference' distinction order
+    section 6 requires, applied per-profile rather than per-pair."""
+
+    return d.value != "unknown" and d.confidence != ConfidenceLevel.LOW
 
 
 def _dimension_diff_is_evidence(a: DimensionAssessment, b: DimensionAssessment) -> bool:
@@ -268,6 +289,10 @@ def _false_variation_verdict(
     movement_matched_positions: int,
     n_same_construction_dims: int,
     n_diff_construction_dims: int,
+    a_confident_construction_dims: int,
+    b_confident_construction_dims: int,
+    max_sentence_count: int,
+    combined_word_count: int,
 ) -> tuple[bool, str]:
     """order section 6, 15 (V1C Correction 2), the second blocker's actual
     fix: False Variation reasons over a COMBINATION of evidence -- the
@@ -295,7 +320,31 @@ def _false_variation_verdict(
     dimension, and lets even a weak (STRUCTURALLY_DISTINCT-level) but
     non-zero movement overlap count when there IS at least one genuine
     corroborating dimension and at most one genuine contradicting one --
-    while still refusing to decide on thin/insufficient evidence."""
+    while still refusing to decide on thin/insufficient evidence.
+
+    V1C False Variation Blocker 3 (short text / INSUFFICIENT_EVIDENCE
+    Structural Movement, see V1C_FALSE_VARIATION_SHORT_FORM_CORRECTION_REPORT.md):
+    the Blind Independent Re-Audit found that when Structural Movement is
+    INSUFFICIENT_EVIDENCE (fewer than 3 sentences on either side -- the
+    common case for realistic short-form text), every tier above this
+    point is structurally unreachable (all require a movement category
+    other than INSUFFICIENT_EVIDENCE), and the OLD `insufficient_evidence`
+    check above almost never fired either (`flat_category` reaches
+    INSUFFICIENT_EVIDENCE only via the coarse, non-confidence-aware
+    `a_known`/`b_known` count in `compare_variation_profiles()`, which
+    counts a LOW-confidence default VALUE as 'known'). The result was a
+    silent fall-through to `distinct` on essentially no evidence at all --
+    read externally as a confident LEGITIMATE_VARIATION, which is exactly
+    the 'absence of evidence treated as evidence of difference' defect
+    order section 6 names. `a_confident_construction_dims`/
+    `b_confident_construction_dims` count, per profile, how many of the
+    four construction dimensions carry an actually-detected (non-LOW,
+    non-default) signal (`_dimension_has_confident_signal()`) -- these
+    two new tiers below are gated on `movement_category ==
+    INSUFFICIENT_EVIDENCE` specifically, so they never touch the
+    Structural Movement mechanism itself or any path where movement WAS
+    computable (order section 2's explicit prohibition on lowering the
+    3-sentence floor or faking movement)."""
 
     if flat_category == VariationDistanceCategory.TOO_SIMILAR:
         # Already confidently TOO_SIMILAR on the flat six-slot count -- an
@@ -306,6 +355,80 @@ def _false_variation_verdict(
         # enough real evidence -- refuse to guess (order section 7's "Frånvaro
         # av information är inte likhet" extends to refusing a verdict too).
         return False, "insufficient_evidence"
+    if (
+        movement_category == MovementSimilarityCategory.INSUFFICIENT_EVIDENCE
+        and a_confident_construction_dims == 0
+        and b_confident_construction_dims == 0
+        and max_sentence_count <= 1
+        and combined_word_count <= _SHORT_FORM_MAX_COMBINED_WORDS
+    ):
+        # Blocker 3: no movement, zero genuinely-detected construction
+        # signal on EITHER side, AND both texts reduce to a single sentence
+        # with almost no combined content (<= 6 words together -- e.g.
+        # "Ingen svarade." / "Ingen lyssnade."). This is not "these two
+        # texts are structurally different"; it is "there is barely enough
+        # text here to form an opinion about anything". Refuse to guess,
+        # exactly like the flat insufficient_evidence tier above, just
+        # reached through a confidence- and length-aware check instead of
+        # the coarse 'known' count.
+        #
+        # The length gate is deliberately narrow, not "zero confident
+        # signal on both sides" alone: testing found genuinely substantive
+        # single-sentence LEGITIMATE_VARIATION pairs (order section 8's
+        # own "1-meningstext" category, e.g. two different human
+        # situations sharing a structural pattern) that ALSO trigger none
+        # of the keyword heuristics, purely because the profiler's
+        # keyword lists don't happen to cover that vocabulary -- not
+        # because the text is too sparse to judge. Marking those
+        # INSUFFICIENT_EVIDENCE too would have been a second instance of
+        # exactly the defect this correction fixes, just relabeled. Word
+        # count is a plain, generalizable proxy for "is there enough here
+        # to reason about at all", never lexical content itself.
+        return False, "short_form_insufficient_evidence"
+    if (
+        movement_category == MovementSimilarityCategory.INSUFFICIENT_EVIDENCE
+        and n_same_construction_dims >= 2
+        and n_diff_construction_dims == 0
+        and a_confident_construction_dims == n_same_construction_dims
+        and b_confident_construction_dims == n_same_construction_dims
+    ):
+        # Blocker 3: movement is unavailable, but at least TWO construction
+        # dimensions carry a genuine (non-default, bilateral) match and
+        # NONE genuinely contradicts. This is real, if thin, corroborating
+        # evidence -- order section 4's short-form path combining
+        # "befintlig evidens ... där den faktiskt finns" instead of
+        # requiring the >=2/>=4-dimension bars the movement-corroborated
+        # tiers above use (those bars assume movement itself is also
+        # contributing evidence, which by definition it is not here).
+        #
+        # The `a_confident_* == n_same_*` / `b_confident_* == n_same_*`
+        # guard rules out an asymmetric-richness false positive found
+        # during Blocker 3 testing: a long, evidence-rich text A and a
+        # short, truncated text B that happens to share exactly one
+        # generic opening dimension (e.g. `entry_mode`) with A, while A
+        # separately carries several OTHER confidently-detected dimensions
+        # B is simply too short to confirm or contradict. Without this
+        # guard, "0 confident contradictions" silently included "B never
+        # had a chance to contradict anything" as if it were "B agrees on
+        # everything" -- the same absence-of-evidence defect this whole
+        # blocker exists to fix, just one level down. The guard requires
+        # that EVERY confidently-detected dimension on EITHER side is part
+        # of the matching set -- neither side may hold independent
+        # confident signal the other side never got to weigh in on.
+        #
+        # The `>= 2` floor (not `>= 1`) comes from a second, distinct
+        # finding during Blocker 3 testing: a single matching confident
+        # dimension is not enough to discriminate a genuine repetition
+        # from a genuine legitimate variation that merely opens on the
+        # same human situation -- two short pairs were found with an
+        # IDENTICAL evidence signature (same sole confident match:
+        # `narrative_distance=close_human`, nothing else confident on
+        # either side, zero confident contradictions) where one was
+        # genuine repetition and the other used the shared opening scene
+        # to go somewhere structurally different. One confidently-known
+        # matching dimension alone cannot tell these apart -- see
+        # V1C_FALSE_VARIATION_SHORT_FORM_CORRECTION_REPORT.md.
+        return True, "short_form_corroborated"
     if movement_category == MovementSimilarityCategory.STRONGLY_SIMILAR and n_diff_construction_dims <= 1:
         return True, "movement_strongly_corroborated"
     if movement_category in (MovementSimilarityCategory.STRONGLY_SIMILAR, MovementSimilarityCategory.PARTIALLY_SIMILAR) and n_same_construction_dims >= 2:
@@ -349,12 +472,31 @@ def assess_false_variation(a: VariationProfile, b: VariationProfile) -> FalseVar
 
     construction_same = [d for d in identical if d in _CONSTRUCTION_CORROBORATION_DIMENSIONS]
     construction_diff = [d for d in _CONSTRUCTION_CORROBORATION_DIMENSIONS if _dimension_diff_is_evidence(getattr(a, d), getattr(b, d))]
+    a_confident = sum(1 for d in _CONSTRUCTION_CORROBORATION_DIMENSIONS if _dimension_has_confident_signal(getattr(a, d)))
+    b_confident = sum(1 for d in _CONSTRUCTION_CORROBORATION_DIMENSIONS if _dimension_has_confident_signal(getattr(b, d)))
     is_false, reason = _false_variation_verdict(
         result.overall, result.movement_comparison.category, result.movement_comparison.matched_positions,
-        len(construction_same), len(construction_diff),
+        len(construction_same), len(construction_diff), a_confident, b_confident,
+        max(a.sentence_count, b.sentence_count), a.word_count + b.word_count,
     )
+    sufficient_evidence = reason != "short_form_insufficient_evidence"
 
-    if reason == "insufficient_evidence":
+    if reason == "short_form_insufficient_evidence":
+        rationale = (
+            "Structural Movement ar INSUFFICIENT_EVIDENCE (kravs minst 3 meningar) och ingen av de fyra "
+            "konstruktionsdimensionerna (entry_mode, narrative_distance, rhetorical_pressure, closure_mode) "
+            "har nagot genuint upptackt (icke-standardvarde-) signal pa nagon av de tva profilerna -- "
+            "underlaget racker inte for en ansvarsfull automatisk dom at nagot hall. INSUFFICIENT_EVIDENCE, "
+            "inte automatiskt LEGITIMATE_VARIATION."
+        )
+    elif reason == "short_form_corroborated":
+        rationale = (
+            f"Structural Movement ar INSUFFICIENT_EVIDENCE, men {len(construction_same)} av "
+            f"{len(_CONSTRUCTION_CORROBORATION_DIMENSIONS)} konstruktionsdimensioner ({', '.join(construction_same)}) "
+            "ar genuint lika och ingen genuint olika -- tunt men oemotsagt bevis for samma redaktionella konstruktion "
+            "i kort text utan observerbar rorelsesekvens."
+        )
+    elif reason == "insufficient_evidence":
         rationale = "For fa kanda/genuint sakra dimensioner eller for kort observerad rorelsesekvens pa endera profilen for att avgora -- INSUFFICIENT_EVIDENCE, inte falsk variation per automatik."
     elif reason in ("movement_strongly_corroborated", "movement_partially_corroborated", "movement_uncontradicted", "weakly_corroborated"):
         rationale = (
@@ -375,7 +517,10 @@ def assess_false_variation(a: VariationProfile, b: VariationProfile) -> FalseVar
     else:
         rationale = f"{len(changed)} av {len(OBSERVED_DIMENSIONS)} OBSERVED-dimensioner skiljer sig ({', '.join(changed)}) -- genuin strukturell skillnad."
 
-    return FalseVariationAssessment(is_false_variation=is_false, rationale=rationale, identical_dimensions=identical, changed_dimensions=changed)
+    return FalseVariationAssessment(
+        is_false_variation=is_false, sufficient_evidence=sufficient_evidence,
+        rationale=rationale, identical_dimensions=identical, changed_dimensions=changed,
+    )
 
 
 def assess_multi_axis_repetition(

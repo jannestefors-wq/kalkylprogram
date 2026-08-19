@@ -243,6 +243,17 @@ class VariationProfile(BaseModel):
     disclosure_pace: Optional[DimensionAssessment] = None
     emotional_temperature: Optional[DimensionAssessment] = None
 
+    sentence_count: int = 0
+    word_count: int = 0
+    """V1C False Variation Blocker 3: plain OBSERVED facts (counts, never
+    which words) -- not a hypothesis dimension, not derived meaning. Lets
+    False Variation's short-form path (`comparison.py`) tell a text that
+    is too sparse to support ANY confident structural judgment apart from
+    one that merely triggered none of the keyword heuristics (order
+    section 6's 'evidence of difference' vs 'absence of evidence for
+    similarity', applied to the profiler's own coverage rather than to a
+    pairwise comparison)."""
+
     analysis_logic_version: str
     provenance: Provenance
 
@@ -344,11 +355,26 @@ class MultiAxisRepetitionResult(BaseModel):
 
 class FalseVariationAssessment(BaseModel):
     """order section 17: is a proposed alternative genuinely structurally
-    different, or the same construction in new words?"""
+    different, or the same construction in new words?
+
+    `sufficient_evidence` (V1C False Variation Blocker 3): a text pair can
+    reach a point where NEITHER a confident False Variation call NOR a
+    confident Legitimate Variation call is honest -- Structural Movement is
+    unavailable (fewer than 3 sentences on one/both sides) AND none of the
+    non-movement construction dimensions produced anything beyond their
+    LOW-confidence default fallback on either side. `is_false_variation`
+    is always `False` when this is `False` (order section 5's "Systemet
+    far alltsa inte losa recallproblemet genom att flagga allt osakert som
+    False Variation" -- absence of evidence is never treated as if it were
+    evidence of difference, so it must never silently read as a confident
+    LEGITIMATE_VARIATION either). Callers needing the three-way outcome
+    (order section 5.A/B/C) branch on this field first, `is_false_variation`
+    second."""
 
     model_config = {"extra": "forbid"}
 
     is_false_variation: bool
+    sufficient_evidence: bool = True
     rationale: str
     identical_dimensions: list[str] = Field(default_factory=list)
     changed_dimensions: list[str] = Field(default_factory=list)

@@ -443,6 +443,8 @@ def build_variation_profile(
         closure_mode=closure,
         disclosure_pace=disclosure_pace,
         emotional_temperature=emotional_temperature,
+        sentence_count=len(_sentences(text)),
+        word_count=len(_words(text)),
         analysis_logic_version=ANALYSIS_LOGIC_VERSION,
         provenance=Provenance(
             created_by=Actor.AI_SYSTEM,
