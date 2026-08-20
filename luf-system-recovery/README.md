@@ -7,6 +7,11 @@ Engine, Editorial Engine, or LUF Core Engine's methodology.
 
 ## Read in this order
 
+-2. `PUBLISHED_SITE_TECHNICAL_INSPECTION.md` -- a fourth pass (2026-08-20)
+    attempting live technical inspection of the two published URLs given
+    by the project owner (ledarskaputanfilter.se, leadershipwithoutfilter.com).
+    Blocked at the network layer by this session's egress policy (confirmed
+    two independent ways); no HTTP request to either host completed.
 -1. `PUBLISHED_SITE_PROVENANCE_DISCOVERY.md` -- a third pass (2026-08-20)
     that stops treating prior orders' paths/hashes as evidence either way
     and instead searches deployment config, git remotes, domain
