@@ -1,0 +1,212 @@
+[
+  {
+    "id": "dil-001",
+    "title": "Den informella ledaren",
+    "dilemma": "I teamet lyssnar alla mer på en erfaren kollega än på den formella chefen. Chefen märker det men säger inget. Vad gör du om du är chefen? Vad gör du om du är den informella ledaren?",
+    "conflict": "Formell position möter verkligt inflytande.",
+    "themes": ["makt", "ledarskap"],
+    "tags": ["informella ledare", "inflytande", "erkännande", "tystnad"],
+    "perspectives": [
+      { "label": "Chefens sida", "text": "Att säga något känns som att erkänna en svaghet i den egna rollen." },
+      { "label": "Den informella ledarens sida", "text": "Att inte säga något känns som att gömma sig bakom någon annans titel." }
+    ],
+    "related_ids": ["dil-006", "dil-013"],
+    "academy_ref": "academy://makt-och-inflytande"
+  },
+  {
+    "id": "dil-002",
+    "title": "Chefen som inte lyssnar",
+    "dilemma": "Du har lyft samma problem tre gånger i teammöten. Chefen nickar, tackar för input – och gör exakt som innan. Fortsätter du säga det, eller slutar du bry dig?",
+    "conflict": "Att bli hörd är inte detsamma som att bli lyssnad på.",
+    "themes": ["tillit", "konflikt"],
+    "tags": ["chef som inte lyssnar", "tystnad", "misstroende", "engagemang"],
+    "perspectives": [
+      { "label": "Medarbetarens sida", "text": "Varje gång man säger det och inget händer kostar det lite tillit till." },
+      { "label": "Chefens sida", "text": "Ibland hörs frågan, men prioriteringen ligger utanför chefens kontroll." }
+    ],
+    "related_ids": ["dil-007", "dil-011"],
+    "academy_ref": "academy://tillit-i-vardagen"
+  },
+  {
+    "id": "dil-003",
+    "title": "Medarbetaren som gjort fel",
+    "dilemma": "En medarbetare gör ett kostsamt misstag och berättar det själv, öppet, innan någon upptäcker det. Belönar du ärligheten eller straffar du felet?",
+    "conflict": "Ärlighet och konsekvens drar åt olika håll.",
+    "themes": ["ansvar", "kultur"],
+    "tags": ["medarbetare som gjort fel", "misstag", "rädsla", "ärlighet"],
+    "perspectives": [
+      { "label": "Ledarens sida", "text": "Reaktionen på det här misstaget sätter normen för alla framtida misstag." },
+      { "label": "Medarbetarens sida", "text": "Att berätta självmant var det svåraste steget – redan innan konsekvensen är känd." }
+    ],
+    "related_ids": ["dil-005", "dil-011"],
+    "academy_ref": "academy://kultur-och-misstag"
+  },
+  {
+    "id": "dil-004",
+    "title": "Resultat före människor",
+    "dilemma": "Teamet levererar rekordsiffror kvartal efter kvartal. Två av dina bästa medarbetare är på väg att bränna ut sig. Pressar du vidare för resultatet, eller bromsar du och riskerar leveransen?",
+    "conflict": "Kortsiktig prestation möter långsiktig hållbarhet.",
+    "themes": ["resultat", "manniskan"],
+    "tags": ["resultat före människor", "prestation", "utmattning", "hållbarhet"],
+    "perspectives": [
+      { "label": "Ledningens sida", "text": "Siffrorna är det som syns i rapporten, inte tröttheten bakom dem." },
+      { "label": "Medarbetarens sida", "text": "Man orkar ett tag till om man tror att någon ser det." }
+    ],
+    "related_ids": ["dil-012", "dil-009"],
+    "academy_ref": "academy://prestation-och-halsa"
+  },
+  {
+    "id": "dil-005",
+    "title": "Tystnaden i rummet",
+    "dilemma": "På mötet säger ingen emot ett beslut alla vet är fel. Efteråt, i korridoren, säger alla vad de egentligen tycker. Vem äger tystnaden – gruppen eller ledaren?",
+    "conflict": "Det som sägs i rummet och det som sägs efteråt är olika sanningar.",
+    "themes": ["tystnad", "kultur"],
+    "tags": ["tystnad", "mod", "gruppdynamik", "möteskultur"],
+    "perspectives": [
+      { "label": "Gruppens sida", "text": "Att vara den enda som säger emot känns tyngre än att bära ett dåligt beslut tillsammans." },
+      { "label": "Ledarens sida", "text": "Tystnaden i rummet kan se ut som samtycke, även när den inte är det." }
+    ],
+    "related_ids": ["dil-003", "dil-010"],
+    "academy_ref": "academy://tystnadens-mekanik"
+  },
+  {
+    "id": "dil-006",
+    "title": "Makten du inte bad om",
+    "dilemma": "Du blir chef över dina tidigare kollegor. En av dem behandlar dig fortfarande som en jämlike i beslut som nu är ditt ansvar. Sätter du gränsen, eller låter du vänskapen styra?",
+    "conflict": "Ny roll möter gammal relation.",
+    "themes": ["makt", "ansvar"],
+    "tags": ["makt", "rollbyte", "vänskap", "gränssättning"],
+    "perspectives": [
+      { "label": "Den nya chefens sida", "text": "Gränsen känns som ett svek mot relationen, även när den är nödvändig." },
+      { "label": "Kollegans sida", "text": "Igår var vi jämlikar. Vad exakt förändrades förutom titeln?" }
+    ],
+    "related_ids": ["dil-001", "dil-013"],
+    "academy_ref": "academy://makt-och-inflytande"
+  },
+  {
+    "id": "dil-007",
+    "title": "Förtroendet som brast en gång",
+    "dilemma": "En medarbetare bröt ett löfte för ett år sedan. Personen har ändrat sig sedan dess, men du märker att du fortfarande dubbelkollar allt de gör. Hur länge ska ett brustet förtroende styra?",
+    "conflict": "Historik möter förändring.",
+    "themes": ["tillit", "konflikt"],
+    "tags": ["förtroende", "svek", "återuppbyggnad", "misstroende"],
+    "perspectives": [
+      { "label": "Ledarens sida", "text": "Att sluta dubbelkolla känns som en risk man inte vill ta igen." },
+      { "label": "Medarbetarens sida", "text": "Man kan bevisa sig om och om igen och ändå aldrig komma ikapp den gamla bilden." }
+    ],
+    "related_ids": ["dil-002", "dil-011"],
+    "academy_ref": "academy://tillit-i-vardagen"
+  },
+  {
+    "id": "dil-008",
+    "title": "Förändringen ingen bad om",
+    "dilemma": "Ledningen beslutar om en omorganisation ingen i teamet efterfrågat. Du ska sälja in den med entusiasm du inte känner. Är lojaliteten till ledningen eller till teamet?",
+    "conflict": "Lojalitet uppåt möter lojalitet nedåt.",
+    "themes": ["forandring", "system"],
+    "tags": ["förändring", "motstånd", "osäkerhet", "lojalitet"],
+    "perspectives": [
+      { "label": "Mellanchefens sida", "text": "Att låtsas entusiasm man inte känner tär mer än beslutet i sig." },
+      { "label": "Teamets sida", "text": "Man känner direkt när entusiasmen är spelad, även om ingen säger det högt." }
+    ],
+    "related_ids": ["dil-015", "dil-009"],
+    "academy_ref": "academy://forandring-underifran"
+  },
+  {
+    "id": "dil-009",
+    "title": "Systemet som belönar fel saker",
+    "dilemma": "Bonussystemet belönar kvartalssiffror, inte den långsiktiga kvalitet du vet är viktigast. Spelar du systemets spel, eller kämpar du mot det på egen bekostnad?",
+    "conflict": "Det systemet mäter är inte det som faktiskt spelar roll.",
+    "themes": ["system", "resultat"],
+    "tags": ["system", "incitament", "kortsiktighet", "resultat före människor"],
+    "perspectives": [
+      { "label": "Den lojala spelarens sida", "text": "Om ingen spelar efter reglerna förändras aldrig systemet – det bara straffar en själv." },
+      { "label": "Motståndarens sida", "text": "Att spela med i ett system man vet är fel är också ett val, inte ett neutralt läge." }
+    ],
+    "related_ids": ["dil-004", "dil-015"],
+    "academy_ref": "academy://system-och-incitament"
+  },
+  {
+    "id": "dil-010",
+    "title": "Konflikten som ingen tar",
+    "dilemma": "Två nyckelmedarbetare har en olöst konflikt som färgar hela teamets stämning. Ingen av dem tar initiativ. Väntar du på att de löser det själva, eller griper du in?",
+    "conflict": "Att vänta kan vara respekt eller undvikande.",
+    "themes": ["konflikt", "ansvar"],
+    "tags": ["konflikt", "undvikande", "gruppansvar", "stämning"],
+    "perspectives": [
+      { "label": "Ledarens sida", "text": "Att gripa in för tidigt kan omyndigförklara två vuxna människor." },
+      { "label": "Teamets sida", "text": "Man känner spänningen i rummet varje dag, oavsett vem som äger konflikten." }
+    ],
+    "related_ids": ["dil-005", "dil-013"],
+    "academy_ref": "academy://konflikt-och-mod"
+  },
+  {
+    "id": "dil-011",
+    "title": "Kulturen som säger en sak och gör en annan",
+    "dilemma": "Företaget har värdeord om öppenhet på väggen. I praktiken straffas den som ifrågasätter ledningen. Vilken kultur är den verkliga – orden eller beteendet?",
+    "conflict": "Uttalade värderingar möter faktiskt beteende.",
+    "themes": ["kultur", "tillit"],
+    "tags": ["kultur", "värderingar", "dubbelmoral", "öppenhet"],
+    "perspectives": [
+      { "label": "Ledningens sida", "text": "Orden på väggen speglar en ambition, inte nödvändigtvis en lögn." },
+      { "label": "Medarbetarens sida", "text": "Man lär sig snabbt vilken kultur som gäller genom att se vad som faktiskt får konsekvenser." }
+    ],
+    "related_ids": ["dil-002", "dil-003"],
+    "academy_ref": "academy://kultur-och-misstag"
+  },
+  {
+    "id": "dil-012",
+    "title": "Människan bakom prestationen",
+    "dilemma": "Din bäst presterande medarbetare berättar i förtroende att de mår dåligt hemma. Nästa vecka behöver du be dem prestera på topp igen. Ser du människan eller resultatet först?",
+    "conflict": "Omsorg möter förväntan.",
+    "themes": ["manniskan", "resultat"],
+    "tags": ["människan", "sårbarhet", "prestationskrav", "förtroende"],
+    "perspectives": [
+      { "label": "Ledarens sida", "text": "Man vill hedra förtroendet, men kraven i verksamheten stannar inte." },
+      { "label": "Medarbetarens sida", "text": "Att berätta var redan en stor sak – att sedan bli behandlad som vanligt kan kännas som lättnad, eller som att ingen lyssnade." }
+    ],
+    "related_ids": ["dil-004", "dil-014"],
+    "academy_ref": "academy://prestation-och-halsa"
+  },
+  {
+    "id": "dil-013",
+    "title": "Ansvaret som hamnade fel",
+    "dilemma": "Ett projekt misslyckas. Du vet att beslutet som orsakade det togs över ditt huvud, av din chef. Tar du på dig ansvaret ändå, för att skydda teamet, eller pekar du uppåt?",
+    "conflict": "Att skydda andra kan betyda att offra sanningen.",
+    "themes": ["ansvar", "makt"],
+    "tags": ["ansvar", "skuld", "hierarki", "skydd"],
+    "perspectives": [
+      { "label": "Den skyddande ledarens sida", "text": "Att ta på sig skulden känns som det enda sättet att hålla teamet tryggt." },
+      { "label": "Teamets sida", "text": "Om man aldrig får veta var beslutet egentligen togs kan man inte lära sig av det." }
+    ],
+    "related_ids": ["dil-001", "dil-006"],
+    "academy_ref": "academy://ansvar-och-hierarki"
+  },
+  {
+    "id": "dil-014",
+    "title": "Ledarskap i tvivel",
+    "dilemma": "Du är osäker på ett beslut men förväntas visa säkerhet inför teamet. Visar du tvivlet, eller spelar du säker för att inte skapa oro?",
+    "conflict": "Äkthet möter förväntad trygghet.",
+    "themes": ["ledarskap", "manniskan"],
+    "tags": ["ledarskap", "osäkerhet", "sårbarhet", "äkthet"],
+    "perspectives": [
+      { "label": "Ledarens sida", "text": "Att visa tvivel kan kännas som att lägga sin egen oro på andras axlar." },
+      { "label": "Teamets sida", "text": "En ledare som aldrig tvivlar högt känns svårare att lita på, inte lättare." }
+    ],
+    "related_ids": ["dil-012", "dil-008"],
+    "academy_ref": "academy://ledarskap-och-sarbarhet"
+  },
+  {
+    "id": "dil-015",
+    "title": "Systemet som gör motstånd mot förändring",
+    "dilemma": "Du vill förändra ett arbetssätt som alla i teamet är trötta på, men systemen och rutinerna runt omkring är byggda för det gamla sättet. Kämpar du mot systemet, eller anpassar du visionen till vad som är möjligt just nu?",
+    "conflict": "Vad man vill förändra möter vad som faktiskt går att förändra.",
+    "themes": ["system", "forandring"],
+    "tags": ["system", "tröghet", "förändringsmotstånd", "vision"],
+    "perspectives": [
+      { "label": "Förändrarens sida", "text": "Att kompromissa med visionen känns som att ge upp innan man ens börjat." },
+      { "label": "Systemets sida", "text": "Rutiner som känns tröga byggdes ofta för att lösa ett problem någon annan hade – de försvinner inte för att man vill det." }
+    ],
+    "related_ids": ["dil-008", "dil-009"],
+    "academy_ref": "academy://forandring-underifran"
+  }
+]

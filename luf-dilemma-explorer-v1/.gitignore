@@ -1,0 +1,7 @@
+node_modules/
+
+# The repo root .gitignore excludes *.json broadly (for the Python app's
+# local config/cache files). This component ships its content as JSON
+# fixtures, so un-ignore them explicitly.
+!src/data/*.json
+!package.json

@@ -1,0 +1,212 @@
+[
+  {
+    "id": "dil-001",
+    "title": "The informal leader",
+    "dilemma": "In the team, everyone listens more to an experienced colleague than to the formal manager. The manager notices but says nothing. What do you do if you are the manager? What do you do if you are the informal leader?",
+    "conflict": "Formal position meets real influence.",
+    "themes": ["makt", "ledarskap"],
+    "tags": ["informal leaders", "influence", "recognition", "silence"],
+    "perspectives": [
+      { "label": "The manager's side", "text": "Saying something feels like admitting a weakness in the role itself." },
+      { "label": "The informal leader's side", "text": "Saying nothing feels like hiding behind someone else's title." }
+    ],
+    "related_ids": ["dil-006", "dil-013"],
+    "academy_ref": "academy://makt-och-inflytande"
+  },
+  {
+    "id": "dil-002",
+    "title": "The manager who doesn't listen",
+    "dilemma": "You have raised the same issue three times in team meetings. The manager nods, thanks you for the input — and does exactly the same as before. Do you keep raising it, or do you stop caring?",
+    "conflict": "Being heard is not the same as being listened to.",
+    "themes": ["tillit", "konflikt"],
+    "tags": ["manager who doesn't listen", "silence", "distrust", "engagement"],
+    "perspectives": [
+      { "label": "The employee's side", "text": "Every time you say it and nothing happens, it costs a little trust." },
+      { "label": "The manager's side", "text": "Sometimes the concern is heard, but the priority sits outside the manager's control." }
+    ],
+    "related_ids": ["dil-007", "dil-011"],
+    "academy_ref": "academy://tillit-i-vardagen"
+  },
+  {
+    "id": "dil-003",
+    "title": "The employee who made a mistake",
+    "dilemma": "An employee makes a costly mistake and reports it themselves, openly, before anyone discovers it. Do you reward the honesty or punish the mistake?",
+    "conflict": "Honesty and consequence pull in different directions.",
+    "themes": ["ansvar", "kultur"],
+    "tags": ["employee who made a mistake", "mistakes", "fear", "honesty"],
+    "perspectives": [
+      { "label": "The leader's side", "text": "The reaction to this mistake sets the norm for every future mistake." },
+      { "label": "The employee's side", "text": "Coming forward voluntarily was the hardest step — even before the consequence is known." }
+    ],
+    "related_ids": ["dil-005", "dil-011"],
+    "academy_ref": "academy://kultur-och-misstag"
+  },
+  {
+    "id": "dil-004",
+    "title": "Results before people",
+    "dilemma": "The team delivers record numbers quarter after quarter. Two of your best people are heading toward burnout. Do you keep pushing for the result, or slow down and risk the delivery?",
+    "conflict": "Short-term performance meets long-term sustainability.",
+    "themes": ["resultat", "manniskan"],
+    "tags": ["results before people", "performance", "burnout", "sustainability"],
+    "perspectives": [
+      { "label": "Leadership's side", "text": "The numbers are what shows up in the report, not the exhaustion behind them." },
+      { "label": "The employee's side", "text": "You can push a little further if you believe someone actually sees it." }
+    ],
+    "related_ids": ["dil-012", "dil-009"],
+    "academy_ref": "academy://prestation-och-halsa"
+  },
+  {
+    "id": "dil-005",
+    "title": "The silence in the room",
+    "dilemma": "In the meeting, no one objects to a decision everyone knows is wrong. Afterward, in the corridor, everyone says what they actually think. Who owns the silence — the group or the leader?",
+    "conflict": "What is said in the room and what is said afterward are different truths.",
+    "themes": ["tystnad", "kultur"],
+    "tags": ["silence", "courage", "group dynamics", "meeting culture"],
+    "perspectives": [
+      { "label": "The group's side", "text": "Being the only one to object feels heavier than carrying a bad decision together." },
+      { "label": "The leader's side", "text": "Silence in the room can look like agreement, even when it isn't." }
+    ],
+    "related_ids": ["dil-003", "dil-010"],
+    "academy_ref": "academy://tystnadens-mekanik"
+  },
+  {
+    "id": "dil-006",
+    "title": "The power you didn't ask for",
+    "dilemma": "You become the manager of your former peers. One of them still treats you as an equal in decisions that are now your responsibility. Do you set the boundary, or let the friendship rule?",
+    "conflict": "A new role meets an old relationship.",
+    "themes": ["makt", "ansvar"],
+    "tags": ["power", "role change", "friendship", "boundaries"],
+    "perspectives": [
+      { "label": "The new manager's side", "text": "The boundary feels like a betrayal of the relationship, even when it's necessary." },
+      { "label": "The colleague's side", "text": "Yesterday we were equals. What exactly changed besides the title?" }
+    ],
+    "related_ids": ["dil-001", "dil-013"],
+    "academy_ref": "academy://makt-och-inflytande"
+  },
+  {
+    "id": "dil-007",
+    "title": "The trust that broke once",
+    "dilemma": "An employee broke a promise a year ago. They have changed since, but you notice you still double-check everything they do. How long should broken trust keep governing?",
+    "conflict": "History meets change.",
+    "themes": ["tillit", "konflikt"],
+    "tags": ["trust", "betrayal", "rebuilding", "distrust"],
+    "perspectives": [
+      { "label": "The leader's side", "text": "Stopping the double-checking feels like a risk you don't want to take again." },
+      { "label": "The employee's side", "text": "You can prove yourself over and over and still never catch up to the old picture." }
+    ],
+    "related_ids": ["dil-002", "dil-011"],
+    "academy_ref": "academy://tillit-i-vardagen"
+  },
+  {
+    "id": "dil-008",
+    "title": "The change nobody asked for",
+    "dilemma": "Leadership decides on a reorganization nobody on the team requested. You are expected to sell it with enthusiasm you don't feel. Is your loyalty upward or downward?",
+    "conflict": "Loyalty upward meets loyalty downward.",
+    "themes": ["forandring", "system"],
+    "tags": ["change", "resistance", "uncertainty", "loyalty"],
+    "perspectives": [
+      { "label": "The middle manager's side", "text": "Faking enthusiasm you don't feel wears you down more than the decision itself." },
+      { "label": "The team's side", "text": "You notice faked enthusiasm immediately, even when no one says it out loud." }
+    ],
+    "related_ids": ["dil-015", "dil-009"],
+    "academy_ref": "academy://forandring-underifran"
+  },
+  {
+    "id": "dil-009",
+    "title": "The system that rewards the wrong things",
+    "dilemma": "The bonus system rewards quarterly numbers, not the long-term quality you know actually matters. Do you play the system's game, or fight it at your own expense?",
+    "conflict": "What the system measures isn't what actually matters.",
+    "themes": ["system", "resultat"],
+    "tags": ["system", "incentives", "short-termism", "results before people"],
+    "perspectives": [
+      { "label": "The loyal player's side", "text": "If no one plays by the rules, the system never changes — it just punishes you." },
+      { "label": "The resister's side", "text": "Playing along with a system you know is wrong is also a choice, not a neutral position." }
+    ],
+    "related_ids": ["dil-004", "dil-015"],
+    "academy_ref": "academy://system-och-incitament"
+  },
+  {
+    "id": "dil-010",
+    "title": "The conflict nobody takes on",
+    "dilemma": "Two key employees have an unresolved conflict that colors the whole team's mood. Neither takes the initiative. Do you wait for them to solve it themselves, or step in?",
+    "conflict": "Waiting can be respect or avoidance.",
+    "themes": ["konflikt", "ansvar"],
+    "tags": ["conflict", "avoidance", "group responsibility", "mood"],
+    "perspectives": [
+      { "label": "The leader's side", "text": "Stepping in too early can strip two adults of their own agency." },
+      { "label": "The team's side", "text": "You feel the tension in the room every day, no matter who owns the conflict." }
+    ],
+    "related_ids": ["dil-005", "dil-013"],
+    "academy_ref": "academy://konflikt-och-mod"
+  },
+  {
+    "id": "dil-011",
+    "title": "The culture that says one thing and does another",
+    "dilemma": "The company has value words about openness on the wall. In practice, whoever questions leadership is punished. Which culture is the real one — the words or the behavior?",
+    "conflict": "Stated values meet actual behavior.",
+    "themes": ["kultur", "tillit"],
+    "tags": ["culture", "values", "double standards", "openness"],
+    "perspectives": [
+      { "label": "Leadership's side", "text": "The words on the wall reflect an ambition, not necessarily a lie." },
+      { "label": "The employee's side", "text": "You quickly learn which culture actually applies by seeing what has real consequences." }
+    ],
+    "related_ids": ["dil-002", "dil-003"],
+    "academy_ref": "academy://kultur-och-misstag"
+  },
+  {
+    "id": "dil-012",
+    "title": "The human behind the performance",
+    "dilemma": "Your top-performing employee confides that things are hard at home. Next week you need to ask them to perform at their peak again. Do you see the person or the result first?",
+    "conflict": "Care meets expectation.",
+    "themes": ["manniskan", "resultat"],
+    "tags": ["the human", "vulnerability", "performance pressure", "trust"],
+    "perspectives": [
+      { "label": "The leader's side", "text": "You want to honor the trust, but the demands of the business don't pause." },
+      { "label": "The employee's side", "text": "Sharing was already a big step — being treated normally afterward can feel like relief, or like nobody was listening." }
+    ],
+    "related_ids": ["dil-004", "dil-014"],
+    "academy_ref": "academy://prestation-och-halsa"
+  },
+  {
+    "id": "dil-013",
+    "title": "The responsibility that landed wrong",
+    "dilemma": "A project fails. You know the decision that caused it was made above your head, by your manager. Do you take the blame anyway to protect the team, or point upward?",
+    "conflict": "Protecting others can mean sacrificing the truth.",
+    "themes": ["ansvar", "makt"],
+    "tags": ["responsibility", "blame", "hierarchy", "protection"],
+    "perspectives": [
+      { "label": "The protective leader's side", "text": "Taking the blame feels like the only way to keep the team safe." },
+      { "label": "The team's side", "text": "If you never learn where the decision was actually made, you can't learn from it." }
+    ],
+    "related_ids": ["dil-001", "dil-006"],
+    "academy_ref": "academy://ansvar-och-hierarki"
+  },
+  {
+    "id": "dil-014",
+    "title": "Leadership in doubt",
+    "dilemma": "You are unsure about a decision but expected to project certainty to the team. Do you show the doubt, or play it safe to avoid causing worry?",
+    "conflict": "Authenticity meets expected reassurance.",
+    "themes": ["ledarskap", "manniskan"],
+    "tags": ["leadership", "uncertainty", "vulnerability", "authenticity"],
+    "perspectives": [
+      { "label": "The leader's side", "text": "Showing doubt can feel like placing your own worry on other people's shoulders." },
+      { "label": "The team's side", "text": "A leader who never doubts out loud feels harder to trust, not easier." }
+    ],
+    "related_ids": ["dil-012", "dil-008"],
+    "academy_ref": "academy://ledarskap-och-sarbarhet"
+  },
+  {
+    "id": "dil-015",
+    "title": "The system that resists change",
+    "dilemma": "You want to change a way of working that everyone on the team is tired of, but the systems and routines around it are built for the old way. Do you fight the system, or scale the vision to what's actually possible right now?",
+    "conflict": "What you want to change meets what can actually be changed.",
+    "themes": ["system", "forandring"],
+    "tags": ["system", "inertia", "resistance to change", "vision"],
+    "perspectives": [
+      { "label": "The changemaker's side", "text": "Compromising the vision feels like giving up before you've even started." },
+      { "label": "The system's side", "text": "Routines that feel slow were often built to solve someone else's problem — they don't disappear just because you want them to." }
+    ],
+    "related_ids": ["dil-008", "dil-009"],
+    "academy_ref": "academy://forandring-underifran"
+  }
+]

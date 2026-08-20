@@ -1,0 +1,13 @@
+[
+  { "id": "ledarskap", "label": "Leadership" },
+  { "id": "tillit", "label": "Trust" },
+  { "id": "makt", "label": "Power" },
+  { "id": "tystnad", "label": "Silence" },
+  { "id": "ansvar", "label": "Responsibility" },
+  { "id": "konflikt", "label": "Conflict" },
+  { "id": "kultur", "label": "Culture" },
+  { "id": "forandring", "label": "Change" },
+  { "id": "manniskan", "label": "The Human" },
+  { "id": "system", "label": "System" },
+  { "id": "resultat", "label": "Results" }
+]

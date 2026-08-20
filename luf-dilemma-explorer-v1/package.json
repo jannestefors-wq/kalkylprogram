@@ -1,0 +1,16 @@
+{
+  "name": "luf-dilemma-explorer",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "LUF Dilemma Explorer V1 - standalone component for the Runda bordet computer. Zero runtime dependencies.",
+  "scripts": {
+    "test:unit": "node --test \"tests/unit/*.test.js\"",
+    "serve": "http-server . -p 8080 -c-1",
+    "test:e2e": "node tests/e2e/run.mjs"
+  },
+  "devDependencies": {
+    "playwright": "^1.45.0",
+    "http-server": "^14.1.1"
+  }
+}

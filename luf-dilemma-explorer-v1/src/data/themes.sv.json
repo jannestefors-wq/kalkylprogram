@@ -1,0 +1,13 @@
+[
+  { "id": "ledarskap", "label": "Ledarskap" },
+  { "id": "tillit", "label": "Tillit" },
+  { "id": "makt", "label": "Makt" },
+  { "id": "tystnad", "label": "Tystnad" },
+  { "id": "ansvar", "label": "Ansvar" },
+  { "id": "konflikt", "label": "Konflikt" },
+  { "id": "kultur", "label": "Kultur" },
+  { "id": "forandring", "label": "Förändring" },
+  { "id": "manniskan", "label": "Människan" },
+  { "id": "system", "label": "System" },
+  { "id": "resultat", "label": "Resultat" }
+]
