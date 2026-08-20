@@ -1,0 +1,4 @@
+# Root .gitignore excludes *.json repo-wide (for the house app's data files).
+# Re-include JSON inside luf-system-recovery/: LUF_SYSTEM_MAP.json is a
+# deliverable of this area, not app runtime data.
+!*.json

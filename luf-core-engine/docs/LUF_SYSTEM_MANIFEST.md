@@ -5,6 +5,41 @@ understandable to a competent developer who has never seen the Claude
 session that produced it. Last updated 2026-08-20, baseline commit
 `b8f004d`, this delivery's commits on branch `claude/luf-core-engine-v1-p3uws7`.
 
+**Update 2026-08-20 (LUF System Recovery & Ownership Consolidation
+order):** a full discovery pass searched every repository, branch, and
+filesystem location this session's GitHub access and container could
+reach. See `../../luf-system-recovery/` for the complete result (system
+map, ownership matrix, backup bundle, restore tests). Nothing below has
+changed as a result -- the discovery pass confirmed the same boundary this
+manifest already described: Kalkylprogram, Editorial Engine, and LUF Core
+Engine are verified and owned; the public website, Physical House, Adam,
+House Engine, Academy, Round Table, and Dilemma Bank V1 remain
+`NOT_ACCESSIBLE` from this session, now with an exhaustive search trail
+behind that conclusion (`../../luf-system-recovery/DISCOVERY_LOG.md`)
+rather than a single absence report.
+
+## 0. CURRENT VERIFIED SYSTEM vs. PLANNED ARCHITECTURE
+
+Per S29's explicit instruction: this manifest must not describe the
+architecture we wish we had.
+
+**CURRENT VERIFIED SYSTEM** (directly inspected, tested, restore-verified
+this session or the one before it): Kalkylprogram, LUF Editorial Engine
+(V1/V1A/V1B/V1C, including the real 21-record Editorial Memory), LUF Core
+Engine V1 Foundation (schema, Tool Registry structure, Human Review
+workflow, adapters -- content of the 30 tool candidates still UNVERIFIED).
+
+**PLANNED ARCHITECTURE** (named in Direktorder text, not verified to exist
+as delivered systems): the public website (language portal, entrance hall,
+Biblioteket, Karaktärsrummet, Runda bordet, Akademin), the Physical House,
+Adam, a separate House Engine module, Dilemma Bank V1, Tänkarstolen, a
+Training Module Engine, Speaker Engine, Workshop Engine, and the specific
+data layers referred to as "Historical Idea Bank" (~4,589 units) and
+"Verified Editorial History." Every item in this second list is either
+`NOT_ACCESSIBLE` or `UNKNOWN` in `../../luf-system-recovery/
+LUF_SYSTEM_MAP.json` -- referenced here as planned/described architecture,
+not claimed as built-and-owned.
+
 ## 1. System components and where they live
 
 | Component | Repository | Path | Status |
@@ -107,9 +142,26 @@ session that produced it. Last updated 2026-08-20, baseline commit
 
 1. No accessible repository for the public website, Adam, House Engine, or
    Dilemma Bank -- ownership, backup, and integration cannot be verified
-   beyond interface stubs until access is granted.
+   beyond interface stubs until access is granted. **Update 2026-08-20**:
+   a full search (all branches, local filesystem, cited file paths and
+   commit hashes) confirmed none of these are reachable; see
+   `../../luf-system-recovery/DISCOVERY_LOG.md`. Dilemma Bank's cited
+   commit `86566842db2054d11b89cdf1bc8ae3ad840be64d` does not exist in
+   this repository.
 2. `luf-tool-0009`'s "Påhöraren" spelling is unverified (possible source
-   typo for "Åhöraren").
+   typo for "Åhöraren"). Still unresolved -- no new source material found.
 3. `ZoomLevel` taxonomy and the seven framework acronyms (RACE/RISE/STAR/
    SOAP/CLEAR/GROW/PASTOR) have no verified LUF-specific source material.
-4. `jannestefors-wq/byggledning`'s relevance to LUF is unconfirmed.
+   Still unresolved -- a dedicated search for original triangle/method
+   source documents (S12) found none.
+4. ~~`jannestefors-wq/byggledning`'s relevance to LUF is unconfirmed.~~
+   **Resolved 2026-08-20**: inventoried (read-only) and confirmed
+   `NOT_LUF_RELEVANT` -- see `../../luf-system-recovery/
+   BYGGLEDNING_RELEVANCE.md`.
+5. **New 2026-08-20**: "Historical Idea Bank" (~4,589 units) and "Verified
+   Editorial History", as named in the recovery order, do not appear
+   anywhere in Editorial Engine or elsewhere in the accessible repository.
+   The only real, verified content-unit corpus is Editorial Memory (V1B),
+   21 records. This is reported as a discrepancy requiring project-owner
+   clarification, not resolved on either side -- see
+   `../../luf-system-recovery/LUF_SYSTEM_MAP.md`.
