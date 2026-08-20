@@ -7,6 +7,17 @@ Engine, Editorial Engine, or LUF Core Engine's methodology.
 
 ## Read in this order
 
+-1. `PUBLISHED_SITE_PROVENANCE_DISCOVERY.md` -- a third pass (2026-08-20)
+    that stops treating prior orders' paths/hashes as evidence either way
+    and instead searches deployment config, git remotes, domain
+    references, and the GitHub account's own profile for where the
+    published LUF website's source and hosting actually come from.
+    Classifies every previously-cited item as
+    VERIFIED_IN_CURRENT_ENVIRONMENT / EXTERNAL_BUT_PLAUSIBLE /
+    UNVERIFIED_PRIOR_REPORT. Also surfaces genuinely new corroborating
+    evidence: an earlier, independent session (predating any recovery
+    order) already searched for and failed to find the same house/Adam
+    material, recorded in Editorial Engine's own audit docs.
 0. `WORKSPACE_ENVIRONMENT_VERIFICATION.md` -- a second, deeper pass
    (2026-08-20) checking specific `/workspace/...` paths, commit hashes,
    and artifact filenames named by a follow-up order, plus a direct check
