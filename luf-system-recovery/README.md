@@ -7,6 +7,12 @@ Engine, Editorial Engine, or LUF Core Engine's methodology.
 
 ## Read in this order
 
+-3. `PUBLISHED_SITE_DNS_FINDINGS.md` -- a fifth pass (2026-08-20) using DNS
+    resolution (not blocked by the HTTPS egress policy, unlike content
+    fetches) to establish that both domains are live and Cloudflare-proxied,
+    with an explicit caveat that shared Cloudflare IPs don't prove a shared
+    origin/account. Also confirms via `ListConnectors` that no hosting/
+    deployment connector of any kind is attached to this account.
 -2. `PUBLISHED_SITE_TECHNICAL_INSPECTION.md` -- a fourth pass (2026-08-20)
     attempting live technical inspection of the two published URLs given
     by the project owner (ledarskaputanfilter.se, leadershipwithoutfilter.com).
