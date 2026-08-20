@@ -7,6 +7,14 @@ Engine, Editorial Engine, or LUF Core Engine's methodology.
 
 ## Read in this order
 
+0. `WORKSPACE_ENVIRONMENT_VERIFICATION.md` -- a second, deeper pass
+   (2026-08-20) checking specific `/workspace/...` paths, commit hashes,
+   and artifact filenames named by a follow-up order, plus a direct check
+   of this account's entire Claude Code Remote session/environment history
+   to see whether persistent private LUF data could exist anywhere this
+   account's sessions can reach. Conclusive: no session on this account,
+   ever, has had access to anything beyond the two repos already covered
+   below.
 1. `DISCOVERY_LOG.md` -- exact commands run and their results (the
    evidence base for everything else here).
 2. `LUF_SYSTEM_MAP.md` (+ machine-readable `LUF_SYSTEM_MAP.json`) -- what
