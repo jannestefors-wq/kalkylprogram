@@ -1,0 +1,7 @@
+# Root .gitignore excludes *.json repo-wide (for the house app's data files).
+# Re-include JSON inside luf-core-engine/: canonical tool inventory source
+# data and any derived JSON Schema exports are deliverables of this area.
+!*.json
+
+.pytest_cache/
+__pycache__/

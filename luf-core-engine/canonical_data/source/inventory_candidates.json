@@ -1,0 +1,60 @@
+{
+  "_meta": {
+    "purpose": "Direktorder LUF Core Engine V1 (2026-08-20), SS 5-7: inventory entry points, NOT approved canonical definitions.",
+    "extraction_note": "Every entry below was extracted verbatim from the text of the Direktorder itself. No repository accessible to this Claude session (jannestefors-wq/kalkylprogram only) contains an independent LUF source corpus -- no original documents, no scanned material, no prior tool registry -- against which these names could be cross-checked. That absence is itself reported in docs/OWNERSHIP_AUDIT.md. Per Direktorder S5/S6/S7, nothing here may be treated as canonical_status=CANONICAL_APPROVED; every entry is CANONICAL_CANDIDATE or HISTORICAL_LUF_MATERIAL, confidence=UNVERIFIED, human_review_status=PENDING, pending an actual Human Review against real source documents.",
+    "provenance_common": {
+      "created_by": "ai_system",
+      "actor_id": "claude-sonnet-5 (LUF Core Engine V1 Foundation build, session 2026-08-20)",
+      "created_at": "2026-08-20T00:00:00Z",
+      "confidence": "unverified",
+      "method": "directorder_text_extraction",
+      "supporting_source_ids": [],
+      "notes": "Extracted from Direktorder text only; not cross-verified against an independent LUF source corpus."
+    }
+  },
+  "triangles_and_n_part_models": [
+    { "stable_tool_id": "luf-tool-0001", "canonical_name": "Se • Höra • Känna", "components": ["Se", "Höra", "Känna"], "source_ref": "§6" },
+    { "stable_tool_id": "luf-tool-0002", "canonical_name": "Tid • Kostnad • Kvalitet", "components": ["Tid", "Kostnad", "Kvalitet"], "source_ref": "§6" },
+    { "stable_tool_id": "luf-tool-0003", "canonical_name": "Tänka • Planera • Resultat", "components": ["Tänka", "Planera", "Resultat"], "source_ref": "§6" },
+    { "stable_tool_id": "luf-tool-0004", "canonical_name": "Tolerans • Respekt • Samhörighet", "components": ["Tolerans", "Respekt", "Samhörighet"], "source_ref": "§6" },
+    { "stable_tool_id": "luf-tool-0005", "canonical_name": "Involvera • Kommunicera • Följa upp", "components": ["Involvera", "Kommunicera", "Följa upp"], "source_ref": "§6" },
+    { "stable_tool_id": "luf-tool-0006", "canonical_name": "Person • Process • Produkt", "components": ["Person", "Process", "Produkt"], "source_ref": "§6" },
+    { "stable_tool_id": "luf-tool-0007", "canonical_name": "Se • Höra • Beröra", "components": ["Se", "Höra", "Beröra"], "source_ref": "§6" },
+    { "stable_tool_id": "luf-tool-0008", "canonical_name": "Medvetenhet • Val • Resultat", "components": ["Medvetenhet", "Val", "Resultat"], "source_ref": "§6" },
+    { "stable_tool_id": "luf-tool-0009", "canonical_name": "Syfte • Påhöraren • Budskap", "components": ["Syfte", "Påhöraren", "Budskap"], "source_ref": "§6", "notes_extra": "Preserved verbatim from Direktorder text as received; 'Påhöraren' may be a source typo for 'Åhöraren' (listener) but was NOT corrected -- correcting spelling based on a guess would itself be fabrication (Direktorder S5). Flag for Human Review." },
+    { "stable_tool_id": "luf-tool-0011", "canonical_name": "Inåt • Utåt • Framåt", "components": ["Inåt", "Utåt", "Framåt"], "source_ref": "§6" },
+    { "stable_tool_id": "luf-tool-0012", "canonical_name": "Tro • Vilja • Mod", "components": ["Tro", "Vilja", "Mod"], "source_ref": "§6" },
+    { "stable_tool_id": "luf-tool-0013", "canonical_name": "Logik • Empati • Autenticitet", "components": ["Logik", "Empati", "Autenticitet"], "source_ref": "§6" },
+    { "stable_tool_id": "luf-tool-0014", "canonical_name": "Människan • Resultatet • Kulturen", "components": ["Människan", "Resultatet", "Kulturen"], "source_ref": "§6" },
+    { "stable_tool_id": "luf-tool-0015", "canonical_name": "Närvaro • Mod • Omsorg", "components": ["Närvaro", "Mod", "Omsorg"], "source_ref": "§6" },
+    { "stable_tool_id": "luf-tool-0016", "canonical_name": "Tydlighet • Äkthet • Relevans", "components": ["Tydlighet", "Äkthet", "Relevans"], "source_ref": "§6" },
+    { "stable_tool_id": "luf-tool-0017", "canonical_name": "Nuläge • Önskat läge • Vägen dit", "components": ["Nuläge", "Önskat läge", "Vägen dit"], "source_ref": "§6" },
+    { "stable_tool_id": "luf-tool-0018", "canonical_name": "Transparens • Kompetens • Välvilja", "components": ["Transparens", "Kompetens", "Välvilja"], "source_ref": "§6" },
+    { "stable_tool_id": "luf-tool-0019", "canonical_name": "Självkännedom • Ansvar • Handling", "components": ["Självkännedom", "Ansvar", "Handling"], "source_ref": "§6" },
+    { "stable_tool_id": "luf-tool-0020", "canonical_name": "Människa • System • Resultat", "components": ["Människa", "System", "Resultat"], "source_ref": "§6" },
+    { "stable_tool_id": "luf-tool-0021", "canonical_name": "Trygghet • Tydlighet • Tyngd", "components": ["Trygghet", "Tydlighet", "Tyngd"], "source_ref": "§6" },
+    { "stable_tool_id": "luf-tool-0022", "canonical_name": "Strategi • Plan • Aktivitet", "components": ["Strategi", "Plan", "Aktivitet"], "source_ref": "§6" },
+    { "stable_tool_id": "luf-tool-0023", "canonical_name": "Observation • Mönster • Kärna", "components": ["Observation", "Mönster", "Kärna"], "source_ref": "§6" }
+  ],
+  "process_models": [
+    {
+      "stable_tool_id": "luf-tool-0010",
+      "canonical_name": "Mäta • Korrigera • Mäta igen",
+      "components": ["Mäta", "Korrigera", "Mäta igen"],
+      "tool_type": "process_model",
+      "component_order": "cyclic",
+      "source_ref": "§6, elaborated §12",
+      "purpose": "Direktorder S12 describes this explicitly as a motor in the system, not a one-shot analysis: nuläge → handling → observation av effekt → korrigering → ny observation. Exact operational definition beyond that description is UNVERIFIED.",
+      "developmental_use": "Named by the Direktorder as intended for future training programs, Tänkarstolen, and real change processes; no further verified detail available."
+    }
+  ],
+  "framework_acronyms_name_only": [
+    { "stable_tool_id": "luf-tool-0101", "canonical_name": "RACE" },
+    { "stable_tool_id": "luf-tool-0102", "canonical_name": "RISE" },
+    { "stable_tool_id": "luf-tool-0103", "canonical_name": "STAR" },
+    { "stable_tool_id": "luf-tool-0104", "canonical_name": "SOAP" },
+    { "stable_tool_id": "luf-tool-0105", "canonical_name": "CLEAR" },
+    { "stable_tool_id": "luf-tool-0106", "canonical_name": "GROW" },
+    { "stable_tool_id": "luf-tool-0107", "canonical_name": "PASTOR" }
+  ]
+}
