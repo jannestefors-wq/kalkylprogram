@@ -41,7 +41,7 @@ python3 -m schema.export_json_schema
 python3 -m fixtures.generate_fixture_json
 ```
 
-## Lasordning
+## Lasordning (kanonisk, las alltid detta forst)
 
 1. `docs/ARCHITECTURE_NOTE.md` — helhetsbild och var sanningen bor.
 2. `docs/ENTITY_MAP.md` — objekt, relationer, de fyra variationsdimensionerna.
@@ -50,6 +50,27 @@ python3 -m fixtures.generate_fixture_json
 5. `docs/OPEN_QUESTIONS.md`, `docs/TECHNICAL_PROPOSALS.md` — allt som
    kravde ett tekniskt beslut, flaggat for granskning.
 6. `docs/FINAL_REPORT.md` — slutrapport (Beslut 32).
+
+Detta racker for de flesta uppgifter i `editorial-engine/`. Ga inte
+vidare till nagot annat i `docs/` om inte uppgiften kraver det.
+
+## Malspecifik lasning (las bara den fil som galler uppgiften)
+
+- Arbetar du i en specifik version (V1A/V1B/V1C)? Las den versionens
+  `*_PURPOSE.md` och `*_DOES_NOT_DO.md` (eller `*_BOUNDARY.md`), inte
+  hela mappen.
+- Fragar uppgiften varfor ett tidigare beslut ser ut som det gor?
+  Sok forst efter beslutet med Grep i `docs/`, las sedan bara den
+  traffande filen.
+
+## Historiska revisionsrapporter (las endast vid explicit behov)
+
+Filer med namn som innehaller `AUDIT_REPORT`, `REAUDIT`, `CORRECTION`,
+`GAP_REPORT` eller `CHALLENGE` ar avslutade granskningsprotokoll fran
+tidigare arbete. De ar bevarade som sparbarhet, inte som lopande
+styrdokument. Las dem bara om uppgiften explicit galler att forsta eller
+referera en specifik historisk granskning — inte som standardlasning
+innan en ny uppgift paborjas.
 
 ## Kanonisk kod
 
