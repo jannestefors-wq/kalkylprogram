@@ -1,0 +1,62 @@
+# LUF Academy. Min ledarskapsresa. Prototyp Vecka 1
+
+Utbildningen **Ledarskap med hjärta och mod**. Sex veckor, live i grupper om högst sex. Detta är en isolerad prototyp av deltagarens digitala arbetsyta. Endast Vecka 1 är byggd.
+
+Den ligger avsiktligt utanför LUF-produktionen. Se `docs/READ-ONLY-ANALYS.md` för varför.
+
+## Köra lokalt
+
+Kräver Node 22.13 eller senare. Inga beroenden att installera.
+
+```bash
+cd luf-academy-prototype
+npm run seed     # skapar data/prototype.db och personliga inloggningslänkar
+npm start        # http://127.0.0.1:4310
+```
+
+Länkarna skrivs ut och sparas i `data/inloggningslankar.txt`. En länk gäller i 21 dagar och kan användas på flera enheter.
+
+| Testkonto | Visar |
+| --- | --- |
+| Testdeltagare Jan | Deltagare i Grupp A. Använd för testet. |
+| Anna, Karim (fiktiva) | Andra deltagare i Grupp A |
+| Lena, Oskar (fiktiva) | Deltagare i Grupp B |
+| Jan Stefors | Handledare. Ser bara det som delats med honom. |
+| Programadministratör | Grupper, datum, Teamslänkar. Ingen fritext. |
+
+## Testa
+
+```bash
+npm test          # 18 tester mot servern
+npm run test:e2e  # 7 tester i Chromium, desktop och mobil. Sparar skärmbilder i docs/skarmbilder/
+```
+
+## Miljövariabler
+
+| Variabel | Standard | Betydelse |
+| --- | --- | --- |
+| `PORT`, `HOST` | `4310`, `127.0.0.1` | Adress |
+| `LR_DB` | `data/prototype.db` | Databasfil |
+| `LR_IDENTITY_MODE` | `prototype-link` | `sites-header` följer produktionens ChatGPT Sites-identitet |
+| `LR_SECURE_COOKIES` | av | Sätt `1` bakom HTTPS |
+| `LR_PROTOTYPE` | på | `0` döljer prototypmarkeringar och interna HOLD-noter |
+| `LR_BASE_URL` | `http://127.0.0.1:4310` | Används i utskrivna länkar |
+
+## Struktur
+
+```
+server/content.mjs      Innehållsregistret. Alla steg, moment och fält. Enda källan.
+server/migrations/      Datamodellen. SQLite, D1-kompatibel, prefix lr_.
+server/app.mjs          Behörighet, autosparning, historik, delning, mätning.
+public/                 Arbetsytan. Ingen extern kod.
+docs/                   Analys, datagränser och GDPR, rollback, leveransrapport.
+```
+
+Veckor 2 till 6 byggs genom att lägga till moment i `server/content.mjs`. Samma komponenter bär samma loop: läsning, reflektion, verklig situation, handling, vad hände.
+
+## Dokument
+
+- `docs/LEVERANSRAPPORT-VECKA-1.md`. Status enligt ordern.
+- `docs/READ-ONLY-ANALYS.md`. Vad som fanns före.
+- `docs/DATAGRANSER-OCH-GDPR.md`. Vem ser vad. Öppna frågor.
+- `docs/ROLLBACK.md`

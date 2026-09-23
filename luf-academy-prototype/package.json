@@ -1,0 +1,14 @@
+{
+  "name": "luf-academy-ledarskapsresa-prototyp",
+  "version": "0.1.0",
+  "private": true,
+  "description": "LUF Academy. Ledarskap med hjärta och mod. Min ledarskapsresa. Isolerad prototyp för Vecka 1.",
+  "type": "module",
+  "engines": { "node": ">=22.13.0" },
+  "scripts": {
+    "seed": "node --no-warnings scripts/seed.mjs",
+    "start": "node --no-warnings server/main.mjs",
+    "test": "node --no-warnings --test tests/api.test.mjs",
+    "test:e2e": "node --no-warnings --test tests/e2e.test.mjs"
+  }
+}
