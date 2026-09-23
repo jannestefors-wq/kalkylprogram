@@ -4,6 +4,12 @@ Utbildningen **Ledarskap med hjärta och mod**. Sex veckor, live i grupper om h�
 
 Den ligger avsiktligt utanför LUF-produktionen. Se `docs/READ-ONLY-ANALYS.md` för varför.
 
+## Förhandsvisning för Human Test
+
+Privat sida på claude.ai: https://claude.ai/artifact/EWhqnURcS4QVh1a5uZDF7S
+
+Öppna den inloggad på claude.ai och tryck Logga in som testdeltagare. Byggs med `node --no-warnings scripts/build-preview.mjs`. Testas med `node --no-warnings --test tests/preview.test.mjs`. Se `docs/HUMAN-TEST-PREVIEW-002.md`.
+
 ## Köra lokalt
 
 Kräver Node 22.13 eller senare. Inga beroenden att installera.
@@ -56,7 +62,8 @@ Veckor 2 till 6 byggs genom att lägga till moment i `server/content.mjs`. Samma
 
 ## Dokument
 
-- `docs/LEVERANSRAPPORT-VECKA-1.md`. Status enligt ordern.
+- `docs/HUMAN-TEST-PREVIEW-002.md`. Förhandsvisningen och analysen av fyra utelämnade moment.
+- `docs/LEVERANSRAPPORT-VECKA-1.md`. Status enligt order 001.
 - `docs/READ-ONLY-ANALYS.md`. Vad som fanns före.
 - `docs/DATAGRANSER-OCH-GDPR.md`. Vem ser vad. Öppna frågor.
 - `docs/ROLLBACK.md`

@@ -283,7 +283,8 @@ blockquote.own-words { margin: 6px 0 14px; padding-left: 16px; border-left: 2px 
   .journey-step > a, .journey-step > div { grid-template-columns: minmax(0, 1fr) auto; }
   .journey-title { grid-column: 1 / -1; grid-row: 2; }
   .session-row { grid-template-columns: minmax(0, 1fr); }
-  .topbar { padding: 10px 16px; }
+  /* På mobil får sidhuvudet inte ta skrivyta. Det följer med sidan. */
+  .topbar { padding: 10px 16px; position: static; }
   .account { gap: 12px; font-size: 13px; }
   .account-name { display: none; }
 }

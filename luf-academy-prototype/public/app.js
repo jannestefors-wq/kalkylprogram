@@ -52,6 +52,8 @@ function mount(...nodes) {
 // ---------- API ----------
 
 async function api(method, path, body, { keepalive = false } = {}) {
+  // Förhandsvisningen byter ut nätverket mot sin egen lagring. Samma svar, samma fel.
+  if (window.LR_TRANSPORT) return window.LR_TRANSPORT.request(method, path, body);
   const res = await fetch(path, {
     method,
     credentials: "same-origin",
@@ -220,7 +222,7 @@ function renderSaveStatus() {
   if (!el) return;
   if (saver.failures > 0 && saver.pending.size) {
     // Bygg inte om felrutan vid varje nytt försök. Knappen ska stå still.
-    if (el.classList.contains("is-error")) return;
+    if (el.classList.contains("is-error") && !el.classList.contains("is-notice")) return;
     el.className = "save-status is-error";
     el.replaceChildren(
       h("strong", {}, "Inte sparat ännu."),
@@ -328,7 +330,15 @@ async function boot() {
     state.me = await api("GET", "/api/me");
   } catch (err) {
     if (err.status === 401) return renderSignedOut();
-    return mount(h("section", { class: "notice-page" }, h("h1", {}, "Något gick fel."), h("p", {}, "Försök att ladda om sidan.")));
+    return mount(
+      h(
+        "section",
+        { class: "notice-page" },
+        h("h1", {}, "Vi når inte din resa just nu."),
+        h("p", {}, "Det du skrivit och inte hunnit spara finns kvar i den här webbläsaren. Det sparas när förbindelsen är tillbaka."),
+        h("button", { type: "button", class: "button primary", onclick: () => location.reload() }, "Försök igen"),
+      ),
+    );
   }
   document.getElementById("prototype-band").hidden = !state.me.prototype;
   renderAccount();
@@ -392,7 +402,7 @@ async function signOut() {
     await saver.flushAll();
     if (saver.busy()) {
       renderSaveStatus();
-      alert("Din senaste text är inte sparad ännu. Vänta ett ögonblick och försök igen.");
+      notice("Din senaste text är inte sparad ännu. Vänta ett ögonblick och försök igen.");
       return;
     }
   }
@@ -407,6 +417,15 @@ async function signOut() {
   renderSignedOut("Du är utloggad. Allt du skrivit finns kvar till nästa gång.");
 }
 
+// Ett meddelande i sidan. Webbläsarens alert() visas inte överallt.
+function notice(message) {
+  const el = document.getElementById("save-status");
+  if (!el) return;
+  el.className = "save-status is-error is-notice";
+  el.textContent = message;
+  setTimeout(() => renderSaveStatus(), 6000);
+}
+
 function renderSignedOut(message) {
   document.getElementById("account").replaceChildren();
   const failed = location.hash.includes("inloggning-misslyckades");
@@ -419,7 +438,9 @@ function renderSignedOut(message) {
       h("p", { class: "lead" }, "Min ledarskapsresa"),
       message && h("p", { class: "signin-message" }, message),
       failed && h("p", { class: "signin-message is-warning" }, "Länken fungerade inte. Den kan ha gått ut. Be om en ny."),
-      h("p", {}, "Logga in med din personliga länk."),
+      window.LR_TRANSPORT?.signIn
+        ? h("button", { type: "button", class: "button primary", onclick: () => window.LR_TRANSPORT.signIn() }, window.LR_TRANSPORT.signInLabel)
+        : h("p", {}, "Logga in med din personliga länk."),
     ),
   );
 }
@@ -993,7 +1014,7 @@ async function setShare(stepKey, section, kind, active) {
     state.journey.shares = out.shares;
     route();
   } catch {
-    alert("Det gick inte att ändra delningen just nu. Ingenting har delats. Försök igen.");
+    notice("Det gick inte att ändra delningen just nu. Ingenting har delats. Försök igen.");
   }
 }
 
