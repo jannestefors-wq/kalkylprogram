@@ -716,10 +716,6 @@ function sectionHead(section, stepKey) {
   ];
 }
 
-function sourceLine(section) {
-  return section.source ? h("p", { class: "source" }, `Källa: ${section.source}`) : null;
-}
-
 function renderSection(stepKey, section) {
   switch (section.kind) {
     case "intro":
@@ -751,7 +747,7 @@ function renderSection(stepKey, section) {
     case "live":
       return renderLive(stepKey, section);
     default:
-      return h("div", {}, sectionHead(section, stepKey), h("div", { class: "group-card" }, section.fields.map((f) => fieldEl(stepKey, section, f))), sourceLine(section), shareControls(stepKey, section));
+      return h("div", {}, sectionHead(section, stepKey), h("div", { class: "group-card" }, section.fields.map((f) => fieldEl(stepKey, section, f))), shareControls(stepKey, section));
   }
 }
 
@@ -763,13 +759,13 @@ function renderIntro(stepKey, section) {
     h("p", { class: "kicker" }, `${s.label}. ${s.subtitle}`),
     h("h1", { id: "section-title" }, section.title),
     h("div", { class: "intro-lines" }, section.lead.map((l) => h("p", {}, l))),
-    section.quote && h("blockquote", { class: "book-quote" }, h("p", {}, `”${section.quote.text}”`), h("footer", {}, `Ledarskap med hjärta och mod, s. ${section.quote.page}`)),
+    section.quote && h("blockquote", { class: "book-quote" }, h("p", {}, `”${section.quote.text}”`), h("footer", {}, "Ur Ledarskap med hjärta och mod")),
   );
 }
 
 function renderReading(stepKey, section) {
   const r = section.reading;
-  const chapter = (c) => h("li", {}, h("span", { class: "chapter-title" }, c.title), h("span", { class: "chapter-pages" }, `s. ${c.pages}`), c.note && h("span", { class: "chapter-note" }, c.note));
+  const chapter = (c) => h("li", {}, h("span", { class: "chapter-title" }, c.title), h("span", { class: "chapter-pages" }, `Sidor ${c.pages}`), c.note && h("span", { class: "chapter-note" }, c.note));
   return h(
     "div",
     {},
@@ -777,11 +773,10 @@ function renderReading(stepKey, section) {
     h(
       "div",
       { class: "reading-card" },
-      h("p", { class: "small-heading" }, "Läs"),
+      h("p", { class: "small-heading" }, "Läs:"),
       h("ul", { class: "chapters" }, r.chapters.map(chapter)),
       r.note && h("p", {}, r.note),
       r.optional?.length > 0 && [h("p", { class: "small-heading" }, "Om du vill läsa mer"), h("ul", { class: "chapters is-optional" }, r.optional.map(chapter))],
-      h("p", { class: "muted small" }, "Ledarskap med hjärta och mod köper du själv. Allt annat finns här. Sidorna är bokens tryckta sidor."),
     ),
   );
 }
@@ -1178,7 +1173,6 @@ function renderTriangle(stepKey, section) {
     figure,
     corners,
     post.length > 0 && h("div", { class: "group-card" }, post.map((f) => fieldEl(stepKey, section, f))),
-    sourceLine(section),
     shareControls(stepKey, section),
   );
 }
@@ -1224,7 +1218,6 @@ function renderHalfway(stepKey, section) {
     sectionHead(section, stepKey),
     h("aside", { class: "recall" }, h("p", { class: "kicker" }, "När du började ville du att människorna runt dig skulle märka"), goalsRecall()),
     h("div", { class: "group-card" }, section.fields.map((f) => fieldEl(stepKey, section, f))),
-    sourceLine(section),
   );
 }
 
@@ -1277,7 +1270,6 @@ function renderLookback(stepKey, section) {
     ),
     isD30 && mapComparison({ compareWith: ["start"], measurePoint: "end" }),
     section.fields.length > 0 && h("div", { class: "group-card" }, section.fields.map((f) => fieldEl(stepKey, section, f))),
-    sourceLine(section),
   );
 }
 
@@ -1292,8 +1284,6 @@ function renderClosing(stepKey, section) {
     h("p", { class: "small-heading" }, "Min riktning framåt"),
     groups.map((g) => h("fieldset", { class: "group-card" }, h("legend", { class: "visually-hidden" }, `Riktning ${g}`), section.fields.filter((f) => f.group === g).map((f) => fieldEl(stepKey, section, f)))),
     h("div", { class: "group-card promise" }, single.filter((f) => f.key === "lofte").map((f) => fieldEl(stepKey, section, f))),
-    state.me.prototype && program().diploma && h("aside", { class: "internal" }, h("p", { class: "internal-badge" }, program().diploma.status), h("p", {}, program().diploma.note), h("p", { class: "muted small" }, "Internt. Visas bara i testversionen.")),
-    sourceLine(section),
     shareControls(stepKey, section),
   );
 }
@@ -1312,7 +1302,6 @@ function renderLive(stepKey, section) {
       h("section", { class: "live-block" }, h("p", { class: "small-heading" }, "Vårt gemensamma rum"), h("ul", { class: "rules" }, ls.roomRules.map((r) => h("li", {}, r)))),
     ),
     h("div", { class: "group-card" }, section.fields.map((f) => fieldEl(stepKey, section, f))),
-    sourceLine(section),
   );
 }
 

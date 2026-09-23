@@ -33,7 +33,7 @@ Länkarna skrivs ut och sparas i `data/inloggningslankar.txt`. En länk gäller 
 ## Testa
 
 ```bash
-npm test          # 22 tester mot servern
+npm test          # 23 tester mot servern
 npm run test:e2e  # 7 tester i Chromium mot servern
 node --no-warnings --test tests/preview.test.mjs  # 8 tester av förhandsvisningen, hela programmet på desktop och mobil
 ```
@@ -46,7 +46,7 @@ node --no-warnings --test tests/preview.test.mjs  # 8 tester av förhandsvisning
 | `LR_DB` | `data/prototype.db` | Databasfil |
 | `LR_IDENTITY_MODE` | `prototype-link` | `sites-header` följer produktionens ChatGPT Sites-identitet |
 | `LR_SECURE_COOKIES` | av | Sätt `1` bakom HTTPS |
-| `LR_PROTOTYPE` | på | `0` döljer prototypmarkeringar och interna HOLD-noter |
+| `LR_PROTOTYPE` | på | `0` döljer prototypmarkeringar och testläget |
 | `LR_BASE_URL` | `http://127.0.0.1:4310` | Används i utskrivna länkar |
 
 ## Struktur
@@ -61,10 +61,11 @@ docs/                   Analys, datagränser och GDPR, rollback, leveransrapport
 
 Allt innehåll står i `server/content.mjs`. Reglerna för öppna steg, lås och status står i `server/rules.mjs` och används av både servern och förhandsvisningen.
 
-Bokhänvisningar kontrolleras mot boken med `LHM_BOOK_TXT=<bokens text> node scripts/verify-book-references.mjs`. Boktexten läggs aldrig i repot.
+Källor och sidreferenser ligger internt i registret och skickas aldrig till deltagaren. Bokhänvisningar kontrolleras mot boken med `LHM_BOOK_TXT=<bokens text> node scripts/verify-book-references.mjs`. Boktexten läggs aldrig i repot.
 
 ## Dokument
 
+- `docs/LEVERANSRAPPORT-004.md`. Rensning av deltagarvyn. Status enligt order 004.
 - `docs/LEVERANSRAPPORT-003.md`. Hela utbildningen. Status enligt order 003.
 - `docs/LHM-SIX-WEEK-SOURCE-CROSSWALK-001.md`. Källkarta från bok och arbetsbok till sex veckor.
 - `docs/HUMAN-TEST-PREVIEW-002.md`. Förhandsvisningen och analysen av fyra utelämnade moment.

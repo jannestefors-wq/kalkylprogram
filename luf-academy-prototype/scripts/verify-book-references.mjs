@@ -11,7 +11,9 @@
 //     börjar på den tryckta sida som förteckningen anger.
 //  2. Anvisningens sidintervall ligger inom kapitlet.
 //  3. Varje citat (quote) finns ordagrant på angiven sida.
-//  4. Varje text inom ”citattecken” i ett fält med (s. N) finns på sidan N.
+//  4. Varje text inom ”citattecken” i en hjälptext eller not finns på någon
+//     av sidorna i momentets eller fältets interna refs. Refs visas aldrig
+//     för deltagaren.
 //  5. De fem principerna finns ordagrant på s. 14–15.
 import { readFileSync } from "node:fs";
 import { STEPS, FIVE_PRINCIPLES } from "../server/content.mjs";
@@ -68,13 +70,20 @@ for (const step of STEPS.filter((s) => s.built)) {
       const q = norm(section.quote.text);
       check(span(section.quote.page, section.quote.page + 1).includes(q), `${step.key} citat s. ${section.quote.page}: "${section.quote.text}"`);
     }
-    const texts = [section.hint, section.note, ...(section.fields || []).map((f) => f.hint)].filter(Boolean);
-    for (const text of texts) {
-      const pageRef = text.match(/\(s\. (\d+)\)/);
-      if (!pageRef) continue;
-      const page = Number(pageRef[1]);
-      for (const m of text.matchAll(/”([^”]+)”/g)) {
-        check(span(page, page + 1).includes(norm(m[1])), `${step.key}/${section.key} citat s. ${page}: "${m[1]}"`);
+    for (const page of new Set([...(section.refs || []), ...(section.fields || []).flatMap((f) => f.refs || [])])) {
+      check(page >= 1 && page <= lastPrinted && printed(page).length > 0, `${step.key}/${section.key} intern sidreferens s. ${page} finns i boken`);
+    }
+    const refTexts = [
+      { text: section.hint, refs: section.refs },
+      { text: section.note, refs: section.refs },
+      ...(section.fields || []).map((f) => ({ text: f.hint, refs: f.refs })),
+    ].filter((t) => t.text);
+    for (const { text, refs } of refTexts) {
+      const quotes = [...text.matchAll(/”([^”]+)”/g)].map((m) => m[1]);
+      if (!refs?.length) continue;
+      for (const q of quotes) {
+        const found = refs.some((page) => span(page, page + 1).includes(norm(q)));
+        check(found, `${step.key}/${section.key} citat s. ${refs.join(", ")}: "${q}"`);
       }
     }
   }

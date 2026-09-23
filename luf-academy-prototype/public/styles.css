@@ -225,8 +225,6 @@ blockquote.own-words { margin: 6px 0 14px; padding-left: 16px; border-left: 2px 
 .history ol { margin: 0; padding-left: 18px; }
 
 .reading-card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 22px 24px; }
-.internal { margin-top: 18px; border: 2px dashed #b3541e; border-radius: var(--radius); padding: 16px 18px; background: #fff6ec; }
-.internal-badge { display: inline-block; font-size: 12px; font-weight: 800; letter-spacing: 0.14em; color: #fff; background: #b3541e; padding: 3px 10px; border-radius: 4px; }
 
 .save-status { position: fixed; left: 50%; bottom: max(16px, env(safe-area-inset-bottom)); transform: translateX(-50%); z-index: 30; font-size: 14px; padding: 8px 16px; border-radius: 999px; background: var(--ink-deep); color: #fff; opacity: 0; pointer-events: none; transition: opacity .2s ease; max-width: calc(100% - 32px); text-align: center; }
 .save-status.is-saving, .save-status.is-saved { opacity: 0.86; }

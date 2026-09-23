@@ -113,9 +113,10 @@ test("desktop: hela vecka 1, autosparning, utloggning och återkomst", async () 
   // Läsning: verifierad mot boken. Kapitelrubrik och tryckta sidor, inga kapitelnummer.
   await page.waitForSelector(".section-reading");
   const reading = await page.textContent(".section-reading");
-  assert.ok(reading.includes("Utan filter") && reading.includes("s. 7–15"));
-  assert.ok(reading.includes("Människan först") && reading.includes("s. 17–27"));
+  assert.ok(reading.includes("Utan filter") && reading.includes("Sidor 7–15") && reading.includes("Inför den här veckan") && reading.includes("Läs:"));
+  assert.ok(reading.includes("Människan först") && reading.includes("Sidor 17–27"));
   assert.ok(!reading.includes("HOLD") && !/kapitel \d/i.test(reading), "inga påhittade kapitelnummer");
+  assert.ok(!/Källa|arbetsbok|köper du|PDF/i.test(reading), "inga källetiketter eller köptext");
   await go(page, "vecka-1/karta", ".map");
 
   // Ledarskapskartan

@@ -358,6 +358,24 @@ test("Se. Höra. Känna. har fast ordning i registret", async () => {
   assert.ok(!/katalys/i.test(text), "inget Katalysatormaterial i utbildningen");
 });
 
+test("källor finns kvar internt men når aldrig deltagaren", async () => {
+  const { STEPS, publicProgram } = await import("../server/content.mjs");
+  const sections = STEPS.flatMap((s) => s.sections || []);
+  assert.ok(sections.filter((s) => s.source).length >= 20, "källa finns per moment internt");
+  assert.ok(sections.some((s) => s.refs?.length), "sidreferenser finns internt");
+  assert.ok(sections.flatMap((s) => s.reading?.chapters || []).every((c) => c.pdfPages), "PDF-sidor finns internt");
+  for (const internal of [true, false]) {
+    const text = JSON.stringify(publicProgram({ internal }));
+    for (const re of [/"source"/, /"refs"/, /pdfPages/, /Källa/, /Arbetsbok/i, /köper du/i, /HOLD/, /\(s\. \d/]) {
+      assert.ok(!re.test(text), `${re} når deltagaren`);
+    }
+    const program = JSON.parse(text);
+    assert.equal(program.diploma, null);
+    const readings = program.steps.flatMap((s) => s.sections || []).filter((s) => s.reading);
+    assert.ok(readings.length >= 6 && readings.every((r) => r.reading.chapters.every((c) => c.title && /^\d+–\d+$/.test(c.pages))));
+  }
+});
+
 test("16. mätning innehåller aldrig fritext", async () => {
   const p = await participant("testdeltagare");
   assert.equal((await p.c.post("/api/events", { name: "action_revisited", step: "w1", section: "vad-hande", enrollmentId: p.enr })).status, 200);

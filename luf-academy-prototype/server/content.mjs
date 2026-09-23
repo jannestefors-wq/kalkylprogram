@@ -75,7 +75,7 @@ function reading(chapters, { optional = [], note = "" } = {}) {
   return {
     key: "lasning",
     kind: "reading",
-    title: "Inför veckan",
+    title: "Inför den här veckan",
     reading: { chapters, optional, note },
     fields: [],
   };
@@ -98,7 +98,7 @@ function bridge(fromStep) {
   return { key: "forra-veckan", kind: "bridge", title: "Förra veckan", fromStep, fields: [] };
 }
 
-function action(lead, { hint = "", withExpectation = true } = {}) {
+function action(lead, { hint = "", refs, withExpectation = true } = {}) {
   return {
     key: "handling",
     kind: "action",
@@ -106,6 +106,7 @@ function action(lead, { hint = "", withExpectation = true } = {}) {
     lead,
     note: "Det finns inget facit. Det är du som väljer.",
     hint,
+    refs,
     shareable: true,
     lockedWhen: "returnStarted",
     doneWhen: { all: ["prova", "situation", "nar"] },
@@ -169,9 +170,10 @@ function live() {
 
 // Triangel. Hörnen placeras i rubrikens läsordning: vänster, mitten, höger.
 // För Se · Höra · Känna är det den fasta regeln: SE vänster, HÖRA mitten, KÄNNA höger.
-function triangle({ key, title, corners, prompt, source, lead, pre = [], post = [], model, doneWhen, shareable, note, optional }) {
+function triangle({ key, title, corners, prompt, source, lead, pre = [], post = [], model, doneWhen, shareable, note, optional, refs }) {
   return {
     key,
+    refs,
     kind: "triangle",
     title,
     model: model || "triangle",
@@ -317,7 +319,8 @@ const WEEK_1_SECTIONS = [
     post: [t("ser_nu", "Vad ser du nu, när du ser de tre tillsammans?", { rows: 2 })],
   }),
   action(["Välj en verklig situation den här veckan. Litet nog för att bli gjort. Tydligt nog för att gå att följa upp."], {
-    hint: "Bokens övning (s. 27): Välj en person. Sitt ner. Fråga hur de mår. Lyssna utan att lösa.",
+    hint: "Ett förslag: välj en person. Sitt ner. Fråga hur de mår. Lyssna utan att lösa.",
+    refs: [27],
     withExpectation: false,
   }),
   {
@@ -412,7 +415,8 @@ const WEEK_2_SECTIONS = [
     post: [t("obehag_risk", "Vad är obehag, och vad är verklig risk?", { rows: 2 })],
   }),
   action(["Välj något du faktiskt ska göra före nästa träff. Ett samtal, ett beslut, en fråga eller en förändring."], {
-    hint: "Bokens övning (s. 39): Boka samtalet du har skjutit upp. Förbered dig med nyfikenhet, inte med argument. Gå in med frågan ”Hur ser det ut från din sida?”",
+    hint: "Ett förslag: boka samtalet du har skjutit upp. Förbered dig med nyfikenhet, inte med argument. Gå in med frågan ”Hur ser det ut från din sida?”",
+    refs: [39],
   }),
   whatHappened(),
   privat([
@@ -472,7 +476,8 @@ const WEEK_3_SECTIONS = [
     doneWhen: { all: ["se", "hora", "kanna", "fraga"] },
   }),
   action(["Prova i ett verkligt samtal. Börja med det du har sett. Vänta med det du tror."], {
-    hint: "Boken (s. 73): Börja alltid med Se. Beskriv situationen konkret. Utan värderingar. Utan tolkningar.",
+    hint: "Beskriv situationen konkret. Utan värderingar. Utan tolkningar.",
+    refs: [73],
   }),
   whatHappened(),
   privat([
@@ -557,7 +562,8 @@ const WEEK_4_SECTIONS = [
     post: [t("deras_sida", "Vad vet du inte om hur det ser ut från den andras sida?", { rows: 2 })],
   }),
   action(["Välj det samtal eller den handling som behöver hända i en relation."], {
-    hint: "Bokens övning (s. 93): Boka ett samtal inom fem dagar.",
+    hint: "Ett förslag: boka samtalet inom fem dagar.",
+    refs: [93],
   }),
   whatHappened(),
   privat([
@@ -648,7 +654,8 @@ const WEEK_5_SECTIONS = [
     optional: true,
   }),
   action(["Välj något du gör själv. Även när problemet sitter i systemet."], {
-    hint: "Bokens övning (s. 110): Fråga två kollegor, oberoende av varandra, var de tror att problemet sitter. Eller fikarumstestet (s. 122): stå tyst och lyssna i fem minuter.",
+    hint: "Ett förslag: fråga två kollegor, oberoende av varandra, var de tror att problemet sitter. Eller stå tyst i fikarummet i fem minuter och lyssna.",
+    refs: [110, 122],
   }),
   whatHappened(),
   privat([
@@ -696,7 +703,8 @@ const WEEK_6_SECTIONS = [
     ],
     prompt: "Se vad som händer mellan trycket du känner och valet du faktiskt gör.",
     source: "Arbetsboken, vecka 9. Boken s. 148–157.",
-    note: "Bokens grundregel (s. 149): ”Om jag är i obalans, tillför jag inte mer obalans.”",
+    note: "”Om jag är i obalans, tillför jag inte mer obalans.”",
+    refs: [149],
     post: [t("mellanrum", "Vad händer i mellanrummet mellan trycket och valet?", { rows: 2 })],
   }),
   triangle({
@@ -767,7 +775,7 @@ const WEEK_6_SECTIONS = [
         t(`fortsatta_${n}`, `${n}. Det här ska jag fortsätta träna på`, { rows: 2, group: n }),
         t(`folja_upp_${n}`, "Så följer jag upp att det händer", { rows: 2, group: n, secondary: true }),
       ]),
-      t("lofte", "Jag lovar mig själv att", { rows: 3, hint: "Vilken ledare vill du vara om fem år? Inte vilken titel. Vilken människa. (Boken s. 174)" }),
+      t("lofte", "Jag lovar mig själv att", { rows: 3, hint: "Vilken ledare vill du vara om fem år? Inte vilken titel. Vilken människa.", refs: [174] }),
     ],
   },
   privat([
@@ -892,6 +900,24 @@ export function findField(stepKey, fieldPath) {
   return field ? { section, field } : null;
 }
 
+function participantSection({ source, refs, quote, reading, fields, ...rest }) {
+  return {
+    ...rest,
+    ...(quote ? { quote: { text: quote.text } } : {}),
+    ...(reading
+      ? {
+          reading: {
+            note: reading.note,
+            chapters: reading.chapters.map(({ title, pages, note }) => ({ title, pages, note })),
+            optional: reading.optional.map(({ title, pages, note }) => ({ title, pages, note })),
+          },
+        }
+      : {}),
+    fields: fields.map(({ refs: _refs, ...f }) => f),
+  };
+}
+
+// eslint-disable-next-line no-unused-vars
 export function publicProgram({ internal = false } = {}) {
   return {
     id: PROGRAM_ID,
@@ -900,7 +926,9 @@ export function publicProgram({ internal = false } = {}) {
     mapScaleSteps: MAP_SCALE_STEPS,
     measurePointLabels: MEASURE_POINT_LABELS,
     liveSupport: LIVE_SUPPORT,
-    diploma: internal ? DIPLOMA : null,
-    steps: STEPS.map((s) => ({ ...s, sections: s.built ? s.sections : [] })),
+    // Intern spårbarhet (källor, sidor, diplomstatus) stannar på servern.
+    // Deltagarens sida får bara det som ska synas eller behövs för att fungera.
+    diploma: null,
+    steps: STEPS.map((s) => ({ ...s, sections: s.built ? s.sections.map(participantSection) : [] })),
   };
 }

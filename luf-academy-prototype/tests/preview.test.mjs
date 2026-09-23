@@ -133,7 +133,10 @@ test("desktop: inloggning, hela vecka 1, delning, utloggning och återkomst", as
   await page.waitForSelector(".section-intro");
   await page.click(".section-nav .primary");
   await page.waitForSelector(".section-reading");
-  assert.ok((await page.textContent(".section-reading")).includes("s. 7–15"));
+  const reading = await page.textContent(".section-reading");
+  assert.ok(reading.includes("Inför den här veckan") && reading.includes("Läs:"));
+  assert.ok(reading.includes("Utan filter") && reading.includes("Sidor 7–15"));
+  await page.screenshot({ path: new URL("../docs/skarmbilder/31-infor-veckan-desktop.png", import.meta.url).pathname, fullPage: true });
   await go(page, "karta", ".map");
   const rows = page.locator(".scale-row");
   const picks = [3, 4, 2, 5, 4, 3];
@@ -277,7 +280,7 @@ test("förhandsvisningen gör inga anrop utanför sidan", () => {
 const FULL = "u_hela_resan";
 
 async function sectionsOf(page) {
-  return page.evaluate(() => window.LR_PROGRAM.steps.filter((s) => s.built).map((s) => ({ key: s.key, slug: s.slug, aside: Boolean(s.aside), sections: s.sections.map((x) => ({ key: x.key, kind: x.kind, model: x.model })) })));
+  return page.evaluate(() => window.LR_PROGRAM.steps.filter((s) => s.built).map((s) => ({ key: s.key, slug: s.slug, aside: Boolean(s.aside), sections: s.sections.map((x) => ({ key: x.key, kind: x.kind, model: x.model, reading: x.reading })) })));
 }
 
 async function moveTo(page, stepKey) {
@@ -316,6 +319,14 @@ async function fillSection(page, label) {
   await page.locator("body").click({ position: { x: 2, y: 2 } });
   await settle(page);
 }
+
+// Det som aldrig får synas för en deltagare. Källor och sidor för spårbarhet
+// finns kvar internt i innehållsregistret.
+const FORBIDDEN = [/Källa/, /arbetsbok/i, /köper du/i, /\bPDF\b/, /\bWord\b/, /HOLD/, /TODO|TBD/, /master/i, /crosswalk|provenance/i,
+  /\bSource\b/, /\bPASS\b|\bFAIL\b|\bDEV\b|TEST DATA|SOURCE VERIFIED/, /\(s\. \d/, /Bokens övning|Boken \(/, /intern/i];
+const assertClean = (text, where) => {
+  for (const re of FORBIDDEN) assert.ok(!re.test(text), `${where}: ${re} syns för deltagaren (${text.match(new RegExp(".{0,40}" + re.source + ".{0,40}", re.flags))?.[0]})`);
+};
 
 test("hela programmet på desktop: sex veckor, 30 dagar och samtal. Resan minns.", async () => {
   const { ctx, page } = await open("desktop", FULL);
@@ -391,6 +402,8 @@ test("hela programmet på desktop: sex veckor, 30 dagar och samtal. Resan minns.
   await page.waitForSelector(".journey");
   const journeyText = await page.textContent(".journey");
   assert.ok(!/poäng|badge|streak/i.test(journeyText));
+  const overviewText = await page.$eval("main", (m) => { const c = m.cloneNode(true); c.querySelector(".test-mode")?.remove(); return c.textContent; });
+  assertClean(overviewText, "översikten");
   assert.equal(await page.locator(".journey-step.is-locked").count(), 0);
   await page.screenshot({ path: new URL("../docs/skarmbilder/42-oversikt-hela-resan-desktop.png", import.meta.url).pathname, fullPage: true });
   assert.deepEqual(page.errors, []);
@@ -409,6 +422,12 @@ test("hela programmet på mobil: varje moment går att läsa och skriva i, inget
       await noSideScroll(page, `${s.key}/${sec.key}`);
       const mainText = await page.textContent("main");
       assert.ok(!mainText.includes("[object") && !/\bnull\b|\bundefined\b/.test(mainText), `${s.key}/${sec.key}: inga trasiga element`);
+      assertClean(mainText, `${s.key}/${sec.key}`);
+      if (sec.kind === "reading") {
+        assert.ok(mainText.includes("Inför den här veckan") && mainText.includes("Läs:"), `${s.key}: läsanvisningen visas`);
+        for (const c of sec.reading.chapters) assert.ok(mainText.includes(c.title) && mainText.includes(`Sidor ${c.pages}`), `${s.key}: ${c.title} Sidor ${c.pages}`);
+        if (s.key === "w6") await page.screenshot({ path: new URL("../docs/skarmbilder/32-infor-veckan-w6-mobil.png", import.meta.url).pathname, fullPage: true });
+      }
       const widths = await page.$$eval("textarea.input-text", (els) => els.filter((e) => e.offsetParent).map((e) => e.getBoundingClientRect().width));
       assert.ok(widths.every((w) => w > 250), `${s.key}/${sec.key}: textfälten är breda nog`);
       const buttons = await page.$$eval(".section button, .section .button, .choice, .scale-dot", (els) => els.filter((e) => e.offsetParent).map((e) => Math.min(e.getBoundingClientRect().height, e.getBoundingClientRect().width)));
@@ -455,6 +474,7 @@ test("Jan ser delade avsnitt från alla veckor, programadmin ser bara status", a
   const text = await page.textContent("main");
   assert.ok(text.includes("w3/se-hora-kanna svar"), "delad Se. Höra. Känna. syns för Jan");
   assert.ok(!text.includes("w4/privat") && !text.includes("Skrivet på telefonen."), "privat reflektion syns inte");
+  assertClean(text, "Jans vy");
   await page.evaluate(() => { location.hash = "#/admin"; });
   await page.waitForSelector(".role-view .table");
   const admin = await page.textContent("main");
