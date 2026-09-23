@@ -81,6 +81,11 @@ async function noHorizontalScroll(page, label) {
   assert.ok(sw <= cw + 1, `${label}: sidan scrollar i sidled (${sw} > ${cw})`);
 }
 
+async function go(page, path, selector) {
+  await page.evaluate((p) => { location.hash = `#/${p}`; }, path);
+  await page.waitForSelector(selector);
+}
+
 async function type(page, selector, text) {
   await page.fill(selector, "");
   await page.type(selector, text, { delay: 2 });
@@ -105,12 +110,13 @@ test("desktop: hela vecka 1, autosparning, utloggning och återkomst", async () 
   await page.screenshot({ path: `${SHOTS}02-intro-desktop.png` });
   await page.click(".section-nav .primary");
 
-  // Läsning: HOLD, ingen påhittad hänvisning
+  // Läsning: verifierad mot boken. Kapitelrubrik och tryckta sidor, inga kapitelnummer.
   await page.waitForSelector(".section-reading");
   const reading = await page.textContent(".section-reading");
-  assert.ok(reading.includes("HOLD FÖR JAN"));
-  assert.ok(!/kapitel \d|sid(an|a)? \d|s\. \d/i.test(reading), "inga kapitel eller sidnummer");
-  await page.click(".section-nav .primary");
+  assert.ok(reading.includes("Utan filter") && reading.includes("s. 7–15"));
+  assert.ok(reading.includes("Människan först") && reading.includes("s. 17–27"));
+  assert.ok(!reading.includes("HOLD") && !/kapitel \d/i.test(reading), "inga påhittade kapitelnummer");
+  await go(page, "vecka-1/karta", ".map");
 
   // Ledarskapskartan
   await page.waitForSelector(".map");
@@ -125,26 +131,20 @@ test("desktop: hela vecka 1, autosparning, utloggning och återkomst", async () 
   assert.equal(await rows.nth(5).locator('[aria-checked="true"]').getAttribute("data-value"), "4");
   assert.ok((await page.textContent(".section-map")).includes("Självskattning"));
   await page.screenshot({ path: `${SHOTS}03-ledarskapskarta-desktop.png`, fullPage: true });
-  await page.click(".section-nav .primary");
-
   // Tre saker
-  await page.waitForSelector("#f-forandring-mal_1");
+  await go(page, "vecka-1/forandring", "#f-forandring-mal_1");
   await type(page, "#f-forandring-mal_1", "Att jag lyssnar klart innan jag svarar.");
   await type(page, "#f-forandring-mal_2", "Att jag tar det svåra samtalet direkt.");
   await type(page, "#f-forandring-mal_3", "Att jag säger vad jag tycker tidigt.");
   await saved(page);
-  await page.click(".section-nav .primary");
-
   // Människorna runt mig: fullständigt namn ger en mild påminnelse
-  await page.waitForSelector("#f-manniskor-person_1");
+  await go(page, "vecka-1/manniskor", "#f-manniskor-person_1");
   await type(page, "#f-manniskor-person_1", "Anna Svensson");
   await page.waitForSelector(".field-hint:not(:empty)");
   await type(page, "#f-manniskor-person_1", "En projektledare i mitt team");
   assert.equal((await page.textContent(".field-hint")).trim(), "");
-  await page.click(".section-nav .primary");
-
   // En verklig situation. Observation före tolkning, visuellt åtskilda.
-  await page.waitForSelector(".situation");
+  await go(page, "vecka-1/situation", ".situation");
   const bands = await page.$$eval(".situation-band", (els) => els.map((e) => e.querySelector(".band-title").textContent));
   assert.deepEqual(bands, ["Det som hände", "Min tolkning", "Mitt agerande", "Efteråt"]);
   const [obsColor, tolkColor] = await page.$$eval(".band-observation, .band-tolkning", (els) => els.map((e) => getComputedStyle(e).borderLeftColor));
@@ -166,17 +166,13 @@ test("desktop: hela vecka 1, autosparning, utloggning och återkomst", async () 
   await page.click("dialog button[value=share]");
   await page.waitForSelector("text=Delat med Jan sedan");
   await page.screenshot({ path: `${SHOTS}05-situation-desktop.png`, fullPage: true });
-  await page.click(".section-nav .primary");
-
   // Närvaro
-  await page.waitForSelector("#f-narvaro-eget_svar");
+  await go(page, "vecka-1/narvaro", "#f-narvaro-eget_svar");
   await type(page, "#f-narvaro-eget_svar", "NARVARO-PRIVAT. Efter första meningen.");
   await type(page, "#f-narvaro-stanna_kvar", "Då hade jag hört varför.");
   await saved(page);
-  await page.click(".section-nav .primary");
-
   // Det här ska jag prova
-  await page.waitForSelector("#f-handling-prova");
+  await go(page, "vecka-1/handling", "#f-handling-prova");
   await type(page, "#f-handling-prova", "Ställa en öppen fråga och vänta på svaret.");
   await type(page, "#f-handling-situation", "Torsdagens avstämning.");
   await type(page, "#f-handling-lagga_marke", "När jag vill fylla tystnaden.");

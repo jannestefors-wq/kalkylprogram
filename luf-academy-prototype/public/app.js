@@ -31,9 +31,10 @@ function h(tag, attrs, ...children) {
     if (k === "class") el.className = v;
     else if (k.startsWith("on")) el.addEventListener(k.slice(2).toLowerCase(), v);
     else if (k === "text") el.textContent = v;
+    else if (k === "style") el.style.cssText = v;
     else el.setAttribute(k, v === true ? "" : v);
   }
-  for (const c of children.flat()) {
+  for (const c of children.flat(Infinity)) {
     if (c == null || c === false) continue;
     el.append(c instanceof Node ? c : document.createTextNode(String(c)));
   }
@@ -153,6 +154,7 @@ const saver = {
           value: payload.value,
         });
         ((state.journey.assessments[payload.point] ||= {})[payload.dimension] = payload.value);
+        compareBoxes.forEach((b) => (b.isConnected ? b.redraw() : compareBoxes.delete(b)));
         this.lastSavedAt = out.savedAt;
       } else {
         const known = state.journey.entries[`${payload.step}:${payload.field}`];
@@ -302,25 +304,45 @@ async function refreshJourney(rerender) {
 
 const program = () => state.me.program;
 const step = (key) => program().steps.find((s) => s.key === key);
+const stepBySlug = (slug) => program().steps.find((s) => s.slug === slug);
+const weekSteps = () => program().steps.filter((s) => !s.aside);
+const stepHref = (stepKey, sectionKey) => `#/${step(stepKey).slug}${sectionKey ? `/${sectionKey}` : ""}`;
 const entryValue = (stepKey, path) => state.journey.entries[`${stepKey}:${path}`]?.value || "";
 const statusOf = (stepKey, sectionKey) => state.journey.status[`${stepKey}:${sectionKey}`] || null;
 const isLocked = (stepKey, sectionKey) => state.journey.locked[`${stepKey}:${sectionKey}`] || null;
+const isOpen = (stepKey) => (state.journey.openSteps || []).includes(stepKey);
 const activeShare = (stepKey, sectionKey, kind) =>
   state.journey.shares.find((s) => s.step === stepKey && s.section === sectionKey && s.kind === kind);
 
 function nextSectionKey(stepKey) {
   const sections = step(stepKey).sections;
-  const anything = Object.keys(state.journey.status).some((k) => state.journey.status[k] !== "empty");
-  if (!anything) return sections[0].key;
-  const open = sections.find((s) => s.doneWhen && statusOf(stepKey, s.key) !== "done" && !(s.kind === "return" && !actionChosen()));
+  const begun = sections.some((s) => ["started", "done"].includes(statusOf(stepKey, s.key)));
+  if (!begun) return sections[0].key;
+  const open = sections.find(
+    (s) => s.doneWhen && !s.optional && statusOf(stepKey, s.key) !== "done" && !(s.kind === "return" && !actionChosen(stepKey)),
+  );
   return open ? open.key : sections[sections.length - 1].key;
 }
 
-function actionChosen() {
-  return Boolean(entryValue("w1", "handling.prova").trim());
+function actionChosen(stepKey) {
+  return Boolean(entryValue(stepKey, "handling.prova").trim());
 }
-function returnStarted() {
-  return step("w1").sections.find((s) => s.kind === "return").fields.some((f) => entryValue("w1", `vad-hande.${f.key}`).trim());
+function returnSection(stepKey) {
+  return step(stepKey).sections.find((s) => s.kind === "return");
+}
+function returnStarted(stepKey) {
+  const r = returnSection(stepKey);
+  return Boolean(r && r.fields.some((f) => entryValue(stepKey, `${r.key}.${f.key}`).trim()));
+}
+// Den senaste veckan där deltagaren bestämt sig för något men inte skrivit vad som hände.
+function pendingReturn() {
+  const open = weekSteps().filter((s) => isOpen(s.key) && returnSection(s.key)).reverse();
+  return open.find((s) => actionChosen(s.key) && statusOf(s.key, returnSection(s.key).key) !== "done")?.key || null;
+}
+function weekProgress(stepKey) {
+  const counted = step(stepKey).sections.filter((s) => s.doneWhen && !s.optional);
+  const done = counted.filter((s) => statusOf(stepKey, s.key) === "done").length;
+  return { done, total: counted.length };
 }
 
 // ---------- Router ----------
@@ -380,7 +402,8 @@ function route() {
       h("section", { class: "notice-page" }, h("h1", {}, "Du är inte inskriven i någon grupp ännu."), h("p", {}, "Hör av dig till Jan om du tror att det här är fel.")),
     );
   }
-  if (first === "vecka-1") return renderWeek("w1", second || nextSectionKey("w1"));
+  const target = first && stepBySlug(first);
+  if (target && target.built && isOpen(target.key)) return renderWeek(target.key, second || nextSectionKey(target.key));
   return renderOverview();
 }
 
@@ -449,11 +472,8 @@ function renderSignedOut(message) {
 
 function renderOverview() {
   const enr = state.enrollment;
-  const w1 = step("w1");
-  const doneCount = w1.sections.filter((s) => s.doneWhen && statusOf("w1", s.key) === "done").length;
-  const total = w1.sections.filter((s) => s.doneWhen).length;
-  const chosen = actionChosen();
-  const returned = statusOf("w1", "vad-hande") === "done";
+  const current = step(state.journey.currentStep) || step("w1");
+  const pending = pendingReturn();
 
   const main = h(
     "section",
@@ -466,29 +486,30 @@ function renderOverview() {
       h("div", {}, h("dt", {}, "Deltagare"), h("dd", {}, state.me.user.displayName)),
       h("div", {}, h("dt", {}, "Grupp"), h("dd", {}, enr.cohort.name)),
       h("div", {}, h("dt", {}, "Start"), h("dd", {}, fmtPlainDate(enr.cohort.startDate))),
-      h("div", {}, h("dt", {}, "Nu"), h("dd", {}, step(enr.cohort.currentStep)?.label || "")),
+      h("div", {}, h("dt", {}, "Nu"), h("dd", {}, current.label)),
     ),
   );
 
   let focus;
-  if (chosen && !returned) {
+  if (pending) {
+    const ps = step(pending);
     focus = h(
       "section",
       { class: "focus-card is-recall" },
-      h("p", { class: "kicker" }, "Du bestämde dig för att prova"),
-      h("blockquote", { class: "own-words" }, entryValue("w1", "handling.prova")),
-      entryValue("w1", "handling.nar") && h("p", { class: "muted" }, `Planerat till ${fmtPlainDate(entryValue("w1", "handling.nar"))}.`),
-      h("a", { class: "button primary", href: "#/vecka-1/vad-hande" }, returnStarted() ? "Fortsätt skriva om vad som hände" : "Berätta vad som hände"),
-      h("a", { class: "button quiet", href: `#/vecka-1/${nextSectionKey("w1")}` }, "Fortsätt min ledarskapsresa"),
+      h("p", { class: "kicker" }, `${ps.label}. Du bestämde dig för att prova`),
+      h("blockquote", { class: "own-words" }, entryValue(pending, "handling.prova")),
+      entryValue(pending, "handling.nar") && h("p", { class: "muted" }, `Planerat till ${fmtPlainDate(entryValue(pending, "handling.nar"))}.`),
+      h("a", { class: "button primary", href: stepHref(pending, returnSection(pending).key) }, returnStarted(pending) ? "Fortsätt skriva om vad som hände" : "Berätta vad som hände"),
+      h("a", { class: "button quiet", href: stepHref(current.key, nextSectionKey(current.key)) }, "Fortsätt min ledarskapsresa"),
     );
   } else {
     focus = h(
       "section",
       { class: "focus-card" },
-      h("p", { class: "kicker" }, `${w1.label}. ${w1.title}`),
-      h("h2", {}, w1.subtitle),
-      h("p", { class: "muted" }, enr.lastActivityAt || state.journey.lastActivityAt ? `Senast du var här: ${fmtDate(state.journey.lastActivityAt)} ${fmtTime(state.journey.lastActivityAt)}.` : "Du har inte börjat ännu. Det tar den tid det tar."),
-      h("a", { class: "button primary", href: `#/vecka-1/${nextSectionKey("w1")}` }, "Fortsätt min ledarskapsresa"),
+      h("p", { class: "kicker" }, `${current.label}. ${current.title}`),
+      h("h2", {}, current.subtitle),
+      h("p", { class: "muted" }, state.journey.lastActivityAt ? `Senast du var här: ${fmtDate(state.journey.lastActivityAt)} ${fmtTime(state.journey.lastActivityAt)}.` : "Du har inte börjat ännu. Det tar den tid det tar."),
+      h("a", { class: "button primary", href: stepHref(current.key, nextSectionKey(current.key)) }, "Fortsätt min ledarskapsresa"),
     );
   }
 
@@ -511,7 +532,7 @@ function renderOverview() {
                 "div",
                 { class: "bring" },
                 h("p", { class: "small-heading" }, "Det du valt att ta med"),
-                h("ul", {}, bring.map((b) => h("li", {}, h("a", { href: `#/vecka-1/${b.section}` }, sectionTitle(b.step, b.section))))),
+                h("ul", {}, bring.map((b) => h("li", {}, h("a", { href: stepHref(b.step, b.section) }, `${step(b.step).label}. ${sectionTitle(b.step, b.section)}`)))),
                 h("p", { class: "muted small" }, "Bara en påminnelse för dig. Ingen annan ser den."),
               )
             : null,
@@ -519,24 +540,28 @@ function renderOverview() {
       : h("p", { class: "muted" }, "Ingen träff inlagd ännu."),
   );
 
+  const talk = step("samtal");
   const oneOnOne = enr.oneOnOnes[0];
-  const oneCard =
-    oneOnOne &&
+  const talkCard =
+    talk &&
     h(
       "section",
       { class: "card" },
       h("p", { class: "kicker" }, "Samtal med Jan"),
-      h("p", {}, oneOnOne.scheduledAt ? `${cap(fmtDay(oneOnOne.scheduledAt))} ${fmtTime(oneOnOne.scheduledAt)}` : "Tid bokas med Jan."),
+      oneOnOne?.scheduledAt && h("p", {}, `${cap(fmtDay(oneOnOne.scheduledAt))} ${fmtTime(oneOnOne.scheduledAt)}`),
+      h("p", { class: "muted" }, "Förbered dig inför ett enskilt samtal, och skriv efteråt vad som blev tydligare."),
+      h("a", { class: "button quiet", href: stepHref("samtal", "infor") }, "Inför samtalet"),
     );
 
   const goals = [1, 2, 3].map((n) => entryValue("w1", `forandring.mal_${n}`)).filter((v) => v.trim());
+  const skaver = entryValue("w1", "karta.skaver_mest");
   const goalsCard =
-    goals.length > 0 &&
+    (goals.length > 0 || skaver) &&
     h(
       "section",
       { class: "card" },
-      h("p", { class: "kicker" }, "Det här vill du förändra"),
-      h("ol", { class: "own-list" }, goals.map((g) => h("li", {}, g))),
+      skaver && [h("p", { class: "kicker" }, "När du började skrev du att det här skavde mest"), h("p", { class: "own-words" }, skaver)],
+      goals.length > 0 && [h("p", { class: "kicker" }, "Du ville att människorna runt dig skulle märka"), h("ol", { class: "own-list" }, goals.map((g) => h("li", {}, g)))],
     );
 
   const journeyList = h(
@@ -546,21 +571,55 @@ function renderOverview() {
     h(
       "ol",
       { class: "journey" },
-      program().steps.map((s) => {
-        const isW1 = s.key === "w1";
-        const label = isW1 ? (doneCount ? `${doneCount} av ${total} skrivna` : "Pågår") : "Öppnas senare";
+      weekSteps().map((s) => {
+        const open = isOpen(s.key);
+        const pr = open ? weekProgress(s.key) : null;
+        const label = !open ? "Öppnas senare" : pr.done ? `${pr.done} av ${pr.total} skrivna` : s.key === current.key ? "Pågår" : "Öppen";
         const inner = [h("span", { class: "journey-label" }, s.label), h("span", { class: "journey-title" }, s.title), h("span", { class: "journey-state" }, label)];
         return h(
           "li",
-          { class: `journey-step ${s.built ? "is-open" : "is-locked"}` },
-          s.built ? h("a", { href: `#/vecka-1/${nextSectionKey("w1")}` }, inner) : h("div", { "aria-disabled": "true" }, inner),
+          { class: `journey-step ${open ? "is-open" : "is-locked"} ${s.key === current.key ? "is-current" : ""}` },
+          open ? h("a", { href: stepHref(s.key, nextSectionKey(s.key)) }, inner) : h("div", { "aria-disabled": "true" }, inner),
         );
       }),
     ),
   );
 
-  mount(h("div", { class: "overview shell" }, main, h("div", { class: "overview-grid" }, h("div", { class: "col" }, focus, goalsCard, journeyList), h("div", { class: "col" }, liveCard, oneCard))));
+  mount(
+    h(
+      "div",
+      { class: "overview shell" },
+      main,
+      h("div", { class: "overview-grid" }, h("div", { class: "col" }, focus, goalsCard, journeyList), h("div", { class: "col" }, liveCard, talkCard, state.me.prototype && testModeCard())),
+    ),
+  );
   document.title = "Min ledarskapsresa";
+}
+
+// Testläge. Finns bara i testversionen. Flyttar dig genom resan utan att veckor behöver gå.
+function testModeCard() {
+  const select = h("select", { id: "test-step", "aria-label": "Flytta mig till" }, weekSteps().map((s) => h("option", { value: s.key, selected: s.key === state.journey.currentStep ? true : null }, s.label)));
+  return h(
+    "section",
+    { class: "card test-mode" },
+    h("p", { class: "kicker" }, "Testläge"),
+    h("p", { class: "muted small" }, "Finns bara i testversionen. Flytta dig genom resan utan att veckor behöver gå. Det du skrivit ligger kvar."),
+    h(
+      "div",
+      { class: "test-row" },
+      select,
+      h("button", {
+        type: "button",
+        class: "button quiet",
+        onclick: async () => {
+          await saver.flushAll();
+          const out = await api("PUT", `/api/journey/${state.enrollment.id}/test-step`, { step: select.value });
+          state.journey = out.entries ? out : await api("GET", `/api/journey/${state.enrollment.id}`);
+          route();
+        },
+      }, "Flytta mig"),
+    ),
+  );
 }
 
 const cap = (s) => (s ? s[0].toUpperCase() + s.slice(1) : s);
@@ -570,12 +629,13 @@ const sectionTitle = (stepKey, sectionKey) => step(stepKey).sections.find((s) =>
 
 function renderWeek(stepKey, sectionKey) {
   const s = step(stepKey);
-  if (!s || !s.built) return renderOverview();
+  if (!s || !s.built || !isOpen(stepKey)) return renderOverview();
   const index = s.sections.findIndex((x) => x.key === sectionKey);
   if (index < 0) return renderWeek(stepKey, s.sections[0].key);
   const section = s.sections[index];
   const next = s.sections[index + 1];
   const prev = s.sections[index - 1];
+  state.view = { stepKey, sectionKey };
 
   const rail = h(
     "nav",
@@ -597,7 +657,7 @@ function renderWeek(stepKey, sectionKey) {
             h(
               "a",
               {
-                href: `#/vecka-1/${sec.key}`,
+                href: stepHref(stepKey, sec.key),
                 class: `rail-item ${sec.key === section.key ? "is-current" : ""}`,
                 "aria-current": sec.key === section.key ? "step" : null,
                 "data-section": sec.key,
@@ -616,15 +676,15 @@ function renderWeek(stepKey, sectionKey) {
   const footer = h(
     "div",
     { class: "section-nav" },
-    prev ? h("a", { class: "button quiet", href: `#/vecka-1/${prev.key}` }, "Tillbaka") : h("span"),
+    prev ? h("a", { class: "button quiet", href: stepHref(stepKey, prev.key) }, "Tillbaka") : h("span"),
     next
-      ? h("a", { class: "button primary", href: `#/vecka-1/${next.key}` }, section.kind === "intro" ? "Börja" : `Vidare: ${next.title}`)
+      ? h("a", { class: "button primary", href: stepHref(stepKey, next.key) }, section.kind === "intro" && index === 0 ? "Börja" : `Vidare: ${next.title}`)
       : h("a", { class: "button primary", href: "#/" }, "Till min översikt"),
   );
 
-  mount(h("div", { class: "week shell" }, rail, h("article", { class: `section section-${section.kind}`, "aria-labelledby": "section-title" }, body, footer)));
+  mount(h("div", { class: "week shell" }, rail, h("article", { class: `section section-${section.kind}`, "aria-labelledby": "section-title", "data-step": stepKey }, body, footer)));
   document.title = `${section.title}. ${s.label}`;
-  if (section.kind === "return" && actionChosen()) track("action_revisited", stepKey, section.key);
+  if (section.kind === "return" && actionChosen(stepKey)) track("action_revisited", stepKey, section.key);
 }
 
 function dotClass(stepKey, sec) {
@@ -636,11 +696,13 @@ function dotLabel(stepKey, sec) {
   return st === "done" ? "Skrivet" : st === "started" ? "Påbörjat" : st === "empty" ? "Inte påbörjat" : "";
 }
 function updateRailStatus() {
+  const stepKey = state.view?.stepKey;
+  if (!stepKey) return;
   document.querySelectorAll(".rail-item[data-section]").forEach((a) => {
-    const sec = step("w1").sections.find((s) => s.key === a.dataset.section);
+    const sec = step(stepKey).sections.find((s) => s.key === a.dataset.section);
     if (!sec) return;
-    a.querySelector(".dot").className = `dot ${dotClass("w1", sec)}`;
-    a.querySelector(".visually-hidden").textContent = dotLabel("w1", sec);
+    a.querySelector(".dot").className = `dot ${dotClass(stepKey, sec)}`;
+    a.querySelector(".visually-hidden").textContent = dotLabel(stepKey, sec);
   });
 }
 
@@ -650,13 +712,18 @@ function sectionHead(section, stepKey) {
     h("h1", { id: "section-title" }, section.title),
     section.lead && h("div", { class: "lead-lines" }, section.lead.map((l) => h("p", {}, l))),
     section.note && h("p", { class: "note" }, section.note),
+    section.hint && h("p", { class: "book-hint" }, section.hint),
   ];
+}
+
+function sourceLine(section) {
+  return section.source ? h("p", { class: "source" }, `Källa: ${section.source}`) : null;
 }
 
 function renderSection(stepKey, section) {
   switch (section.kind) {
     case "intro":
-      return h("div", { class: "intro" }, h("p", { class: "kicker" }, `${step(stepKey).label}. ${step(stepKey).subtitle}`), h("h1", { id: "section-title" }, section.title), h("div", { class: "intro-lines" }, section.lead.map((l) => h("p", {}, l))));
+      return renderIntro(stepKey, section);
     case "reading":
       return renderReading(stepKey, section);
     case "map":
@@ -667,30 +734,55 @@ function renderSection(stepKey, section) {
       return renderPeople(stepKey, section);
     case "situation":
       return renderSituation(stepKey, section);
+    case "triangle":
+      return renderTriangle(stepKey, section);
     case "action":
       return renderAction(stepKey, section);
     case "return":
       return renderReturn(stepKey, section);
+    case "bridge":
+      return renderBridge(stepKey, section);
+    case "halfway":
+      return renderHalfway(stepKey, section);
+    case "lookback":
+      return renderLookback(stepKey, section);
+    case "closing":
+      return renderClosing(stepKey, section);
+    case "live":
+      return renderLive(stepKey, section);
     default:
-      return h("div", {}, sectionHead(section, stepKey), section.fields.map((f) => fieldEl(stepKey, section, f)));
+      return h("div", {}, sectionHead(section, stepKey), h("div", { class: "group-card" }, section.fields.map((f) => fieldEl(stepKey, section, f))), sourceLine(section), shareControls(stepKey, section));
   }
+}
+
+function renderIntro(stepKey, section) {
+  const s = step(stepKey);
+  return h(
+    "div",
+    { class: "intro" },
+    h("p", { class: "kicker" }, `${s.label}. ${s.subtitle}`),
+    h("h1", { id: "section-title" }, section.title),
+    h("div", { class: "intro-lines" }, section.lead.map((l) => h("p", {}, l))),
+    section.quote && h("blockquote", { class: "book-quote" }, h("p", {}, `”${section.quote.text}”`), h("footer", {}, `Ledarskap med hjärta och mod, s. ${section.quote.page}`)),
+  );
 }
 
 function renderReading(stepKey, section) {
   const r = section.reading;
+  const chapter = (c) => h("li", {}, h("span", { class: "chapter-title" }, c.title), h("span", { class: "chapter-pages" }, `s. ${c.pages}`), c.note && h("span", { class: "chapter-note" }, c.note));
   return h(
     "div",
     {},
     sectionHead(section, stepKey),
-    h("div", { class: "reading-card" }, h("p", { class: "small-heading" }, "Läs i boken"), h("p", {}, r.participantText), h("p", { class: "muted" }, "Boken Ledarskap med hjärta och mod köper du själv. Allt annat finns här.")),
-    r.internalNote &&
-      h(
-        "aside",
-        { class: "internal" },
-        h("p", { class: "internal-badge" }, r.status),
-        h("p", {}, r.internalNote),
-        h("p", { class: "muted small" }, "Internt. Visas bara i prototypen. Syns inte för deltagare."),
-      ),
+    h(
+      "div",
+      { class: "reading-card" },
+      h("p", { class: "small-heading" }, "Läs"),
+      h("ul", { class: "chapters" }, r.chapters.map(chapter)),
+      r.note && h("p", {}, r.note),
+      r.optional?.length > 0 && [h("p", { class: "small-heading" }, "Om du vill läsa mer"), h("ul", { class: "chapters is-optional" }, r.optional.map(chapter))],
+      h("p", { class: "muted small" }, "Ledarskap med hjärta och mod köper du själv. Allt annat finns här. Sidorna är bokens tryckta sidor."),
+    ),
   );
 }
 
@@ -743,15 +835,52 @@ function renderMap(stepKey, section) {
       h("div", { class: "scale" }, h("span", { class: "scale-end is-low" }, dim.low), group, h("span", { class: "scale-end is-high" }, dim.high)),
     );
   });
+  const after = section.fields.filter((f) => f.place === "after");
   return h(
     "div",
     {},
     sectionHead(section, stepKey),
     locked && h("p", { class: "lock-note" }, "Startpunkten är satt. Den står kvar så att du kan jämföra i slutet av utbildningen."),
     h("div", { class: "map" }, rows),
-    h("p", { class: "muted small" }, "Du markerar samma karta igen när utbildningen är slut och 30 dagar senare. Då ser du själv vad som har rört sig."),
+    section.compareWith ? mapComparison(section) : point === "start" && h("p", { class: "muted small" }, "Du markerar samma karta igen när utbildningen är slut och 30 dagar senare. Då ser du själv vad som har rört sig."),
+    after.length > 0 && h("div", { class: "group-card after-map" }, after.map((f) => fieldEl(stepKey, section, f))),
   );
 }
+
+// Deltagarens egen bild av sin förflyttning. Samma skala. Ingen summa, inget betyg.
+function mapComparison(section) {
+  const points = [...section.compareWith, section.measurePoint];
+  const labels = program().measurePointLabels;
+  const steps = program().mapScaleSteps;
+  const box = h("section", { class: "compare", "aria-label": "Din egen bild av din förflyttning" });
+  const draw = () => {
+    const values = (p) => state.journey.assessments[p] || {};
+    box.replaceChildren(h("div", { class: "compare-inner" },
+      h("p", { class: "small-heading" }, "Din egen bild av din förflyttning"),
+      h("ul", { class: "compare-legend" }, points.map((p, i) => h("li", {}, h("span", { class: `marker m${i}`, "aria-hidden": "true" }), labels[p]))),
+      program().mapDimensions.map((dim) =>
+        h(
+          "div",
+          { class: "compare-row" },
+          h("p", { class: "compare-label" }, dim.label),
+          h(
+            "div",
+            { class: "compare-track", role: "img", "aria-label": `${dim.label}. ${points.map((p) => `${labels[p]}: ${values(p)[dim.key] || "ingen markering"}`).join(". ")}` },
+            h("span", { class: "compare-end is-low" }, dim.low),
+            h("span", { class: "compare-line" }, points.map((p, i) => values(p)[dim.key] ? h("span", { class: `marker m${i}`, style: `left: ${((values(p)[dim.key] - 1) / (steps - 1)) * 100}%` }) : null)),
+            h("span", { class: "compare-end is-high" }, dim.high),
+          ),
+        ),
+      ),
+      h("p", { class: "muted small" }, "Självskattning. Det är din egen bild, inte ett resultat och inte en poäng."),
+    ));
+  };
+  draw();
+  box.redraw = draw;
+  compareBoxes.add(box);
+  return box;
+}
+const compareBoxes = new Set();
 
 // ---------- Fält ----------
 
@@ -760,13 +889,15 @@ function fieldEl(stepKey, section, field, { readOnly = false } = {}) {
   const key = `e|${stepKey}|${path}`;
   const id = `f-${section.key}-${field.key}`;
   const value = entryValue(stepKey, path);
-  const wrap = h("div", { class: `field ${field.secondary ? "is-secondary" : ""}` });
+  const wrap = h("div", { class: `field ${field.secondary ? "is-secondary" : ""} ${field.tone ? `tone-${field.tone}` : ""}` });
   const label = h("label", { for: id, class: "field-label" }, field.label);
 
   if (readOnly) {
     wrap.append(h("p", { class: "field-label" }, field.label), h("p", { class: "own-words" }, field.kind === "date" ? fmtPlainDate(value) || "Inget datum" : value || "Inget skrivet"));
     return wrap;
   }
+
+  if (field.kind === "choice") return choiceField(stepKey, section, field, key, path, value, wrap);
 
   let input;
   if (field.kind === "date") {
@@ -820,9 +951,35 @@ function fieldEl(stepKey, section, field, { readOnly = false } = {}) {
     );
   });
 
-  wrap.append(label, input, hint, conflict);
+  wrap.append(...[label, field.hint ? h("p", { class: "field-guide" }, field.hint) : null, input, hint, conflict].filter(Boolean));
   if (state.journey.entries[`${stepKey}:${path}`]?.revision > 1) wrap.append(historyToggle(stepKey, path));
   if (input.tagName === "TEXTAREA") requestAnimationFrame(() => autosize(input));
+  return wrap;
+}
+
+// Ett val bland fasta alternativ. Sparas direkt.
+function choiceField(stepKey, section, field, key, path, value, wrap) {
+  const group = h("div", { class: "choices", role: "radiogroup", "aria-label": field.label });
+  const buttons = field.options.map((opt) =>
+    h("button", {
+      type: "button",
+      role: "radio",
+      class: `choice ${opt === value ? "is-on" : ""}`,
+      "aria-checked": opt === value ? "true" : "false",
+      onclick: () => {
+        const next = opt === entryValue(stepKey, path) ? "" : opt;
+        buttons.forEach((b) => {
+          const on = b.textContent === next;
+          b.classList.toggle("is-on", on);
+          b.setAttribute("aria-checked", on ? "true" : "false");
+        });
+        state.journey.entries[`${stepKey}:${path}`] = { ...(state.journey.entries[`${stepKey}:${path}`] || {}), value: next };
+        saver.queue(key, { kind: "entry", step: stepKey, field: path, value: next }, 100);
+      },
+    }, opt),
+  );
+  group.append(...buttons);
+  wrap.append(h("p", { class: "field-label" }, field.label), group);
   return wrap;
 }
 
@@ -910,32 +1067,33 @@ function renderSituation(stepKey, section) {
 
 function renderAction(stepKey, section) {
   // Servern är facit, men klienten vet redan om Vad hände? är påbörjat.
-  const locked = isLocked(stepKey, section.key) || (section.lockedWhen === "returnStarted" && returnStarted());
+  const locked = isLocked(stepKey, section.key) || (section.lockedWhen === "returnStarted" && returnStarted(stepKey));
   return h(
     "div",
     {},
     sectionHead(section, stepKey),
     locked && h("p", { class: "lock-note" }, "Du har börjat skriva om vad som hände. Planen står kvar som du skrev den, så att du kan jämföra."),
     h("div", { class: "group-card" }, section.fields.map((f) => fieldEl(stepKey, section, f, { readOnly: Boolean(locked) }))),
-    !locked && actionChosen() && h("p", { class: "muted small" }, "När du har provat kommer du tillbaka och skriver vad som hände. Då ligger det här kvar."),
+    !locked && actionChosen(stepKey) && h("p", { class: "muted small" }, "När du har provat kommer du tillbaka och skriver vad som hände. Då ligger det här kvar."),
     shareControls(stepKey, section),
   );
 }
 
+function planRecall(stepKey, { large = true } = {}) {
+  const plan = (k) => entryValue(stepKey, `handling.${k}`);
+  return [
+    h("blockquote", { class: `own-words ${large ? "large" : ""}` }, plan("prova")),
+    plan("situation") && h("p", {}, h("span", { class: "small-heading" }, "Situation "), plan("situation")),
+    plan("lagga_marke") && h("p", {}, h("span", { class: "small-heading" }, "Du ville lägga märke till "), plan("lagga_marke")),
+    plan("forvantan") && h("p", {}, h("span", { class: "small-heading" }, "Du trodde att "), plan("forvantan")),
+    plan("nar") && h("p", { class: "muted" }, `Planerat till ${fmtPlainDate(plan("nar"))}.`),
+  ];
+}
+
 function renderReturn(stepKey, section) {
-  const from = step(stepKey).sections.find((s) => s.key === section.recallFrom);
-  const plan = (k) => entryValue(stepKey, `${from.key}.${k}`);
-  const recall = actionChosen()
-    ? h(
-        "aside",
-        { class: "recall" },
-        h("p", { class: "kicker" }, "Du bestämde dig för att prova"),
-        h("blockquote", { class: "own-words large" }, plan("prova")),
-        plan("situation") && h("p", {}, h("span", { class: "small-heading" }, "Situation "), plan("situation")),
-        plan("lagga_marke") && h("p", {}, h("span", { class: "small-heading" }, "Du ville lägga märke till "), plan("lagga_marke")),
-        plan("nar") && h("p", { class: "muted" }, `Planerat till ${fmtPlainDate(plan("nar"))}.`),
-      )
-    : h("aside", { class: "recall is-empty" }, h("p", {}, "Du har inte valt vad du ska prova ännu."), h("a", { class: "button quiet", href: `#/vecka-1/${from.key}` }, "Välj veckans handling"));
+  const recall = actionChosen(stepKey)
+    ? h("aside", { class: "recall" }, h("p", { class: "kicker" }, "Du bestämde dig för att prova"), planRecall(stepKey))
+    : h("aside", { class: "recall is-empty" }, h("p", {}, "Du har inte valt vad du ska prova ännu."), h("a", { class: "button quiet", href: stepHref(stepKey, section.recallFrom) }, "Välj veckans handling"));
   return h(
     "div",
     {},
@@ -945,6 +1103,216 @@ function renderReturn(stepKey, section) {
     h("div", { class: "lead-lines" }, section.lead.map((l) => h("p", {}, l))),
     h("div", { class: "group-card" }, section.fields.map((f) => fieldEl(stepKey, section, f))),
     shareControls(stepKey, section),
+  );
+}
+
+// ---------- Trianglar ----------
+//
+// Hörnen ritas i rubrikens läsordning: vänster, mitten (överst), höger.
+// För Se · Höra · Känna blir det den fasta regeln: SE vänster, HÖRA mitten,
+// KÄNNA höger. På alla skärmar. Fälten följer samma ordning.
+
+function triangleFigure(stepKey, section) {
+  const ns = "http://www.w3.org/2000/svg";
+  const svg = document.createElementNS(ns, "svg");
+  svg.setAttribute("viewBox", "0 0 320 190");
+  svg.setAttribute("class", "triangle-figure");
+  svg.setAttribute("role", "img");
+  svg.setAttribute("aria-label", `Triangel: ${section.corners.map((c) => c.label).join(", ")}. Från vänster till höger.`);
+  const pos = [
+    { x: 60, y: 150, anchor: "middle" },
+    { x: 160, y: 34, anchor: "middle" },
+    { x: 260, y: 150, anchor: "middle" },
+  ];
+  const line = document.createElementNS(ns, "polygon");
+  line.setAttribute("points", pos.map((p) => `${p.x},${p.y}`).join(" "));
+  line.setAttribute("class", "triangle-edge");
+  svg.append(line);
+  section.corners.forEach((c, i) => {
+    const filled = Boolean(entryValue(stepKey, `${section.key}.${c.key}`).trim());
+    const g = document.createElementNS(ns, "g");
+    g.setAttribute("class", `corner ${filled ? "is-filled" : ""}`);
+    g.setAttribute("data-corner", c.key);
+    g.setAttribute("data-position", ["left", "middle", "right"][i]);
+    const circle = document.createElementNS(ns, "circle");
+    circle.setAttribute("cx", pos[i].x);
+    circle.setAttribute("cy", pos[i].y);
+    circle.setAttribute("r", 26);
+    const text = document.createElementNS(ns, "text");
+    text.setAttribute("x", pos[i].x);
+    text.setAttribute("y", pos[i].y + 5);
+    text.setAttribute("text-anchor", "middle");
+    text.textContent = c.label.toUpperCase();
+    g.append(circle, text);
+    g.addEventListener("click", () => document.getElementById(`f-${section.key}-${c.key}`)?.focus());
+    svg.append(g);
+  });
+  return svg;
+}
+
+function renderTriangle(stepKey, section) {
+  const pre = section.fields.filter((f) => f.place === "pre");
+  const cornerFields = section.corners.map((c) => section.fields.find((f) => f.corner === c.key));
+  const post = section.fields.filter((f) => f.place === "post");
+  const figure = h("figure", { class: `triangle model-${section.model}` }, triangleFigure(stepKey, section), h("figcaption", {}, section.prompt));
+  const refresh = () => {
+    const fresh = triangleFigure(stepKey, section);
+    figure.firstChild.replaceWith(fresh);
+  };
+  const corners = h(
+    "div",
+    { class: "corner-fields" },
+    cornerFields.map((f, i) => {
+      const el = fieldEl(stepKey, section, f);
+      el.classList.add("corner-field");
+      el.dataset.position = ["left", "middle", "right"][i];
+      el.addEventListener("input", () => setTimeout(refresh, 50));
+      return el;
+    }),
+  );
+  return h(
+    "div",
+    {},
+    sectionHead(section, stepKey),
+    pre.length > 0 && h("div", { class: "group-card" }, pre.map((f) => fieldEl(stepKey, section, f))),
+    figure,
+    corners,
+    post.length > 0 && h("div", { class: "group-card" }, post.map((f) => fieldEl(stepKey, section, f))),
+    sourceLine(section),
+    shareControls(stepKey, section),
+  );
+}
+
+// ---------- Resan kommer ihåg ----------
+
+function renderBridge(stepKey, section) {
+  const from = step(section.fromStep);
+  const ret = returnSection(from.key);
+  const what = (k) => entryValue(from.key, `${ret.key}.${k}`);
+  const happened = what("hande") || what("gjorde_faktiskt");
+  const learned = what("larde") || what("upptackte");
+  return h(
+    "div",
+    {},
+    h("p", { class: "kicker" }, step(stepKey).label),
+    h("h1", { id: "section-title" }, "Innan vi går vidare"),
+    actionChosen(from.key)
+      ? h(
+          "aside",
+          { class: "recall" },
+          h("p", { class: "kicker" }, `${from.label}. Du bestämde dig för att prova`),
+          planRecall(from.key, { large: false }),
+          happened
+            ? [h("p", { class: "small-heading" }, "Efteråt skrev du att det här hände"), h("p", { class: "own-words" }, happened), learned && [h("p", { class: "small-heading" }, "Och det här lärde du dig"), h("p", { class: "own-words" }, learned)]]
+            : [h("p", {}, "Du har inte skrivit vad som hände ännu. Gör det först. Det är där lärandet sitter."), h("a", { class: "button primary", href: stepHref(from.key, ret.key) }, "Berätta vad som hände")],
+        )
+      : h("aside", { class: "recall is-empty" }, h("p", {}, `Du valde ingen handling i ${from.label.toLowerCase()}. Det går att gå tillbaka.`), h("a", { class: "button quiet", href: stepHref(from.key, "handling") }, `Till ${from.label.toLowerCase()}`)),
+    h("div", { class: "lead-lines" }, h("p", {}, "Vi börjar med vad du gjorde och vad som hände. Inte med vad du tänkte göra.")),
+  );
+}
+
+function goalsRecall() {
+  const goals = [1, 2, 3].map((n) => ({ g: entryValue("w1", `forandring.mal_${n}`), m: entryValue("w1", `forandring.mal_${n}_marks`) })).filter((x) => x.g.trim());
+  if (!goals.length) return h("p", { class: "muted" }, "Du skrev inga förändringsmål i vecka 1. Du kan göra det nu.");
+  return h("ol", { class: "own-list" }, goals.map((x) => h("li", {}, x.g, x.m && h("span", { class: "muted small block" }, `Du skulle märka det på: ${x.m}`))));
+}
+
+function renderHalfway(stepKey, section) {
+  return h(
+    "div",
+    {},
+    sectionHead(section, stepKey),
+    h("aside", { class: "recall" }, h("p", { class: "kicker" }, "När du började ville du att människorna runt dig skulle märka"), goalsRecall()),
+    h("div", { class: "group-card" }, section.fields.map((f) => fieldEl(stepKey, section, f))),
+    sourceLine(section),
+  );
+}
+
+function startRecall() {
+  const items = [
+    ["Varför du var här", entryValue("w1", "karta.varfor_har")],
+    ["Det som skavde mest", entryValue("w1", "karta.skaver_mest")],
+  ].filter(([, v]) => v.trim());
+  return items.map(([k, v]) => [h("p", { class: "small-heading" }, k), h("p", { class: "own-words" }, v)]);
+}
+
+function actionsRecall() {
+  const weeks = weekSteps().filter((s) => returnSection(s.key) && actionChosen(s.key));
+  if (!weeks.length) return null;
+  return h(
+    "ol",
+    { class: "timeline" },
+    weeks.map((s) => {
+      const ret = returnSection(s.key);
+      const happened = entryValue(s.key, `${ret.key}.hande`);
+      return h(
+        "li",
+        {},
+        h("p", { class: "small-heading" }, s.label),
+        h("p", { class: "own-words" }, entryValue(s.key, "handling.prova")),
+        happened ? h("p", { class: "muted" }, `Det här hände: ${happened}`) : h("p", { class: "muted" }, "Vad som hände är inte skrivet."),
+      );
+    }),
+  );
+}
+
+function renderLookback(stepKey, section) {
+  const isD30 = stepKey === "d30";
+  const direction = [1, 2, 3].map((n) => ({ f: entryValue("w6", `avslut.fortsatta_${n}`), u: entryValue("w6", `avslut.folja_upp_${n}`) })).filter((x) => x.f.trim());
+  const promise = entryValue("w6", "avslut.lofte");
+  return h(
+    "div",
+    {},
+    sectionHead(section, stepKey),
+    h(
+      "aside",
+      { class: "recall lookback" },
+      h("p", { class: "kicker" }, "Det här var ditt startläge"),
+      startRecall(),
+      h("p", { class: "small-heading" }, "Det här ville du förändra"),
+      goalsRecall(),
+      !isD30 && [h("p", { class: "small-heading" }, "Det här provade du, och det här hände"), actionsRecall() || h("p", { class: "muted" }, "Inga handlingar skrivna ännu.")],
+      isD30 && direction.length > 0 && [h("p", { class: "small-heading" }, "Din riktning efter sex veckor"), h("ol", { class: "own-list" }, direction.map((x) => h("li", {}, x.f, x.u && h("span", { class: "muted small block" }, `Uppföljning: ${x.u}`))))],
+      isD30 && promise && [h("p", { class: "small-heading" }, "Du lovade dig själv att"), h("p", { class: "own-words" }, promise)],
+    ),
+    isD30 && mapComparison({ compareWith: ["start"], measurePoint: "end" }),
+    section.fields.length > 0 && h("div", { class: "group-card" }, section.fields.map((f) => fieldEl(stepKey, section, f))),
+    sourceLine(section),
+  );
+}
+
+function renderClosing(stepKey, section) {
+  const groups = [...new Set(section.fields.filter((f) => f.group).map((f) => f.group))];
+  const single = section.fields.filter((f) => !f.group);
+  return h(
+    "div",
+    {},
+    sectionHead(section, stepKey),
+    h("div", { class: "group-card" }, single.filter((f) => f.key !== "lofte").map((f) => fieldEl(stepKey, section, f))),
+    h("p", { class: "small-heading" }, "Min riktning framåt"),
+    groups.map((g) => h("fieldset", { class: "group-card" }, h("legend", { class: "visually-hidden" }, `Riktning ${g}`), section.fields.filter((f) => f.group === g).map((f) => fieldEl(stepKey, section, f)))),
+    h("div", { class: "group-card promise" }, single.filter((f) => f.key === "lofte").map((f) => fieldEl(stepKey, section, f))),
+    state.me.prototype && program().diploma && h("aside", { class: "internal" }, h("p", { class: "internal-badge" }, program().diploma.status), h("p", {}, program().diploma.note), h("p", { class: "muted small" }, "Internt. Visas bara i testversionen.")),
+    sourceLine(section),
+    shareControls(stepKey, section),
+  );
+}
+
+function renderLive(stepKey, section) {
+  const ls = program().liveSupport;
+  return h(
+    "div",
+    {},
+    sectionHead(section, stepKey),
+    h(
+      "div",
+      { class: "live-support" },
+      h("section", { class: "live-block" }, h("p", { class: "small-heading" }, "Medtränarens fem regler"), h("ol", { class: "rules" }, ls.coachRules.map(([a, b]) => h("li", {}, h("strong", {}, a), " ", b)))),
+      h("section", { class: "live-block" }, h("p", { class: "small-heading" }, "Under träffen, när du är medtränare"), h("ul", { class: "rules" }, ls.coachQuestions.map((q) => h("li", {}, q))), h("p", { class: "muted small" }, "Ha frågorna i huvudet. De sparas inte här.")),
+      h("section", { class: "live-block" }, h("p", { class: "small-heading" }, "Vårt gemensamma rum"), h("ul", { class: "rules" }, ls.roomRules.map((r) => h("li", {}, r)))),
+    ),
+    h("div", { class: "group-card" }, section.fields.map((f) => fieldEl(stepKey, section, f))),
+    sourceLine(section),
   );
 }
 

@@ -4,13 +4,12 @@ import { extname, join, normalize } from "node:path";
 import { fileURLToPath } from "node:url";
 import { tx } from "./db.mjs";
 import { MAP_DIMENSIONS, STEPS, findField, getSection, getStep, publicProgram } from "./content.mjs";
+import * as rules from "./rules.mjs";
 
 const PUBLIC_DIR = fileURLToPath(new URL("../public/", import.meta.url));
 const SESSION_COOKIE = "lr_session";
 const SESSION_DAYS = 30;
 const MAX_BODY_BYTES = 64 * 1024;
-const MAX_TEXT = 8000;
-const MAX_SHORT = 200;
 // Ett nytt skrivpass börjar efter så här lång paus. Då sparas föregående
 // version som historik innan den skrivs över.
 export const WRITING_SESSION_GAP_MS = 30 * 60 * 1000;
@@ -157,53 +156,29 @@ export function createApp(db, config = {}) {
     return map;
   }
 
-  function sectionStatus(stepKey, section, entries, assessments) {
-    const rule = section.doneWhen;
-    if (!rule) return null;
-    if (section.kind === "map") {
-      const values = assessments[section.measurePoint] || {};
-      const n = MAP_DIMENSIONS.filter((d) => values[d.key]).length;
-      return n === MAP_DIMENSIONS.length ? "done" : n > 0 ? "started" : "empty";
-    }
-    const filled = (key) => Boolean(entries[`${stepKey}:${section.key}.${key}`]?.value?.trim());
-    const count = section.fields.filter((f) => filled(f.key)).length;
-    const done = rule.all ? rule.all.every(filled) : count >= (rule.atLeast || 1);
-    return done ? "done" : count > 0 ? "started" : "empty";
+  // Steget gruppen står i. I prototypen kan en testperson flyttas med testläget.
+  function currentStepOf(enr) {
+    return (cfg.prototype && enr.test_step) || enr.current_step;
   }
 
-  function lockedSections(enr, entries) {
-    const locked = {};
-    const step = getStep("w1");
-    for (const section of step.sections) {
-      if (section.lockedWhen === "returnStarted") {
-        const returnSection = step.sections.find((s) => s.recallFrom === section.key);
-        const started = returnSection?.fields.some((f) => entries[`w1:${returnSection.key}.${f.key}`]?.value?.trim());
-        if (started) locked[`w1:${section.key}`] = "return_started";
-      }
-      if (section.kind === "map" && enr.current_step !== "w1") locked[`w1:${section.key}`] = "week_passed";
-    }
-    return locked;
+  function lockedFor(enr, entries) {
+    return rules.lockedSections(STEPS, currentStepOf(enr), entries);
   }
 
   function journeyState(enr) {
     const entries = entryMap(enr.id);
     const assessments = assessmentMap(enr.id);
-    const status = {};
-    for (const step of STEPS.filter((s) => s.built)) {
-      for (const section of step.sections) {
-        const st = sectionStatus(step.key, section, entries, assessments);
-        if (st) status[`${step.key}:${section.key}`] = st;
-      }
-    }
     return {
       enrollmentId: enr.id,
+      currentStep: currentStepOf(enr),
+      openSteps: rules.openStepKeys(STEPS, currentStepOf(enr)),
       entries: Object.fromEntries(
         Object.entries(entries).map(([k, r]) => [k, { value: r.value, revision: r.revision, updatedAt: r.updated_at }]),
       ),
       assessments,
       shares: q.shares.all(enr.id).map((s) => ({ step: s.step_key, section: s.section_key, kind: s.kind, since: s.created_at })),
-      locked: lockedSections(enr, entries),
-      status,
+      locked: lockedFor(enr, entries),
+      status: rules.allStatuses(STEPS, entries, assessments, MAP_DIMENSIONS),
       lastActivityAt: enr.last_activity_at,
     };
   }
@@ -226,10 +201,10 @@ export function createApp(db, config = {}) {
   function snapshot(enr, stepKey, section) {
     const entries = entryMap(enr.id);
     const assessments = assessmentMap(enr.id);
-    const anyInStep =
-      Object.keys(entries).some((k) => k.startsWith(`${stepKey}:`) && entries[k].value.trim()) ||
-      Object.keys(assessments).length > 0;
-    return { anyInStep, status: sectionStatus(stepKey, section, entries, assessments) };
+    return {
+      anyInStep: rules.anyInStep(stepKey, entries, assessments, STEPS),
+      status: rules.sectionStatus(stepKey, section, entries, assessments, MAP_DIMENSIONS),
+    };
   }
 
   // ---------- Handlers ----------
@@ -250,7 +225,8 @@ export function createApp(db, config = {}) {
           name: enr.cohort_name,
           startDate: enr.start_date,
           endDate: enr.end_date,
-          currentStep: enr.current_step,
+          currentStep: currentStepOf(enr),
+          groupStep: enr.current_step,
           status: enr.cohort_status,
         },
         nextLiveSession: next && liveSessionOut(next),
@@ -280,17 +256,16 @@ export function createApp(db, config = {}) {
     const { step, field, value, baseRevision } = body || {};
     const stepDef = getStep(step);
     if (!stepDef) throw new HttpError(400, "unknown_step");
-    if (!stepDef.built) throw new HttpError(403, "step_not_open");
+    if (!rules.isStepOpen(STEPS, step, currentStepOf(enr))) throw new HttpError(403, "step_not_open");
     const found = findField(step, field);
     if (!found) throw new HttpError(400, "unknown_field");
-    if (typeof value !== "string") throw new HttpError(400, "invalid_value");
     const { section, field: def } = found;
-    if (def.kind === "date" && value && !/^\d{4}-\d{2}-\d{2}$/.test(value)) throw new HttpError(400, "invalid_date");
-    if (value.length > (def.kind === "short" ? MAX_SHORT : MAX_TEXT)) throw new HttpError(413, "too_long");
+    const invalid = rules.validateValue(def, value);
+    if (invalid) throw new HttpError(invalid === "too_long" ? 413 : 400, invalid);
 
     return tx(db, () => {
       const entriesBefore = entryMap(enr.id);
-      const lock = lockedSections(enr, entriesBefore)[`${step}:${section.key}`];
+      const lock = lockedFor(enr, entriesBefore)[`${step}:${section.key}`];
       if (lock) throw new HttpError(423, "locked", { reason: lock });
 
       const before = snapshot(enr, step, section);
@@ -341,14 +316,15 @@ export function createApp(db, config = {}) {
     const user = requireUser(req);
     const enr = ownEnrollment(user, enrollmentId);
     const { point, dimension, value } = body || {};
-    // Endast startskattningen är öppen i den här prototypen.
-    if (point !== "start") throw new HttpError(403, "measure_point_not_open");
+    // En skattning får bara göras i en karta som finns i ett öppet steg.
+    const found = rules.mapSectionFor(STEPS, point, currentStepOf(enr));
+    if (!found || found.closed) throw new HttpError(403, "measure_point_not_open");
     if (!MAP_DIMENSIONS.some((d) => d.key === dimension)) throw new HttpError(400, "unknown_dimension");
     if (!Number.isInteger(value) || value < 1 || value > 6) throw new HttpError(400, "invalid_value");
-    const section = getStep("w1").sections.find((s) => s.kind === "map" && s.measurePoint === point);
+    const { step, section } = found;
     return tx(db, () => {
-      if (lockedSections(enr, entryMap(enr.id))[`w1:${section.key}`]) throw new HttpError(423, "locked");
-      const before = snapshot(enr, "w1", section);
+      if (lockedFor(enr, entryMap(enr.id))[`${step.key}:${section.key}`]) throw new HttpError(423, "locked");
+      const before = snapshot(enr, step.key, section);
       const now = nowIso();
       db.prepare(
         `INSERT INTO lr_self_assessment (enrollment_id, measure_point, dimension, value, assessed_at, updated_at)
@@ -356,7 +332,7 @@ export function createApp(db, config = {}) {
          ON CONFLICT (enrollment_id, measure_point, dimension) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at`,
       ).run(enr.id, point, dimension, value, now, now);
       q.touchEnrollment.run(now, enr.id);
-      deriveEvents(enr, "w1", section, before, snapshot(enr, "w1", section));
+      deriveEvents(enr, step.key, section, before, snapshot(enr, step.key, section));
       return { savedAt: now };
     });
   }
@@ -408,6 +384,20 @@ export function createApp(db, config = {}) {
     const enr = enrollmentId ? ownEnrollment(user, enrollmentId) : null;
     q.insertEvent.run(enr?.id || null, name, step, section, nowIso());
     return { ok: true };
+  }
+
+  // Testläge. Flyttar en testperson genom resan utan att verklig tid går.
+  // Finns bara när servern körs som prototyp. Aldrig för verkliga deltagare.
+  function putTestStep(req, enrollmentId, body) {
+    if (!cfg.prototype) throw new HttpError(404, "not_found");
+    const user = requireUser(req);
+    const enr = ownEnrollment(user, enrollmentId);
+    // null rensar testläget. Då gäller gruppens verkliga steg igen.
+    const step = body?.step ?? null;
+    const def = step === null ? null : getStep(step);
+    if (step !== null && (!def || def.aside)) throw new HttpError(400, "unknown_step");
+    db.prepare("UPDATE lr_enrollment SET test_step = ? WHERE id = ?").run(step, enr.id);
+    return journeyState({ ...enr, test_step: step });
   }
 
   // Jan som handledare ser endast det som en deltagare aktivt har delat.
@@ -591,6 +581,9 @@ export function createApp(db, config = {}) {
       return putAssessment(req, match[1], body);
     }
     if ((match = m(/^\/api\/journey\/([\w-]+)\/share$/)) && req.method === "PUT") return putShare(req, match[1], body);
+    if ((match = m(/^\/api\/journey\/([\w-]+)\/test-step$/)) && req.method === "PUT") {
+      return putTestStep(req, match[1], body);
+    }
     if ((match = m(/^\/api\/journey\/([\w-]+)\/history$/)) && req.method === "GET") {
       return getHistory(req, match[1], url);
     }

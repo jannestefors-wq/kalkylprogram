@@ -15,12 +15,14 @@
 
 (function () {
   const PROGRAM = window.LR_PROGRAM;
+  // Samma regler som servern använder (server/rules.mjs), inlagda av byggsteget.
+  const R = window.LR_RULES;
+  const STEPS = PROGRAM.steps;
+  const DIMS = PROGRAM.mapDimensions;
   const ENROLLMENT_ID = "min-resa";
   const SESSION_KEY = "lr-preview-inloggad";
   const GAP_MS = 30 * 60 * 1000;
   const MAX_HISTORY = 30;
-  const MAX_TEXT = 8000;
-  const MAX_SHORT = 200;
 
   const httpError = (status, code, extra = {}) => {
     const e = new Error(code);
@@ -102,47 +104,21 @@
     return { entries, assessments, shares, profile };
   }
 
-  function sectionStatus(stepKey, sec, entries, assessments) {
-    const rule = sec.doneWhen;
-    if (!rule) return null;
-    if (sec.kind === "map") {
-      const values = assessments[sec.measurePoint] || {};
-      const n = PROGRAM.mapDimensions.filter((d) => values[d.key]).length;
-      return n === PROGRAM.mapDimensions.length ? "done" : n > 0 ? "started" : "empty";
-    }
-    const filled = (k) => Boolean(entries[`${stepKey}:${sec.key}.${k}`]?.value?.trim());
-    const count = sec.fields.filter((f) => filled(f.key)).length;
-    const done = rule.all ? rule.all.every(filled) : count >= (rule.atLeast || 1);
-    return done ? "done" : count > 0 ? "started" : "empty";
-  }
-
-  function lockedSections(currentStep, entries) {
-    const locked = {};
-    for (const sec of step("w1").sections) {
-      if (sec.lockedWhen === "returnStarted") {
-        const ret = step("w1").sections.find((s) => s.recallFrom === sec.key);
-        if (ret?.fields.some((f) => entries[`w1:${ret.key}.${f.key}`]?.value?.trim())) locked[`w1:${sec.key}`] = "return_started";
-      }
-      if (sec.kind === "map" && currentStep !== "w1") locked[`w1:${sec.key}`] = "week_passed";
-    }
-    return locked;
-  }
+  // Steget testpersonen står i. Testläget lagras i personens egen profil.
+  const currentStepOf = (co, data) => data.profile?.testStep || co.currentStep;
+  const lockedFor = (co, data) => R.lockedSections(STEPS, currentStepOf(co, data), data.entries);
 
   async function touch(c, data) {
     const now = new Date().toISOString();
-    const status = {};
-    for (const sec of step("w1").sections) {
-      const st = sectionStatus("w1", sec, data.entries, data.assessments);
-      if (st) status[sec.key] = st;
-    }
-    const started = Object.values(status).some((s) => s !== "empty");
+    const startedSteps = STEPS.filter((s) => s.built && R.anyInStep(s.key, data.entries, data.assessments, STEPS)).map((s) => s.key);
+    const started = startedSteps.join(",");
     const last = data.profile?.lastActivityAt ? Date.parse(data.profile.lastActivityAt) : 0;
     // Senast aktiv behöver inte vara exakt på sekunden. Skriv högst var femte minut.
     if (data.profile && Date.now() - last < 5 * 60 * 1000 && data.profile.started === started) return;
     data.profile = { ...(data.profile || { enrolledAt: now }), lastActivityAt: now, started };
     await own(c).doc("profile").set(data.profile);
     // Status utan fritext, för testrollen programadministratör.
-    await c.db.doc(`roster/${c.uid}`).set({ lastActivityAt: now, startedSteps: started ? ["w1"] : [] });
+    await c.db.doc(`roster/${c.uid}`).set({ lastActivityAt: now, startedSteps });
   }
 
   // Delat avsnitt hålls levande: Jan ser texten som den är nu.
@@ -179,7 +155,7 @@
           id: ENROLLMENT_ID,
           status: "active",
           lastActivityAt: data.profile?.lastActivityAt || null,
-          cohort: { id: co.id, name: co.name, startDate: co.startDate, endDate: co.endDate, currentStep: co.currentStep, status: co.status },
+          cohort: { id: co.id, name: co.name, startDate: co.startDate, endDate: co.endDate, currentStep: currentStepOf(co, data), groupStep: co.currentStep, status: co.status },
           nextLiveSession: next,
           oneOnOnes: [],
         },
@@ -190,18 +166,16 @@
   async function journey(c, data, co) {
     data ||= await loadOwn(c);
     co ||= await cohort(c);
-    const status = {};
-    for (const sec of step("w1").sections) {
-      const st = sectionStatus("w1", sec, data.entries, data.assessments);
-      if (st) status[`w1:${sec.key}`] = st;
-    }
+    const current = currentStepOf(co, data);
     return {
       enrollmentId: ENROLLMENT_ID,
+      currentStep: current,
+      openSteps: R.openStepKeys(STEPS, current),
       entries: Object.fromEntries(Object.entries(data.entries).map(([k, e]) => [k, { value: e.value, revision: e.revision, updatedAt: e.updatedAt }])),
       assessments: data.assessments,
       shares: data.shares,
-      locked: lockedSections(co.currentStep, data.entries),
-      status,
+      locked: lockedFor(co, data),
+      status: R.allStatuses(STEPS, data.entries, data.assessments, DIMS),
       lastActivityAt: data.profile?.lastActivityAt || null,
     };
   }
@@ -215,16 +189,15 @@
     const { step: stepKey, field: path, value, baseRevision } = body || {};
     const st = step(stepKey);
     if (!st) throw httpError(400, "unknown_step");
-    if (!st.built) throw httpError(403, "step_not_open");
     const found = findField(stepKey, path);
     if (!found) throw httpError(400, "unknown_field");
-    if (typeof value !== "string") throw httpError(400, "invalid_value");
-    if (found.field.kind === "date" && value && !/^\d{4}-\d{2}-\d{2}$/.test(value)) throw httpError(400, "invalid_date");
-    if (value.length > (found.field.kind === "short" ? MAX_SHORT : MAX_TEXT)) throw httpError(413, "too_long");
+    const invalid = R.validateValue(found.field, value);
+    if (invalid) throw httpError(invalid === "too_long" ? 413 : 400, invalid);
 
     const co = await cohort(c);
     const data = await loadOwn(c);
-    if (lockedSections(co.currentStep, data.entries)[`${stepKey}:${found.section.key}`]) throw httpError(423, "locked");
+    if (!R.isStepOpen(STEPS, stepKey, currentStepOf(co, data))) throw httpError(403, "step_not_open");
+    if (lockedFor(co, data)[`${stepKey}:${found.section.key}`]) throw httpError(423, "locked");
 
     const key = `${stepKey}:${path}`;
     const existing = data.entries[key];
@@ -258,13 +231,13 @@
   async function putAssessment(body) {
     const c = await ctx();
     const { point, dimension, value } = body || {};
-    if (point !== "start") throw httpError(403, "measure_point_not_open");
-    if (!PROGRAM.mapDimensions.some((d) => d.key === dimension)) throw httpError(400, "unknown_dimension");
+    if (!DIMS.some((d) => d.key === dimension)) throw httpError(400, "unknown_dimension");
     if (!Number.isInteger(value) || value < 1 || value > 6) throw httpError(400, "invalid_value");
     const co = await cohort(c);
     const data = await loadOwn(c);
-    const mapSection = step("w1").sections.find((s) => s.kind === "map");
-    if (lockedSections(co.currentStep, data.entries)[`w1:${mapSection.key}`]) throw httpError(423, "locked");
+    const found = R.mapSectionFor(STEPS, point, currentStepOf(co, data));
+    if (!found || found.closed) throw httpError(403, "measure_point_not_open");
+    if (lockedFor(co, data)[`${found.step.key}:${found.section.key}`]) throw httpError(423, "locked");
     const now = new Date().toISOString();
     const points = { ...data.assessments, [point]: { ...(data.assessments[point] || {}), [dimension]: value } };
     const meta = { ...((await own(c).doc("assessments").get()).data()?.meta || {}) };
@@ -299,6 +272,18 @@
     if (!snap.exists) return { current: null, versions: [] };
     const e = snap.data();
     return { current: { value: e.value, since: e.createdAt, updatedAt: e.updatedAt }, versions: e.history || [] };
+  }
+
+  // Testläge. Bara i förhandsvisningen. Flyttar testpersonen genom resan.
+  async function putTestStep(body) {
+    const c = await ctx();
+    const target = body?.step ?? null;
+    const def = target === null ? null : step(target);
+    if (target !== null && (!def || def.aside)) throw httpError(400, "unknown_step");
+    const data = await loadOwn(c);
+    data.profile = { ...(data.profile || { enrolledAt: new Date().toISOString() }), testStep: target };
+    await own(c).doc("profile").set(data.profile);
+    return journey(c, data);
   }
 
   async function participantIds(c) {
@@ -382,7 +367,7 @@
     if (p === "/api/facilitator/shared" && method === "GET") return facilitatorShared();
     if (p === "/api/admin/overview" && method === "GET") return adminOverview();
     if ((m = p.match(/^\/api\/admin\/live-sessions\/([\w-]+)$/)) && method === "PUT") return adminUpdateLiveSession(m[1], body || {});
-    if ((m = p.match(/^\/api\/journey\/([\w-]+)(\/[a-z]+)?$/))) {
+    if ((m = p.match(/^\/api\/journey\/([\w-]+)(\/[a-z-]+)?$/))) {
       assertOwn(m[1]);
       const sub = m[2] || "";
       if (!sub && method === "GET") {
@@ -393,6 +378,7 @@
       if (sub === "/assessment" && method === "PUT") return putAssessment(body);
       if (sub === "/share" && method === "PUT") return putShare(body);
       if (sub === "/history" && method === "GET") return history(url);
+      if (sub === "/test-step" && method === "PUT") return putTestStep(body);
     }
     throw httpError(404, "not_found");
   }

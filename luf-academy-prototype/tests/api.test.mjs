@@ -268,14 +268,94 @@ test("7 till 15. hela Vecka 1-kedjan på servern", async () => {
   assert.equal(j.status["w1:vad-hande"], "done");
 });
 
-test("21. vecka 2 till 6 och 30 dagar är inte öppna", async () => {
-  const p = await participant("testdeltagare");
-  for (const step of ["w2", "w3", "w4", "w5", "w6", "d30"]) {
-    const res = await p.c.put(`/api/journey/${p.enr}/entry`, { step, field: "x.y", value: "test" });
-    assert.equal(res.status, 403, step);
+test("steg öppnas i ordning. Testläget flyttar bara testpersonen.", async () => {
+  const p = await participant("deltagare-a3");
+  const put = (step, field, value = "test") => p.c.put(`/api/journey/${p.enr}/entry`, { step, field, value });
+  assert.deepEqual(p.me.program.steps.filter((s) => s.built).map((s) => s.key), ["w1", "w2", "w3", "w4", "w5", "w6", "d30", "samtal"]);
+  assert.equal((await put("w2", "stanna.skjutit_upp")).status, 403, "vecka 2 är stängd när gruppen är i vecka 1");
+  assert.equal((await put("d30", "kvar.fortfarande")).status, 403);
+  assert.equal((await put("samtal", "infor.forsta")).status, 200, "samtal med Jan är alltid öppet");
+  assert.equal((await put("w1", "situation.hittepa")).status, 400);
+
+  const moved = await p.c.put(`/api/journey/${p.enr}/test-step`, { step: "w3" });
+  assert.equal(moved.status, 200);
+  assert.deepEqual(moved.body.openSteps, ["w1", "w2", "w3", "samtal"]);
+  assert.equal((await put("w2", "stanna.skjutit_upp")).status, 200);
+  assert.equal((await put("w3", "se-hora-kanna.se")).status, 200);
+  assert.equal((await put("w4", "stanna.trygghet_team")).status, 403);
+  // Startskattningen låses när testpersonen har gått vidare från vecka 1.
+  assert.equal((await p.c.put(`/api/journey/${p.enr}/assessment`, { point: "start", dimension: "mod", value: 3 })).status, 423);
+
+  // Andra i samma grupp påverkas inte.
+  const anna = await participant("deltagare-a2");
+  assert.equal(anna.me.enrollments[0].cohort.currentStep, "w1");
+  assert.equal((await p.c.put(`/api/journey/${anna.enr}/test-step`, { step: "w6" })).status, 404, "kan inte flytta någon annan");
+  await p.c.put(`/api/journey/${p.enr}/test-step`, { step: null });
+});
+
+test("testläget finns inte utanför prototypen", async () => {
+  const app = createApp(db, { prototype: false, now: () => clock });
+  const s = createServer((req, res) => app.handle(req, res));
+  await new Promise((r) => s.listen(0, "127.0.0.1", r));
+  const res = await fetch(`http://127.0.0.1:${s.address().port}/login?t=${links["deltagare-b1"].token}`, { redirect: "manual" });
+  const cookie = res.headers.get("set-cookie").split(";")[0];
+  const headers = { Cookie: cookie, "X-LUF-Academy": "1", "Content-Type": "application/json" };
+  const me = await (await fetch(`http://127.0.0.1:${s.address().port}/api/me`, { headers })).json();
+  const out = await fetch(`http://127.0.0.1:${s.address().port}/api/journey/${me.enrollments[0].id}/test-step`, {
+    method: "PUT", headers, body: JSON.stringify({ step: "w6" }),
+  });
+  assert.equal(out.status, 404);
+  assert.equal(me.program.diploma, null, "interna HOLD-noter syns inte utanför prototypen");
+  s.close();
+});
+
+test("hela programmet: val, slutskattning, 30 dagar och lås per vecka", async () => {
+  const p = await participant("deltagare-b2");
+  const put = (step, field, value) => p.c.put(`/api/journey/${p.enr}/entry`, { step, field, value });
+  await p.c.put(`/api/journey/${p.enr}/test-step`, { step: "w6" });
+  assert.equal((await put("w6", "principer.vald", "Mod före bekvämlighet")).status, 200);
+  assert.equal((await put("w6", "principer.vald", "Något påhittat")).status, 400, "val måste finnas bland alternativen");
+  assert.equal((await put("w5", "niva.tror", "Team")).status, 200);
+  assert.equal((await p.c.put(`/api/journey/${p.enr}/assessment`, { point: "end", dimension: "mod", value: 5 })).status, 200);
+  assert.equal((await p.c.put(`/api/journey/${p.enr}/assessment`, { point: "d30", dimension: "mod", value: 5 })).status, 403);
+  // Planen i vecka 4 låses när Vad hände? i vecka 4 börjar skrivas.
+  await put("w4", "handling.prova", "Ta samtalet med platschefen.");
+  await put("w4", "vad-hande.gjorde_faktiskt", "Jag tog det.");
+  assert.equal((await put("w4", "handling.prova", "Ändrad")).status, 423);
+  assert.equal((await put("w5", "handling.prova", "Fråga två kollegor.")).status, 200, "andra veckors planer är inte låsta");
+
+  await p.c.put(`/api/journey/${p.enr}/test-step`, { step: "d30" });
+  assert.equal((await p.c.put(`/api/journey/${p.enr}/assessment`, { point: "d30", dimension: "mod", value: 4 })).status, 200);
+  assert.equal((await put("d30", "kvar.fortfarande", "Jag frågar först.")).status, 200);
+  const j = (await p.c.get(`/api/journey/${p.enr}`)).body;
+  assert.equal(j.assessments.end.mod, 5);
+  assert.equal(j.assessments.d30.mod, 4);
+  assert.equal(j.locked["w4:handling"], "return_started");
+  await p.c.put(`/api/journey/${p.enr}/test-step`, { step: null });
+});
+
+test("nycklar i registret krockar aldrig", async () => {
+  const { STEPS } = await import("../server/content.mjs");
+  for (const step of STEPS.filter((s) => s.built)) {
+    const keys = step.sections.map((s) => s.key);
+    assert.deepEqual(keys, [...new Set(keys)], `${step.key}: momentnycklar är unika`);
+    for (const section of step.sections) {
+      const f = section.fields.map((x) => x.key);
+      assert.deepEqual(f, [...new Set(f)], `${step.key}/${section.key}: fältnycklar är unika`);
+      if (section.kind === "triangle") assert.equal(section.corners.length, 3);
+    }
   }
-  assert.ok(p.me.program.steps.filter((s) => s.key !== "w1").every((s) => !s.built && s.sections.length === 0));
-  assert.equal((await p.c.put(`/api/journey/${p.enr}/entry`, { step: "w1", field: "situation.hittepa", value: "x" })).status, 400);
+  const slugs = STEPS.map((s) => s.slug);
+  assert.deepEqual(slugs, [...new Set(slugs)]);
+});
+
+test("Se. Höra. Känna. har fast ordning i registret", async () => {
+  const { STEPS } = await import("../server/content.mjs");
+  const shk = STEPS.flatMap((s) => s.sections || []).filter((s) => s.model === "se-hora-kanna");
+  assert.equal(shk.length, 1);
+  assert.deepEqual(shk[0].corners.map((c) => c.label), ["Se", "Höra", "Känna"]);
+  const text = JSON.stringify(STEPS);
+  assert.ok(!/katalys/i.test(text), "inget Katalysatormaterial i utbildningen");
 });
 
 test("16. mätning innehåller aldrig fritext", async () => {

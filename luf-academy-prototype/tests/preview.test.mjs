@@ -133,10 +133,8 @@ test("desktop: inloggning, hela vecka 1, delning, utloggning och återkomst", as
   await page.waitForSelector(".section-intro");
   await page.click(".section-nav .primary");
   await page.waitForSelector(".section-reading");
-  assert.ok((await page.textContent(".section-reading")).includes("HOLD FÖR JAN"));
-  await page.click(".section-nav .primary");
-
-  await page.waitForSelector(".map");
+  assert.ok((await page.textContent(".section-reading")).includes("s. 7–15"));
+  await go(page, "karta", ".map");
   const rows = page.locator(".scale-row");
   const picks = [3, 4, 2, 5, 4, 3];
   // Snabba klick i följd. Inget får skrivas över.
@@ -272,4 +270,195 @@ test("annan testperson ser inget av Jans resa och har ingen handledarvy", async 
 
 test("förhandsvisningen gör inga anrop utanför sidan", () => {
   assert.deepEqual(external, []);
+});
+
+// ---------- Hela programmet ----------
+
+const FULL = "u_hela_resan";
+
+async function sectionsOf(page) {
+  return page.evaluate(() => window.LR_PROGRAM.steps.filter((s) => s.built).map((s) => ({ key: s.key, slug: s.slug, aside: Boolean(s.aside), sections: s.sections.map((x) => ({ key: x.key, kind: x.kind, model: x.model })) })));
+}
+
+async function moveTo(page, stepKey) {
+  await page.evaluate(() => { location.hash = "#/"; });
+  await page.waitForSelector("#test-step");
+  await page.selectOption("#test-step", stepKey);
+  await page.click(".test-mode button");
+  await page.waitForFunction((k) => document.querySelector("#test-step")?.value === k && document.querySelector(".journey-step.is-current"), stepKey);
+}
+
+async function settle(page) {
+  await page.waitForFunction(() => {
+    const el = document.getElementById("save-status");
+    let pending = false;
+    try { pending = Object.keys(localStorage).some((k) => k.startsWith("lr-osparat:")); } catch { /* */ }
+    return !pending && el && !el.classList.contains("is-saving") && !el.classList.contains("is-error");
+  }, null, { timeout: 15000 });
+}
+
+async function fillSection(page, label) {
+  const inputs = page.locator("textarea.input-text, input.input-short");
+  const n = await inputs.count();
+  for (let i = 0; i < n; i += 1) {
+    const el = inputs.nth(i);
+    if (!(await el.isVisible()) || (await el.inputValue())) continue;
+    await el.fill(`${label} svar ${i + 1}`);
+  }
+  for (const d of await page.locator("input.input-date").all()) if (!(await d.inputValue())) await d.fill("2026-10-01");
+  for (const group of await page.locator(".choices").all()) {
+    if (!(await group.locator(".choice.is-on").count())) await group.locator(".choice").nth(1).click();
+  }
+  for (const row of await page.locator(".scale-row").all()) {
+    const dot = row.locator('.scale-dot[data-value="4"]');
+    if (!(await dot.isDisabled()) && (await row.locator('[aria-checked="true"]').count()) === 0) await dot.click();
+  }
+  await page.locator("body").click({ position: { x: 2, y: 2 } });
+  await settle(page);
+}
+
+test("hela programmet på desktop: sex veckor, 30 dagar och samtal. Resan minns.", async () => {
+  const { ctx, page } = await open("desktop", FULL);
+  await signIn(page);
+  const steps = await sectionsOf(page);
+  assert.deepEqual(steps.map((s) => s.key), ["w1", "w2", "w3", "w4", "w5", "w6", "d30", "samtal"]);
+
+  for (const s of steps) {
+    if (!s.aside) await moveTo(page, s.key);
+    for (const sec of s.sections) {
+      await page.evaluate(([slug, key]) => { location.hash = `#/${slug}/${key}`; }, [s.slug, sec.key]);
+      await page.waitForSelector(`article[data-step="${s.key}"] #section-title`);
+      await page.waitForFunction(([slug, key]) => location.hash === `#/${slug}/${key}`, [s.slug, sec.key]);
+
+      if (sec.kind === "bridge") {
+        const text = await page.textContent(".section-bridge");
+        assert.ok(/svar 1/.test(text), `${s.key}: förra veckans handling visas tillbaka`);
+        assert.ok(text.includes("Efteråt skrev du"), `${s.key}: vad som hände visas tillbaka`);
+      }
+      if (sec.kind === "halfway") assert.ok((await page.textContent(".recall")).includes("w1/forandring svar 1"), "halvvägs visar förändringsmålen");
+      if (sec.model === "se-hora-kanna") {
+        const x = async (c) => (await page.locator(`g[data-corner="${c}"]`).boundingBox()).x;
+        const [se, hora, kanna] = [await x("se"), await x("hora"), await x("kanna")];
+        assert.ok(se < hora && hora < kanna, "SE vänster, HÖRA mitten, KÄNNA höger");
+        const order = await page.$$eval(".corner-field textarea", (els) => els.map((e) => e.id));
+        assert.deepEqual(order, ["f-se-hora-kanna-se", "f-se-hora-kanna-hora", "f-se-hora-kanna-kanna"]);
+        assert.ok((await page.textContent(".section-triangle")).includes("En signal, inte ett bevis."));
+      }
+
+      await fillSection(page, `${s.key}/${sec.key}`);
+      if ((sec.kind === "triangle" || sec.kind === "situation") && sec.key !== "ny-eller-vaxa") {
+        await page.waitForFunction((k) => document.querySelector(`.rail-item[data-section="${k}"] .dot`)?.classList.contains("is-done"), sec.key, { timeout: 5000 })
+          .catch(async () => assert.fail(`${s.key}/${sec.key}: sidomenyn visar inte att momentet är skrivet (${await page.getAttribute(`.rail-item[data-section="${sec.key}"] .dot`, "class")})`));
+      }
+
+      if (s.key === "w6" && sec.kind === "map") {
+        assert.equal(await page.locator(".compare .compare-line .marker.m0").count(), 6, "startbilden visas");
+        assert.equal(await page.locator(".compare .compare-line .marker.m1").count(), 6, "slutbilden visas");
+        assert.ok((await page.textContent(".compare")).includes("Självskattning"));
+      }
+      if (s.key === "w6" && sec.kind === "lookback") {
+        const text = await page.textContent(".lookback");
+        for (const w of ["Vecka 1", "Vecka 2", "Vecka 3", "Vecka 4", "Vecka 5"]) assert.ok(text.includes(w), `tillbakablicken visar ${w}`);
+        assert.ok(text.includes("w1/karta svar 1"), "varför är jag här visas");
+        assert.ok(!text.includes("[object"), "inga trasiga element");
+      }
+      if (s.key === "d30" && sec.key === "minns") {
+        const text = await page.textContent(".lookback");
+        assert.ok(text.includes("w1/forandring svar 1") && text.includes("w6/avslut") && text.includes("Du lovade dig själv att"));
+      }
+    }
+    if (s.key === "w3") {
+      await page.evaluate(() => { location.hash = "#/vecka-3/se-hora-kanna"; });
+      await page.waitForSelector(".triangle-figure");
+      await page.waitForFunction(() => document.querySelectorAll(".rail-item .dot.is-done").length >= 6, null, { timeout: 5000 });
+      await page.screenshot({ path: new URL("../docs/skarmbilder/40-se-hora-kanna-desktop.png", import.meta.url).pathname, fullPage: true });
+    }
+    if (s.key === "w6") {
+      await page.evaluate(() => { location.hash = "#/vecka-6/karta"; });
+      await page.waitForSelector(".compare");
+      await page.screenshot({ path: new URL("../docs/skarmbilder/41-forflyttning-desktop.png", import.meta.url).pathname, fullPage: true });
+    }
+  }
+
+  // Allt finns i databasen, i personens eget privata område.
+  const mine = [...store.keys()].filter((k) => k.startsWith(`data/users/${FULL}/e:`));
+  for (const k of ["w1", "w2", "w3", "w4", "w5", "w6", "d30", "samtal"]) assert.ok(mine.some((p) => p.includes(`/e:${k}:`)), `${k} sparat`);
+  const points = store.get(`data/users/${FULL}/assessments`).points;
+  assert.deepEqual(Object.keys(points).sort(), ["d30", "end", "start"]);
+
+  // Översikten visar framsteg för varje vecka, utan poäng.
+  await page.evaluate(() => { location.hash = "#/"; });
+  await page.waitForSelector(".journey");
+  const journeyText = await page.textContent(".journey");
+  assert.ok(!/poäng|badge|streak/i.test(journeyText));
+  assert.equal(await page.locator(".journey-step.is-locked").count(), 0);
+  await page.screenshot({ path: new URL("../docs/skarmbilder/42-oversikt-hela-resan-desktop.png", import.meta.url).pathname, fullPage: true });
+  assert.deepEqual(page.errors, []);
+  await ctx.close();
+});
+
+test("hela programmet på mobil: varje moment går att läsa och skriva i, inget klipps", async () => {
+  const { ctx, page } = await open("mobile", FULL);
+  await signIn(page);
+  const steps = await sectionsOf(page);
+  let shots = 0;
+  for (const s of steps) {
+    for (const sec of s.sections) {
+      await page.evaluate(([slug, key]) => { location.hash = `#/${slug}/${key}`; }, [s.slug, sec.key]);
+      await page.waitForSelector(`article[data-step="${s.key}"] #section-title`);
+      await noSideScroll(page, `${s.key}/${sec.key}`);
+      const mainText = await page.textContent("main");
+      assert.ok(!mainText.includes("[object") && !/\bnull\b|\bundefined\b/.test(mainText), `${s.key}/${sec.key}: inga trasiga element`);
+      const widths = await page.$$eval("textarea.input-text", (els) => els.filter((e) => e.offsetParent).map((e) => e.getBoundingClientRect().width));
+      assert.ok(widths.every((w) => w > 250), `${s.key}/${sec.key}: textfälten är breda nog`);
+      const buttons = await page.$$eval(".section button, .section .button, .choice, .scale-dot", (els) => els.filter((e) => e.offsetParent).map((e) => Math.min(e.getBoundingClientRect().height, e.getBoundingClientRect().width)));
+      assert.ok(buttons.every((b) => b >= 40), `${s.key}/${sec.key}: knappar är stora nog (${Math.min(...buttons)})`);
+      if (sec.kind === "triangle") {
+        const pos = await page.$$eval("g[data-corner]", (gs) => gs.map((g) => ({ p: g.dataset.position, x: g.getBoundingClientRect().x, r: g.getBoundingClientRect().right })));
+        assert.deepEqual(pos.map((p) => p.p), ["left", "middle", "right"]);
+        assert.ok(pos[0].x < pos[1].x && pos[1].x < pos[2].x, `${s.key}/${sec.key}: hörnen i ordning vänster till höger`);
+        assert.ok(pos.every((p) => p.r <= 412 && p.x >= 0), `${s.key}/${sec.key}: triangeln klipps inte`);
+      }
+      if ((sec.model === "se-hora-kanna" || sec.kind === "map" || sec.kind === "lookback") && shots < 6) {
+        await page.screenshot({ path: new URL(`../docs/skarmbilder/5${shots}-${s.key}-${sec.key}-mobil.png`, import.meta.url).pathname, fullPage: true });
+        shots += 1;
+      }
+    }
+  }
+  // Skriv med tangentbordet i en vecka på mobilen.
+  await page.evaluate(() => { location.hash = "#/vecka-4/privat"; });
+  await page.waitForSelector("#f-privat-undviker");
+  await page.fill("#f-privat-undviker", "");
+  await page.tap("#f-privat-undviker");
+  await page.keyboard.type("Skrivet på telefonen.");
+  await page.locator("#f-privat-undviker").blur();
+  await settle(page);
+  assert.equal(store.get(`data/users/${FULL}/e:w4:privat.undviker`).value, "Skrivet på telefonen.");
+  assert.deepEqual(page.errors, []);
+  await ctx.close();
+});
+
+test("Jan ser delade avsnitt från alla veckor, programadmin ser bara status", async () => {
+  const other = await open("desktop", FULL);
+  await signIn(other.page);
+  await other.page.evaluate(() => { location.hash = "#/vecka-3/se-hora-kanna"; });
+  await other.page.waitForSelector("button.toggle:has-text('Dela med Jan')");
+  await other.page.click("button.toggle:has-text('Dela med Jan')");
+  await other.page.click("dialog button[value=share]");
+  await other.page.waitForSelector("text=Delat med Jan sedan");
+  await other.ctx.close();
+
+  const { ctx, page } = await open("desktop", OWNER);
+  await signIn(page);
+  await page.evaluate(() => { location.hash = "#/jan"; });
+  await page.waitForSelector(".role-view .participant");
+  const text = await page.textContent("main");
+  assert.ok(text.includes("w3/se-hora-kanna svar"), "delad Se. Höra. Känna. syns för Jan");
+  assert.ok(!text.includes("w4/privat") && !text.includes("Skrivet på telefonen."), "privat reflektion syns inte");
+  await page.evaluate(() => { location.hash = "#/admin"; });
+  await page.waitForSelector(".role-view .table");
+  const admin = await page.textContent("main");
+  assert.ok(!admin.includes("svar 1") && !admin.includes("Skrivet på telefonen."), "programadmin ser ingen fritext");
+  assert.ok(admin.includes("Vecka 6"), "programadmin ser vilka veckor som påbörjats");
+  await ctx.close();
 });

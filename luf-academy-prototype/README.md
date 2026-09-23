@@ -1,6 +1,6 @@
-# LUF Academy. Min ledarskapsresa. Prototyp Vecka 1
+# LUF Academy. Min ledarskapsresa. Prototyp
 
-Utbildningen **Ledarskap med hjärta och mod**. Sex veckor, live i grupper om högst sex. Detta är en isolerad prototyp av deltagarens digitala arbetsyta. Endast Vecka 1 är byggd.
+Utbildningen **Ledarskap med hjärta och mod**. Sex veckor, live i grupper om högst sex. Detta är en isolerad prototyp av deltagarens digitala arbetsyta. Hela programmet är byggt: sex veckor, 30 dagar och samtal med Jan.
 
 Den ligger avsiktligt utanför LUF-produktionen. Se `docs/READ-ONLY-ANALYS.md` för varför.
 
@@ -8,7 +8,7 @@ Den ligger avsiktligt utanför LUF-produktionen. Se `docs/READ-ONLY-ANALYS.md` f
 
 Privat sida på claude.ai: https://claude.ai/artifact/EWhqnURcS4QVh1a5uZDF7S
 
-Öppna den inloggad på claude.ai och tryck Logga in som testdeltagare. Byggs med `node --no-warnings scripts/build-preview.mjs`. Testas med `node --no-warnings --test tests/preview.test.mjs`. Se `docs/HUMAN-TEST-PREVIEW-002.md`.
+Öppna den inloggad på claude.ai och tryck Logga in som testdeltagare. Testläget på översikten flyttar dig genom veckorna. Byggs med `node --no-warnings scripts/build-preview.mjs`. Testas med `node --no-warnings --test tests/preview.test.mjs`. Se `docs/HUMAN-TEST-PREVIEW-002.md`.
 
 ## Köra lokalt
 
@@ -33,8 +33,9 @@ Länkarna skrivs ut och sparas i `data/inloggningslankar.txt`. En länk gäller 
 ## Testa
 
 ```bash
-npm test          # 18 tester mot servern
-npm run test:e2e  # 7 tester i Chromium, desktop och mobil. Sparar skärmbilder i docs/skarmbilder/
+npm test          # 22 tester mot servern
+npm run test:e2e  # 7 tester i Chromium mot servern
+node --no-warnings --test tests/preview.test.mjs  # 8 tester av förhandsvisningen, hela programmet på desktop och mobil
 ```
 
 ## Miljövariabler
@@ -58,10 +59,14 @@ public/                 Arbetsytan. Ingen extern kod.
 docs/                   Analys, datagränser och GDPR, rollback, leveransrapport.
 ```
 
-Veckor 2 till 6 byggs genom att lägga till moment i `server/content.mjs`. Samma komponenter bär samma loop: läsning, reflektion, verklig situation, handling, vad hände.
+Allt innehåll står i `server/content.mjs`. Reglerna för öppna steg, lås och status står i `server/rules.mjs` och används av både servern och förhandsvisningen.
+
+Bokhänvisningar kontrolleras mot boken med `LHM_BOOK_TXT=<bokens text> node scripts/verify-book-references.mjs`. Boktexten läggs aldrig i repot.
 
 ## Dokument
 
+- `docs/LEVERANSRAPPORT-003.md`. Hela utbildningen. Status enligt order 003.
+- `docs/LHM-SIX-WEEK-SOURCE-CROSSWALK-001.md`. Källkarta från bok och arbetsbok till sex veckor.
 - `docs/HUMAN-TEST-PREVIEW-002.md`. Förhandsvisningen och analysen av fyra utelämnade moment.
 - `docs/LEVERANSRAPPORT-VECKA-1.md`. Status enligt order 001.
 - `docs/READ-ONLY-ANALYS.md`. Vad som fanns före.

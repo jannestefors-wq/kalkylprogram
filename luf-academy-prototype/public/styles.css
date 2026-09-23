@@ -255,6 +255,84 @@ blockquote.own-words { margin: 6px 0 14px; padding-left: 16px; border-left: 2px 
   .save-status { left: auto; right: 24px; transform: none; }
 }
 
+
+/* ---------- Hela programmet ---------- */
+.book-hint { background: #f6efe3; border-radius: 8px; padding: 12px 14px; font-size: 15px; }
+.source { font-size: 13px; color: var(--muted); margin-top: 18px; }
+.book-quote { margin: 30px 0 0; padding: 18px 22px; border-left: 3px solid var(--gold); background: var(--card); border-radius: 0 8px 8px 0; }
+.book-quote p { font-family: var(--serif); font-size: clamp(20px, 2.2vw, 24px); margin: 0 0 6px; }
+.book-quote footer { font-size: 13px; color: var(--muted); }
+.chapters { list-style: none; padding: 0; margin: 0 0 16px; }
+.chapters li { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; padding: 8px 0; border-bottom: 1px solid var(--line); }
+.chapter-title { font-family: var(--serif); font-size: 20px; }
+.chapter-pages { font-variant-numeric: tabular-nums; font-weight: 600; }
+.chapter-note { flex-basis: 100%; font-size: 14px; color: var(--muted); }
+.chapters.is-optional .chapter-title { font-size: 17px; }
+.field-guide { font-size: 14px; color: var(--muted); margin: -4px 0 8px; }
+.tone-observe .input-text { border-left: 3px solid var(--observe); }
+.tone-interpret .input-text { border-left: 3px dashed var(--interpret); background: #fffaf3; }
+.after-map { margin-top: 18px; }
+.block { display: block; }
+
+.choices { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
+.choice { min-height: 44px; padding: 10px 16px; border-radius: 999px; border: 1px solid var(--line-strong); background: var(--card); cursor: pointer; font-size: 15px; text-align: left; }
+.choice.is-on { background: var(--ink); color: #fff; border-color: var(--ink); }
+
+.triangle { margin: 8px 0 12px; text-align: center; }
+.triangle-figure { width: 100%; max-width: 360px; height: auto; overflow: visible; }
+.triangle-edge { fill: none; stroke: var(--ink); stroke-width: 1.5; opacity: .45; }
+.corner { cursor: pointer; }
+.corner circle { fill: var(--card); stroke: var(--ink); stroke-width: 1.5; }
+.corner.is-filled circle { fill: var(--gold); stroke: var(--gold); }
+.corner text { font-family: var(--sans); font-size: 11px; font-weight: 700; letter-spacing: .06em; fill: var(--ink); }
+.corner.is-filled text { fill: #fff; }
+.triangle figcaption { font-family: var(--serif); font-size: 18px; color: var(--muted); margin-top: 6px; }
+.corner-fields { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-bottom: 18px; }
+.corner-field { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 14px 4px; margin: 0; }
+.corner-field .input-text { min-height: 110px; }
+
+.compare { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px 20px; margin: 18px 0; }
+.compare-legend { display: flex; flex-wrap: wrap; gap: 6px 18px; list-style: none; padding: 0; margin: 0 0 12px; font-size: 14px; }
+.compare-legend li { display: flex; align-items: center; gap: 8px; }
+.compare-row { padding: 8px 0; border-top: 1px solid var(--line); }
+.compare-label { font-family: var(--serif); font-size: 17px; margin-bottom: 6px; }
+.compare-track { display: grid; grid-template-columns: 110px minmax(0, 1fr) 110px; align-items: center; gap: 10px; }
+.compare-end { font-size: 13px; color: var(--muted); }
+.compare-end.is-low { text-align: right; }
+.compare-line { position: relative; height: 24px; margin: 0 10px; border-bottom: 1px solid var(--line-strong); }
+.marker { display: inline-block; width: 14px; height: 14px; border-radius: 50%; }
+.compare-line .marker { position: absolute; bottom: -7px; transform: translateX(-50%); }
+.marker.m0 { background: transparent; border: 2px solid var(--muted); }
+.compare-line .marker.m0 { width: 22px; height: 22px; bottom: -11px; z-index: 1; }
+.marker.m1 { background: var(--gold); }
+.marker.m2 { background: var(--ink); }
+.compare-line .marker.m1 { bottom: -7px; }
+.compare-line .marker.m2 { bottom: 4px; }
+
+.timeline { list-style: none; padding: 0; margin: 0 0 12px; }
+.timeline li { border-left: 2px solid var(--gold-light); padding: 4px 0 10px 14px; }
+.lookback .small-heading { margin-top: 14px; }
+.promise .input-text { font-size: 20px; }
+
+.live-support { display: grid; gap: 14px; margin-bottom: 18px; }
+.live-block { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px 18px; }
+.rules { margin: 0; padding-left: 20px; }
+.rules li { margin-bottom: 6px; }
+
+.test-mode { border-style: dashed; }
+.test-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.test-row select { min-height: 44px; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--line-strong); background: #fff; font-size: 16px; }
+.journey-step.is-current .journey-label { color: var(--gold-text); }
+
+@media (max-width: 899px) {
+  .corner-fields { grid-template-columns: minmax(0, 1fr); }
+  .compare-track { grid-template-columns: 1fr 1fr; }
+  .compare-line { grid-column: 1 / -1; grid-row: 1; margin: 0 8px 4px; }
+  .compare-end { grid-row: 2; }
+  .compare-end.is-low { text-align: left; }
+  .compare-end.is-high { text-align: right; }
+}
+
 /* ---------- Mobil ---------- */
 @media (max-width: 899px) {
   body { font-size: 16px; }

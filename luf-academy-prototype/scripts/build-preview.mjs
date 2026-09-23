@@ -7,6 +7,10 @@ const read = (p) => readFileSync(new URL(`../${p}`, import.meta.url), "utf8");
 const css = read("public/styles.css");
 const app = read("public/app.js");
 const transport = read("preview/transport.js");
+// Samma regelmodul som servern. Exporterna blir window.LR_RULES.
+const rulesSrc = read("server/rules.mjs");
+const ruleNames = [...rulesSrc.matchAll(/^export (?:function|const) (\w+)/gm)].map((m) => m[1]);
+const rules = `window.LR_RULES = (function () {\n${rulesSrc.replace(/^export /gm, "")}\nreturn { ${ruleNames.join(", ")} };\n})();`;
 const program = JSON.stringify(publicProgram({ internal: true })).replace(/</g, "\\u003c");
 
 const overrides = `
@@ -30,6 +34,9 @@ ${overrides}
 <div id="save-status" class="save-status" role="status" aria-live="polite"></div>
 <dialog id="share-dialog" class="dialog"></dialog>
 <script>window.LR_PROGRAM = ${program};</script>
+<script>
+${rules}
+</script>
 <script>
 ${transport}
 </script>
