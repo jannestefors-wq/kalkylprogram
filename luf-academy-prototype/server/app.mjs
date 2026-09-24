@@ -254,6 +254,11 @@ export function createApp(db, config = {}) {
     const user = requireUser(req);
     const enr = ownEnrollment(user, enrollmentId);
     const { step, field, value, baseRevision } = body || {};
+    // baseRevision är den revision klienten utgår från. 0 betyder "inget sparat ännu".
+    if (baseRevision != null && !(Number.isInteger(baseRevision) && baseRevision >= 0)) {
+      throw new HttpError(400, "invalid_base_revision");
+    }
+    const base = baseRevision ?? null;
     const stepDef = getStep(step);
     if (!stepDef) throw new HttpError(400, "unknown_step");
     if (!rules.isStepOpen(STEPS, step, currentStepOf(enr))) throw new HttpError(403, "step_not_open");
@@ -271,24 +276,26 @@ export function createApp(db, config = {}) {
       const before = snapshot(enr, step, section);
       const now = nowIso();
       const existing = q.entry.get(enr.id, step, field);
+      const conflict = (row) =>
+        new HttpError(409, "conflict", { revision: row?.revision ?? 0, value: row?.value ?? "", updatedAt: row?.updated_at ?? null });
       let result;
       if (!existing) {
-        if (baseRevision && baseRevision > 0) {
-          throw new HttpError(409, "conflict", { revision: 0, value: "", updatedAt: null });
-        }
+        // Nytt svar. Klienten får inte tro att det finns en tidigare version.
+        if (base > 0) throw conflict(null);
         if (value === "") return { revision: 0, savedAt: now };
-        db.prepare(
-          "INSERT INTO lr_entry (enrollment_id, step_key, field_key, value, revision, created_at, updated_at) VALUES (?, ?, ?, ?, 1, ?, ?)",
-        ).run(enr.id, step, field, value, now, now);
+        // Villkorlig insättning. Hann någon annan skapa svaret först blir det konflikt.
+        const created = db
+          .prepare(
+            "INSERT INTO lr_entry (enrollment_id, step_key, field_key, value, revision, created_at, updated_at) VALUES (?, ?, ?, ?, 1, ?, ?) ON CONFLICT (enrollment_id, step_key, field_key) DO NOTHING",
+          )
+          .run(enr.id, step, field, value, now, now);
+        if (created.changes !== 1) throw conflict(q.entry.get(enr.id, step, field));
         result = { revision: 1, savedAt: now };
       } else {
-        if (baseRevision != null && Number(baseRevision) !== existing.revision) {
-          throw new HttpError(409, "conflict", {
-            revision: existing.revision,
-            value: existing.value,
-            updatedAt: existing.updated_at,
-          });
-        }
+        // Ett befintligt svar får bara ändras av den som utgår från den senaste
+        // revisionen. Saknas revisionen skrivs ingenting.
+        if (base == null) throw new HttpError(428, "base_revision_required");
+        if (base !== existing.revision) throw conflict(existing);
         if (existing.value === value) return { revision: existing.revision, savedAt: existing.updated_at };
         const gap = Date.parse(now) - Date.parse(existing.updated_at);
         if (gap > WRITING_SESSION_GAP_MS && existing.value.trim()) {
@@ -299,12 +306,14 @@ export function createApp(db, config = {}) {
             "INSERT INTO lr_entry_history (entry_id, value, written_from, written_until) VALUES (?, ?, ?, ?)",
           ).run(existing.id, existing.value, last?.written_until || existing.created_at, existing.updated_at);
         }
-        db.prepare("UPDATE lr_entry SET value = ?, revision = revision + 1, updated_at = ? WHERE id = ?").run(
-          value,
-          now,
-          existing.id,
-        );
-        result = { revision: existing.revision + 1, savedAt: now };
+        // Villkorlig uppdatering. Jämförelsen och skrivningen är en och samma
+        // sats, så två samtidiga anrop med samma revision kan inte båda lyckas.
+        // Blir ingen rad uppdaterad rullas transaktionen tillbaka, även historiken.
+        const updated = db
+          .prepare("UPDATE lr_entry SET value = ?, revision = revision + 1, updated_at = ? WHERE id = ? AND revision = ?")
+          .run(value, now, existing.id, base);
+        if (updated.changes !== 1) throw conflict(q.entry.get(enr.id, step, field));
+        result = { revision: base + 1, savedAt: now };
       }
       q.touchEnrollment.run(now, enr.id);
       deriveEvents(enr, step, section, before, snapshot(enr, step, section));

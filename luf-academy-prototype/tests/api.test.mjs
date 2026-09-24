@@ -196,6 +196,130 @@ test("4. autosparning: revisioner, konflikt mellan enheter och ingen tyst förlu
   assert.equal(forced.body.revision, 3);
 });
 
+// ---------- Order 010. Revisionskontroll för befintliga svar ----------
+// Work fann i verifiering 009 att en uppdatering utan baseRevision kunde
+// ersätta ett nyare svar utan konflikt. Testerna nedan täcker kontraktet.
+
+const entryRow = (enr, field) =>
+  db.prepare("SELECT id, value, revision FROM lr_entry WHERE enrollment_id = ? AND step_key = 'samtal' AND field_key = ?").get(enr, field);
+const historyCount = (entryId) => db.prepare("SELECT COUNT(*) AS n FROM lr_entry_history WHERE entry_id = ?").get(entryId).n;
+
+test("010 test 1. nytt svar skapas utan tidigare revision", async () => {
+  const p = await participant("deltagare-b1");
+  const put = (body) => p.c.put(`/api/journey/${p.enr}/entry`, { step: "samtal", field: "infor.forsta", ...body });
+  const created = await put({ value: "Första texten" });
+  assert.equal(created.status, 200, "baseRevision krävs inte när inget svar finns");
+  assert.equal(created.body.revision, 1);
+  assert.deepEqual({ ...entryRow(p.enr, "infor.forsta"), id: 0 }, { id: 0, value: "Första texten", revision: 1 });
+  const other = await p.c.put(`/api/journey/${p.enr}/entry`, { step: "samtal", field: "infor.tanka_kring", value: "Med noll", baseRevision: 0 });
+  assert.equal(other.status, 200, "baseRevision 0 betyder att inget svar finns ännu");
+  assert.equal(other.body.revision, 1);
+});
+
+test("010 test 2 och autosparning. rätt revision flyttar fram revisionen 1, 2, 3", async () => {
+  const p = await participant("deltagare-b1");
+  const put = (value, baseRevision) => p.c.put(`/api/journey/${p.enr}/entry`, { step: "samtal", field: "efter.sag", value, baseRevision });
+  let rev = 0;
+  for (const [i, text] of ["Ett", "Ett två", "Ett två tre"].entries()) {
+    const out = await put(text, rev);
+    assert.equal(out.status, 200);
+    assert.equal(out.body.revision, rev + 1, `sparning ${i + 1} ger revision ${rev + 1}`);
+    rev = out.body.revision;
+  }
+  assert.deepEqual({ ...entryRow(p.enr, "efter.sag"), id: 0 }, { id: 0, value: "Ett två tre", revision: 3 });
+});
+
+test("010 test 3. gammal revision ger konflikt och ingenting skrivs", async () => {
+  const p = await participant("deltagare-b1");
+  const put = (value, baseRevision) => p.c.put(`/api/journey/${p.enr}/entry`, { step: "samtal", field: "efter.tydligare", value, baseRevision });
+  let rev = 0;
+  for (const text of ["v1", "v2", "v3", "v4", "v5"]) rev = (await put(text, rev)).body.revision;
+  assert.equal(rev, 5);
+  const stale = await put("Från revision 4", 4);
+  assert.equal(stale.status, 409);
+  assert.equal(stale.body.error, "conflict");
+  assert.equal(stale.body.revision, 5, "klienten får veta vilken revision som gäller");
+  assert.deepEqual({ ...entryRow(p.enr, "efter.tydligare"), id: 0 }, { id: 0, value: "v5", revision: 5 });
+});
+
+test("010 test 4. befintligt svar utan baseRevision avvisas. Works fynd i 009.", async () => {
+  const p = await participant("deltagare-b1");
+  const field = "efter.gora_nu";
+  await p.c.put(`/api/journey/${p.enr}/entry`, { step: "samtal", field, value: "Nyare svar", baseRevision: 0 });
+  const before = entryRow(p.enr, field);
+  clock = new Date(clock.getTime() + WRITING_SESSION_GAP_MS + 60000);
+  const missing = await p.c.put(`/api/journey/${p.enr}/entry`, { step: "samtal", field, value: "Äldre text utan revision" });
+  assert.equal(missing.status, 428);
+  assert.equal(missing.body.error, "base_revision_required");
+  assert.equal(missing.body.value, undefined, "avvisningen skickar ingen text");
+  const nullBase = await p.c.put(`/api/journey/${p.enr}/entry`, { step: "samtal", field, value: "Med null", baseRevision: null });
+  assert.equal(nullBase.status, 428);
+  const invalid = await p.c.put(`/api/journey/${p.enr}/entry`, { step: "samtal", field, value: "Med text", baseRevision: "1" });
+  assert.equal(invalid.status, 400);
+  assert.deepEqual(entryRow(p.enr, field), before, "text och revision är oförändrade");
+  assert.equal(historyCount(before.id), 0, "ingen historik för en avvisad skrivning");
+});
+
+test("010 test 5 och 6. två enheter: en lyckas, en får konflikt, ingen tyst överskrivning", async () => {
+  const device1 = await participant("deltagare-b1");
+  const device2 = await participant("deltagare-b1"); // samma konto, annan enhet
+  const path = `/api/journey/${device1.enr}/entry`;
+  const field = "infor.inte_gruppen";
+  // Start: revision 7, text A.
+  let rev = 0;
+  for (let i = 1; i <= 7; i += 1) rev = (await device1.c.put(path, { step: "samtal", field, value: i === 7 ? "A" : `A${i}`, baseRevision: rev })).body.revision;
+  assert.equal(rev, 7);
+  // Båda enheterna har läst revision 7.
+  const b = await device1.c.put(path, { step: "samtal", field, value: "B", baseRevision: 7 });
+  assert.equal(b.status, 200);
+  assert.equal(b.body.revision, 8);
+  const c = await device2.c.put(path, { step: "samtal", field, value: "C", baseRevision: 7 });
+  assert.equal(c.status, 409);
+  assert.equal(c.body.value, "B");
+  assert.equal(c.body.revision, 8);
+  assert.deepEqual({ ...entryRow(device1.enr, field), id: 0 }, { id: 0, value: "B", revision: 8 }, "B ligger kvar. C skrev inte över.");
+});
+
+test("010. samtidiga anrop med samma revision: exakt ett lyckas", async () => {
+  const p = await participant("deltagare-b1");
+  const path = `/api/journey/${p.enr}/entry`;
+  const field = "infor.forsta_steg";
+  await p.c.put(path, { step: "samtal", field, value: "Start", baseRevision: 0 });
+  const results = await Promise.all(
+    [1, 2, 3, 4, 5].map((n) => p.c.put(path, { step: "samtal", field, value: `Enhet ${n}`, baseRevision: 1 })),
+  );
+  const ok = results.filter((r) => r.status === 200);
+  assert.equal(ok.length, 1, "exakt en skrivning lyckas");
+  assert.equal(results.filter((r) => r.status === 409).length, 4);
+  const row = entryRow(p.enr, field);
+  assert.equal(row.revision, 2);
+  assert.equal(row.value, `Enhet ${results.indexOf(ok[0]) + 1}`, "det som ligger kvar är det som lyckades");
+  // Samtidigt skapande av ett nytt svar: exakt ett lyckas, resten får konflikt.
+  const created = await Promise.all(
+    [1, 2, 3].map((n) => p.c.put(path, { step: "samtal", field: "efter.folja_upp", value: `Ny ${n}`, baseRevision: 0 })),
+  );
+  assert.equal(created.filter((r) => r.status === 200).length, 1);
+  assert.equal(created.filter((r) => r.status === 409).length, 2);
+});
+
+test("010 test 8. en avvisad konflikt skapar ingen historikrad", async () => {
+  const p = await participant("deltagare-b1");
+  const path = `/api/journey/${p.enr}/entry`;
+  const field = "infor.forsta";
+  const row = entryRow(p.enr, field);
+  const before = historyCount(row.id);
+  // Skrivpasset är slut. En lyckad skrivning hade sparat en historikrad.
+  clock = new Date(clock.getTime() + WRITING_SESSION_GAP_MS + 60000);
+  const stale = await p.c.put(path, { step: "samtal", field, value: "Gammal enhet", baseRevision: row.revision - 1 });
+  assert.equal(stale.status, 409);
+  assert.equal(historyCount(row.id), before, "konflikten lämnar historiken orörd");
+  const ok = await p.c.put(path, { step: "samtal", field, value: "Nytt skrivpass", baseRevision: row.revision });
+  assert.equal(ok.status, 200);
+  assert.equal(historyCount(row.id), before + 1, "en verklig skrivning sparar det gamla i historiken");
+  const h = await p.c.get(`/api/journey/${p.enr}/history?step=samtal&field=${field}`);
+  assert.deepEqual(h.body.versions.map((v) => v.value), ["Första texten"]);
+});
+
 test("5 och 6. svar finns kvar efter utloggning, ny inloggning och byte av enhet", async () => {
   const first = await participant("testdeltagare");
   await first.c.put(`/api/journey/${first.enr}/entry`, { step: "w1", field: "situation.vad_hande", value: "Mötet i måndags" });
@@ -210,11 +334,13 @@ test("5 och 6. svar finns kvar efter utloggning, ny inloggning och byte av enhet
 
 test("historik sparas per skrivpass", async () => {
   const p = await participant("deltagare-a3");
-  const put = (value) => p.c.put(`/api/journey/${p.enr}/entry`, { step: "w1", field: "forandring.mal_2", value });
-  await put("Version ett");
-  await put("Version ett, lite längre");
+  // Order 010: en uppdatering av ett befintligt svar måste bära sin revision.
+  // Testet skickade tidigare ingen revision och byggde därmed på felet.
+  const put = (value, baseRevision) => p.c.put(`/api/journey/${p.enr}/entry`, { step: "w1", field: "forandring.mal_2", value, baseRevision });
+  assert.equal((await put("Version ett", 0)).body.revision, 1);
+  assert.equal((await put("Version ett, lite längre", 1)).body.revision, 2);
   clock = new Date(clock.getTime() + WRITING_SESSION_GAP_MS + 60000);
-  await put("Version två");
+  assert.equal((await put("Version två", 2)).body.revision, 3);
   const h = await p.c.get(`/api/journey/${p.enr}/history?step=w1&field=forandring.mal_2`);
   assert.equal(h.status, 200);
   assert.equal(h.body.current.value, "Version två");

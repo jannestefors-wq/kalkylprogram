@@ -245,6 +245,67 @@ test("autosparning: fel syns, texten finns kvar och sparas när nätet är tillb
   await ctx.close();
 });
 
+test("order 010: två enheter. Konflikt syns, lokal text ligger kvar, inget skrivs över tyst", async () => {
+  const row = () => ({ ...db.prepare("SELECT value, revision FROM lr_entry WHERE field_key = 'infor.forsta' AND step_key = 'samtal'").get() });
+  const localPending = (page) => page.evaluate(() => Object.entries(localStorage).find(([k]) => k.startsWith("lr-osparat:"))?.[1] || "");
+  const a = await newPage("desktop");
+  const b = await newPage("mobile");
+  for (const d of [a, b]) {
+    await login(d.page, "deltagare-b1");
+    await d.page.goto(`${base}/#/samtal/infor`);
+    await d.page.waitForSelector("#f-infor-forsta");
+  }
+  // Båda enheterna har laddat sidan innan något är sparat.
+  await type(a.page, "#f-infor-forsta", "Från datorn.");
+  await a.page.locator("#f-infor-forsta").blur();
+  await saved(a.page);
+  assert.deepEqual(row(), { value: "Från datorn.", revision: 1 });
+
+  // Telefonen utgår fortfarande från att inget finns. Servern säger konflikt.
+  await type(b.page, "#f-infor-forsta", "Från telefonen.");
+  await b.page.locator("#f-infor-forsta").blur();
+  await b.page.waitForSelector(".conflict:not([hidden])");
+  assert.ok((await b.page.textContent(".conflict")).includes("Den här texten har ändrats på en annan enhet."));
+  assert.ok((await b.page.textContent(".conflict")).includes("Från datorn."), "den sparade versionen visas");
+  assert.equal(await b.page.inputValue("#f-infor-forsta"), "Från telefonen.", "den lokala texten ligger kvar i fältet");
+  assert.ok((await localPending(b.page)).includes("Från telefonen."), "och i webbläsaren");
+  assert.deepEqual(row(), { value: "Från datorn.", revision: 1 }, "servern är orörd");
+  assert.ok(!(await b.page.getAttribute("#save-status", "class")).includes("is-saving"), "status fastnar inte på Sparar");
+
+  // Omladdning: texten och konflikten finns kvar. Ingen tyst överskrivning.
+  b.page.on("dialog", (d) => d.accept());
+  await b.page.reload();
+  await b.page.waitForSelector("#f-infor-forsta");
+  await b.page.waitForSelector(".conflict:not([hidden])");
+  assert.equal(await b.page.inputValue("#f-infor-forsta"), "Från telefonen.");
+  assert.deepEqual(row(), { value: "Från datorn.", revision: 1 });
+
+  // Deltagaren skriver vidare. Fortfarande ingen överskrivning förrän hen valt.
+  await b.page.type("#f-infor-forsta", " Mer.");
+  await b.page.locator("#f-infor-forsta").blur();
+  await b.page.waitForTimeout(1200);
+  assert.deepEqual(row(), { value: "Från datorn.", revision: 1 });
+
+  // Medvetet val: behåll min text. Det som står i fältet sparas.
+  await b.page.click("button:has-text('Behåll min text')");
+  await saved(b.page);
+  assert.deepEqual(row(), { value: "Från telefonen. Mer.", revision: 2 });
+  assert.equal(await localPending(b.page), "", "inget kvar som osparat");
+
+  // Datorn har revision 1 och skriver vidare. Konflikt igen, åt andra hållet.
+  await a.page.type("#f-infor-forsta", " Igen.");
+  await a.page.locator("#f-infor-forsta").blur();
+  await a.page.waitForSelector(".conflict:not([hidden])");
+  assert.deepEqual(row(), { value: "Från telefonen. Mer.", revision: 2 });
+  await a.page.click("button:has-text('Använd den sparade')");
+  assert.equal(await a.page.inputValue("#f-infor-forsta"), "Från telefonen. Mer.");
+  assert.equal(await localPending(a.page), "");
+  assert.deepEqual(a.page.errors, []);
+  assert.deepEqual(b.page.errors, []);
+  await a.ctx.close();
+  await b.ctx.close();
+});
+
 test("mobil: samma konto på ny enhet, återkomsten och Vad hände?", async () => {
   const { ctx, page } = await newPage("mobile");
   await login(page, "testdeltagare");

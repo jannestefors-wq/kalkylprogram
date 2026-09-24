@@ -33,8 +33,8 @@ Länkarna skrivs ut och sparas i `data/inloggningslankar.txt`. En länk gäller 
 ## Testa
 
 ```bash
-npm test          # 28 tester mot servern
-npm run test:e2e  # 7 tester i Chromium mot servern
+npm test          # 35 tester mot servern
+npm run test:e2e  # 8 tester i Chromium mot servern
 node --no-warnings --test tests/preview.test.mjs  # 10 tester av förhandsvisningen, hela programmet på desktop och mobil
 ```
 
@@ -65,6 +65,7 @@ Källor och sidreferenser ligger internt i registret och skickas aldrig till del
 
 ## Dokument
 
+- `docs/CONCURRENCY-CORRECTION-010.md`. Revisionskontroll för befintliga svar. Aktuell baseline för re-verifiering.
 - `docs/LEVERANSRAPPORT-006.md`. Beslutade slutkorrigeringar och hörnfrågor för Jans granskning.
 - `docs/LEVERANSRAPPORT-004.md`. Rensning av deltagarvyn. Status enligt order 004.
 - `docs/LEVERANSRAPPORT-003.md`. Hela utbildningen. Status enligt order 003.

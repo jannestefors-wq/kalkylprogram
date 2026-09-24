@@ -89,6 +89,8 @@ function track(name, step = null, section = null) {
 // direkt när fältet lämnas. Osparad text hålls i webbläsaren tills servern
 // har bekräftat den, så att inget försvinner om nätet går ner eller fliken
 // stängs. Två enheter som skriver i samma fält upptäcks via revisionsnummer.
+// Varje osparad text bär den revision den skrevs mot, även efter omladdning,
+// så att en gammal text aldrig kan skriva över en nyare version tyst.
 
 const saver = {
   pending: new Map(),
@@ -131,6 +133,9 @@ const saver = {
   },
 
   queue(key, payload, delay = 700) {
+    if (payload.kind === "entry" && payload.baseRevision == null) {
+      payload.baseRevision = state.journey.entries[`${payload.step}:${payload.field}`]?.revision ?? 0;
+    }
     this.pending.set(key, payload);
     this.persist();
     clearTimeout(this.timers.get(key));
@@ -142,7 +147,8 @@ const saver = {
     clearTimeout(this.timers.get(key));
     if (this.inFlight.has(key)) return;
     const payload = this.pending.get(key);
-    if (!payload) return;
+    // En text i konflikt väntar på deltagarens val. Den skickas inte igen av sig själv.
+    if (!payload || payload.conflict) return;
     this.inFlight.add(key);
     renderSaveStatus();
     try {
@@ -157,12 +163,11 @@ const saver = {
         compareBoxes.forEach((b) => (b.isConnected ? b.redraw() : compareBoxes.delete(b)));
         this.lastSavedAt = out.savedAt;
       } else {
-        const known = state.journey.entries[`${payload.step}:${payload.field}`];
         const out = await api("PUT", `/api/journey/${enr}/entry`, {
           step: payload.step,
           field: payload.field,
           value: payload.value,
-          baseRevision: payload.baseRevision ?? known?.revision ?? 0,
+          baseRevision: payload.baseRevision ?? 0,
         });
         state.journey.entries[`${payload.step}:${payload.field}`] = {
           value: payload.value,
@@ -175,7 +180,7 @@ const saver = {
       else {
         // Deltagaren skrev vidare medan vi sparade. Nästa sparning bygger på ny revision.
         const next = this.pending.get(key);
-        if (next && next.kind !== "assessment") next.baseRevision = undefined;
+        if (next && next.kind !== "assessment" && !next.conflict) next.baseRevision = state.journey.entries[`${payload.step}:${payload.field}`].revision;
       }
       this.failures = 0;
       this.failureReported = false;
@@ -183,7 +188,8 @@ const saver = {
       refreshJourneySoon();
     } catch (err) {
       if (err.status === 409) {
-        this.pending.delete(key);
+        // Texten ligger kvar, i fältet och i webbläsaren, tills deltagaren har valt.
+        if (this.pending.get(key) === payload) Object.assign(payload, { conflict: true, server: err.data });
         this.persist();
         this.conflictHandlers.get(key)?.(err.data, payload);
       } else if (err.status === 423) {
@@ -215,7 +221,7 @@ const saver = {
   },
 
   busy() {
-    return this.pending.size > 0 || this.inFlight.size > 0;
+    return [...this.pending.values()].some((p) => !p.conflict) || this.inFlight.size > 0;
   },
 };
 
@@ -258,11 +264,11 @@ document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "hidden" && saver.pending.size && state.enrollment) {
     for (const [key, p] of saver.pending) {
       if (p.kind === "assessment") continue;
-      const known = state.journey.entries[`${p.step}:${p.field}`];
+      if (p.conflict) continue;
       api(
         "PUT",
         `/api/journey/${state.enrollment.id}/entry`,
-        { step: p.step, field: p.field, value: p.value, baseRevision: p.baseRevision ?? known?.revision ?? 0 },
+        { step: p.step, field: p.field, value: p.value, baseRevision: p.baseRevision ?? 0 },
         { keepalive: true },
       )
         .then((out) => {
@@ -379,8 +385,14 @@ async function restoreUnsaved() {
     if (p.kind === "entry") {
       const current = state.journey.entries[`${p.step}:${p.field}`];
       if (current?.value === p.value) continue;
-      state.journey.entries[`${p.step}:${p.field}`] = { ...(current || {}), value: p.value };
+      // Fältet visar den lokala texten och bär den revision texten skrevs mot,
+      // inte serverns nyaste. Fortsatt skrivande kan då inte gå förbi konflikten.
+      state.journey.entries[`${p.step}:${p.field}`] = { ...(current || {}), value: p.value, revision: p.baseRevision ?? 0 };
     }
+    // Skickas igen mot den revision texten skrevs mot. Är den gammal svarar
+    // servern med konflikt och deltagaren får välja. Ingenting skrivs över tyst.
+    delete p.conflict;
+    delete p.server;
     saver.pending.set(key, p);
   }
   if (saver.pending.size) {
@@ -914,7 +926,7 @@ function fieldEl(stepKey, section, field, { readOnly = false } = {}) {
   input.addEventListener("change", onInput);
   input.addEventListener("blur", () => saver.flush(key));
 
-  saver.conflictHandlers.set(key, (server, mine) => {
+  const showConflict = (server) => {
     conflict.hidden = false;
     conflict.replaceChildren(
       h("p", {}, h("strong", {}, "Den här texten har ändrats på en annan enhet."), " Välj vilken version som ska gälla. Ingenting försvinner förrän du valt."),
@@ -929,7 +941,8 @@ function fieldEl(stepKey, section, field, { readOnly = false } = {}) {
           onclick: () => {
             conflict.hidden = true;
             state.journey.entries[`${stepKey}:${path}`] = { value: server.value, revision: server.revision, updatedAt: server.updatedAt };
-            saver.queue(key, { kind: "entry", step: stepKey, field: path, value: mine.value, baseRevision: server.revision }, 0);
+            // Det som står i fältet nu. Även det som skrevs efter att konflikten visades.
+            saver.queue(key, { kind: "entry", step: stepKey, field: path, value: input.value, baseRevision: server.revision }, 0);
           },
         }, "Behåll min text"),
         h("button", {
@@ -938,13 +951,20 @@ function fieldEl(stepKey, section, field, { readOnly = false } = {}) {
           onclick: () => {
             conflict.hidden = true;
             state.journey.entries[`${stepKey}:${path}`] = { value: server.value, revision: server.revision, updatedAt: server.updatedAt };
+            if (saver.pending.get(key)?.conflict) saver.pending.delete(key);
+            saver.persist();
+            renderSaveStatus();
             input.value = server.value;
             if (input.tagName === "TEXTAREA") autosize(input);
           },
         }, "Använd den sparade"),
       ),
     );
-  });
+  };
+  saver.conflictHandlers.set(key, showConflict);
+  // En konflikt som upptäcktes innan fältet ritades, till exempel efter omladdning, visas direkt.
+  const waiting = saver.pending.get(key);
+  if (waiting?.conflict && waiting.server) showConflict(waiting.server);
 
   wrap.append(...[label, field.hint ? h("p", { class: "field-guide" }, field.hint) : null, input, hint, conflict].filter(Boolean));
   if (state.journey.entries[`${stepKey}:${path}`]?.revision > 1) wrap.append(historyToggle(stepKey, path));
@@ -974,7 +994,26 @@ function choiceField(stepKey, section, field, key, path, value, wrap) {
     }, opt),
   );
   group.append(...buttons);
-  wrap.append(h("p", { class: "field-label" }, field.label), group);
+  // Konflikt: valet har ändrats på en annan enhet. Visa det sparade valet öppet.
+  // Ett val är ett klick, så deltagaren väljer igen i stället för att jämföra texter.
+  const notice = h("p", { class: "field-hint", "aria-live": "polite", hidden: true });
+  const showConflict = (server) => {
+    state.journey.entries[`${stepKey}:${path}`] = { value: server.value, revision: server.revision, updatedAt: server.updatedAt };
+    if (saver.pending.get(key)?.conflict) saver.pending.delete(key);
+    saver.persist();
+    renderSaveStatus();
+    buttons.forEach((b) => {
+      const on = b.textContent === server.value;
+      b.classList.toggle("is-on", on);
+      b.setAttribute("aria-checked", on ? "true" : "false");
+    });
+    notice.hidden = false;
+    notice.textContent = `Valet ändrades på en annan enhet. Sparat val: ${server.value || "inget"}. Välj igen om du vill ändra.`;
+  };
+  saver.conflictHandlers.set(key, showConflict);
+  const waiting = saver.pending.get(key);
+  if (waiting?.conflict && waiting.server) showConflict(waiting.server);
+  wrap.append(h("p", { class: "field-label" }, field.label), group, notice);
   return wrap;
 }
 

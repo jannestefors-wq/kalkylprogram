@@ -210,7 +210,9 @@
       data.entries[key] = { value, revision: 1, createdAt: now, updatedAt: now, history: [] };
       result = { revision: 1, savedAt: now };
     } else {
-      if (baseRevision != null && Number(baseRevision) !== existing.revision) {
+      // Samma kontrakt som servern: ett befintligt svar ändras bara mot känd revision.
+      if (baseRevision == null) throw httpError(428, "base_revision_required");
+      if (Number(baseRevision) !== existing.revision) {
         throw httpError(409, "conflict", { revision: existing.revision, value: existing.value, updatedAt: existing.updatedAt });
       }
       if (existing.value === value) return { revision: existing.revision, savedAt: existing.updatedAt };
