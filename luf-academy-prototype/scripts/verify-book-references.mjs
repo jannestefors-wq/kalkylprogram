@@ -15,6 +15,8 @@
 //     av sidorna i momentets eller fältets interna refs. Refs visas aldrig
 //     för deltagaren.
 //  5. De fem principerna finns ordagrant på s. 14–15.
+//  6. Varje fält märkt som bokens egen fråga (origin "book") finns ordagrant
+//     på sina sidor. Hörnets ord före första punkten räknas inte.
 import { readFileSync } from "node:fs";
 import { STEPS, FIVE_PRINCIPLES } from "../server/content.mjs";
 
@@ -72,6 +74,11 @@ for (const step of STEPS.filter((s) => s.built)) {
     }
     for (const page of new Set([...(section.refs || []), ...(section.fields || []).flatMap((f) => f.refs || [])])) {
       check(page >= 1 && page <= lastPrinted && printed(page).length > 0, `${step.key}/${section.key} intern sidreferens s. ${page} finns i boken`);
+    }
+    for (const f of (section.fields || []).filter((x) => x.origin === "book")) {
+      const q = norm(f.label.replace(/^[A-ZÅÄÖ][a-zåäö]+\. (?=[A-ZÅÄÖ])/, "")).toLowerCase();
+      const found = f.refs.some((page) => span(page, page + 1).toLowerCase().includes(q));
+      check(found, `${step.key}/${section.key}.${f.key} källfråga s. ${f.refs.join(", ")}: "${f.label}"`);
     }
     const refTexts = [
       { text: section.hint, refs: section.refs },

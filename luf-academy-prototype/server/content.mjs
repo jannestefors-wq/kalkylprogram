@@ -20,6 +20,11 @@ export const PROGRAM_ID = "ledarskap-med-hjarta-och-mod";
 export const PROGRAM_TITLE = "Ledarskap med hjärta och mod";
 export const MAX_PARTICIPANTS_PER_COHORT = 6;
 export const HOLD_FOR_JAN = "HOLD FÖR JAN";
+// Intern märkning av hörnfrågor utan egen fråga i källan. Visas aldrig för deltagaren.
+export const JAN_REVIEW = "DIGITALT FORMULERAD. JAN REVIEW.";
+// Hörnfrågans ursprung. Internt. Källfrågor kontrolleras ordagrant mot boken.
+const fromBook = (...refs) => ({ origin: "book", refs });
+const digital = (support) => ({ origin: "digital", review: JAN_REVIEW, support });
 
 export const MAP_DIMENSIONS = [
   { key: "narvaro", label: "Närvaro i mötet", low: "Splittrad", high: "Fullt närvarande" },
@@ -60,7 +65,7 @@ export const LIVE_SUPPORT = {
     "Det som delas stannar i gruppen.",
     "Skydda tredje person. Använd initial eller alias.",
     "Fråga före råd.",
-    "Observera före tolkning.",
+    "Observera före tolkning. Tystnad, blick, tempo och ordval kan ge oss frågor. De är aldrig facit på vad någon känner.",
     "Beslutet och handlingen är din egen.",
   ],
 };
@@ -169,6 +174,9 @@ function live() {
 }
 
 // Triangel. Hörnen placeras i rubrikens läsordning: vänster, mitten, höger.
+// Hörn: [nyckel, ord, fråga, hjälptext, ursprung]. Ursprunget är internt:
+// fromBook(sida) för källans egen fråga, digital(stöd) för en fråga som saknar
+// förlaga i källan och som Jan granskar.
 // För Se · Höra · Känna är det den fasta regeln: SE vänster, HÖRA mitten, KÄNNA höger.
 function triangle({ key, title, corners, prompt, source, lead, pre = [], post = [], model, doneWhen, shareable, note, optional, refs }) {
   return {
@@ -187,7 +195,7 @@ function triangle({ key, title, corners, prompt, source, lead, pre = [], post = 
     doneWhen: optional ? undefined : doneWhen || { all: corners.map(([k]) => k) },
     fields: [
       ...pre.map((f) => ({ ...f, place: "pre" })),
-      ...corners.map(([k, label, question, hint]) => t(k, question || label, { corner: k, hint, rows: 3 })),
+      ...corners.map(([k, label, question, hint, meta = {}]) => t(k, question || label, { corner: k, hint, rows: 3, ...meta })),
       ...post.map((f) => ({ ...f, place: "post" })),
     ],
   };
@@ -309,9 +317,9 @@ const WEEK_1_SECTIONS = [
     key: "triangel",
     title: "Veckans triangel",
     corners: [
-      ["filter", "Filter", "Filter. Vad lägger sig mellan dig och den andra?", "Språket, prestigen, rädslan eller fasaden."],
-      ["manniska", "Människa", "Människa. Vem står framför dig, bortom rollen?"],
-      ["narvaro_t", "Närvaro", "Närvaro. Var är du själv när ni pratar?"],
+      ["filter", "Filter", "Filter. Vad lägger sig mellan dig och den andra?", "Språket, prestigen, rädslan eller fasaden.", digital("Boken s. 7: det som står mellan dig och människorna du leder. De fyra filtren s. 8–11 och 198.")],
+      ["manniska", "Människa", "Människa. Vem står framför dig, bortom rollen?", undefined, digital("Boken s. 20–27: ser du dina människor, inte om arbetet, om dem.")],
+      ["narvaro_t", "Närvaro", "Närvaro. Var är du själv när ni pratar?", undefined, digital("Boken s. 15: din fulla uppmärksamhet. Jans definition av närvaro, order 001 §20.")],
     ],
     prompt: "Se vad som står mellan dig och ett ärligare möte.",
     source: "Arbetsboken, vecka 1",
@@ -405,9 +413,9 @@ const WEEK_2_SECTIONS = [
     key: "triangel",
     title: "Veckans triangel",
     corners: [
-      ["radsla", "Rädsla", "Rädsla. Vad är du rädd för här?"],
-      ["mod_t", "Mod", "Mod. Vad vore det modiga steget?"],
-      ["ansvar_t", "Ansvar", "Ansvar. Vad är ditt ansvar, och vad är inte ditt?"],
+      ["radsla", "Rädsla", "Rädsla. Vad är du rädd för här?", undefined, digital("Boken s. 9 och 36: rädslan, mod är inte avsaknad av rädsla.")],
+      ["mod_t", "Mod", "Mod. Vad vore det modiga steget?", undefined, digital("Boken s. 31–36: beslutet att kliva fram.")],
+      ["ansvar_t", "Ansvar", "Ansvar. Vad är ditt ansvar, och vad är inte ditt?", undefined, digital("Boken s. 31: att ta ansvar. Arbetsboken, Vårt gemensamma rum regel 5 och medtränarregel 5.")],
     ],
     prompt: "Se skillnaden mellan obehag och verklig risk.",
     source: "Arbetsboken, vecka 2",
@@ -445,7 +453,7 @@ const WEEK_3_SECTIONS = [
   },
   reading(
     [
-      { title: "Triangelmetodiken", pages: "54–59", pdfPages: "61–66", note: "Fram till rubriken Katalytiskt ledarskap." },
+      { title: "Triangelmetodiken", pages: "54–59", pdfPages: "61–66", note: "Till och med avsnittet Triangulering — att mäta det omätbara." },
       { title: "Se — Höra — Känna", pages: "66–74", pdfPages: "73–81" },
     ],
   ),
@@ -459,12 +467,12 @@ const WEEK_3_SECTIONS = [
     model: "se-hora-kanna",
     title: "Se. Höra. Känna.",
     corners: [
-      ["se", "Se", "Se. Vad har jag faktiskt observerat?", "Det konkreta. Beteenden, resultat. Inga tolkningar."],
-      ["hora", "Höra", "Höra. Vad har jag hört?", "Orden, tonfallet, pauserna. Och det som inte sades."],
-      ["kanna", "Känna", "Känna. Vad känner jag själv?", "Något förändrades. Vad behöver jag förstå mer om? En signal, inte ett bevis."],
+      ["se", "Se", "Se. Vad har du faktiskt observerat?", "Det konkreta. Beteenden, resultat. Inga tolkningar.", fromBook(61)],
+      ["hora", "Höra", "Höra. Vad har du hört från personen själv?", "Orden, tonfallet, pauserna. Och det som inte sades.", fromBook(61)],
+      ["kanna", "Känna", "Känna. Vad är din känsla, som du behöver vara medveten om men inte låta styra?", "Något förändrades. Vad behöver jag förstå mer om? En signal, inte ett bevis.", fromBook(61)],
     ],
     prompt: "Skriv bara sådant du faktiskt kan placera i respektive hörn.",
-    source: "Boken s. 66–74 och bokens övning s. 74. Arbetsboken, vecka 3.",
+    source: "Boken s. 66–74 och bokens övning s. 74. Hörnfrågorna: boken s. 61. Arbetsboken, vecka 3.",
     lead: ["Tänk på en person eller en situation som skaver just nu. Fyll i de tre innan du agerar."],
     shareable: true,
     pre: [t("vem", "Vilken situation gäller det?", { rows: 2, hint: "Roll eller initial räcker." })],
@@ -523,7 +531,7 @@ const WEEK_4_SECTIONS = [
       { title: "Trygghet — Relation — Utveckling", pages: "75–84", pdfPages: "82–91" },
       { title: "Konflikt — Lösning — Ansvar", pages: "85–93", pdfPages: "92–100" },
     ],
-    { optional: [{ title: "Kommunikation — företagets livsnerv", pages: "114–116", pdfPages: "121–123", note: "Avsnitten om svåra samtal och att våga vara ärlig." }] },
+    { optional: [{ title: "Kommunikation — företagets livsnerv", pages: "114–116", pdfPages: "121–123", note: "Avsnitten ”Svåra samtal — så gör du” och ”Att våga vara ärlig”." }] },
   ),
   stanna([
     ["trygghet_team", "Var finns tryggheten i ditt team idag?"],
@@ -535,12 +543,12 @@ const WEEK_4_SECTIONS = [
     key: "trygghet",
     title: "Trygghet. Relation. Utveckling.",
     corners: [
-      ["trygghet_t", "Trygghet", "Trygghet. Vet personen var den står? Kan den säga ”jag vet inte”?"],
-      ["relation_t", "Relation", "Relation. Finns det tillit där feedback kan landa?"],
-      ["utveckling_t", "Utveckling", "Utveckling. Vad försöker du utveckla, och är grunden på plats?"],
+      ["trygghet_t", "Trygghet", "Trygghet. Känner den här personen sig trygg?", "Svara utifrån det du har sett och hört. Det är en fråga att undersöka, inte något du kan veta säkert.", fromBook(60)],
+      ["relation_t", "Relation", "Relation. Finns det en relation där feedback kan landa?", undefined, fromBook(60)],
+      ["utveckling_t", "Utveckling", "Utveckling. Är utvecklingsmålen realistiska?", undefined, fromBook(60)],
     ],
     prompt: "Använd triangeln för en person eller ett helt team.",
-    source: "Boken s. 75–84. Arbetsboken, vecka 4.",
+    source: "Boken s. 75–84. Hörnfrågorna: boken s. 60. Arbetsboken, vecka 4.",
     pre: [short("vem", "Vem eller vilka gäller det?", { placeholder: "Roll, initial eller teamet" })],
     post: [t("borja", "Var börjar du idag? Och var borde du börja?", { rows: 2 })],
   }),
@@ -548,9 +556,9 @@ const WEEK_4_SECTIONS = [
     key: "samtalet",
     title: "Samtalet som behöver tas",
     corners: [
-      ["konflikt", "Konflikt", "Konflikt. Vad är konflikten?"],
-      ["losning", "Lösning", "Lösning. Vilken lösning är möjlig?"],
-      ["ansvar_k", "Ansvar", "Ansvar. Vem tar ansvar för vad?"],
+      ["konflikt", "Konflikt", "Konflikt. Vad är konflikten?", undefined, fromBook(93)],
+      ["losning", "Lösning", "Lösning. Vilken lösning är möjlig?", undefined, fromBook(93)],
+      ["ansvar_k", "Ansvar", "Ansvar. Vem tar ansvar för vad?", undefined, fromBook(93)],
     ],
     prompt: "Börja inte med att vinna. Börja med att tydliggöra vad som faktiskt behöver lösas.",
     source: "Bokens övning s. 93. Arbetsboken, vecka 5.",
@@ -613,9 +621,9 @@ const WEEK_5_SECTIONS = [
     key: "niva",
     title: "Var sitter det?",
     corners: [
-      ["individ", "Individ", "Vad talar för att det sitter hos individen?"],
-      ["team", "Team", "Vad talar för att det sitter i teamet?"],
-      ["organisation", "Organisation", "Vad talar för att det sitter i organisationen?"],
+      ["individ", "Individ", "Vad talar för att det sitter hos individen?", undefined, digital("Arbetsbokens instruktion v6: fråga vad som talar för att det sitter på en annan nivå. Boken s. 110: Är du säker? Hur vet du?")],
+      ["team", "Team", "Vad talar för att det sitter i teamet?", undefined, digital("Arbetsbokens instruktion v6: fråga vad som talar för att det sitter på en annan nivå. Boken s. 110: Är du säker? Hur vet du?")],
+      ["organisation", "Organisation", "Vad talar för att det sitter i organisationen?", undefined, digital("Arbetsbokens instruktion v6: fråga vad som talar för att det sitter på en annan nivå. Boken s. 110: Är du säker? Hur vet du?")],
     ],
     prompt: "Placera problemet där du tror att det sitter. Fråga sedan vad som talar för att det sitter på en annan nivå.",
     source: "Boken s. 101–110. Arbetsboken, vecka 6.",
@@ -632,9 +640,9 @@ const WEEK_5_SECTIONS = [
     key: "teamet",
     title: "Teamet",
     corners: [
-      ["relation_r", "Relation", "Relation. Hur är det mellan er?"],
-      ["ansvar_r", "Ansvar", "Ansvar. Tar ni ansvar för varandra, eller bara för er egen del?"],
-      ["resultat_r", "Resultat", "Resultat. Vad blir resultatet av det?"],
+      ["relation_r", "Relation", "Relation. Hur är det mellan er?", undefined, digital("Arbetsbokens instruktion v7. Boken s. 123: engagemang för varandra.")],
+      ["ansvar_r", "Ansvar", "Ansvar. Tar ni ansvar för varandra, eller bara för er egen del?", undefined, digital("Boken s. 128: i ett team är du ömsesidigt beroende. Bokens fråga Vem ansvarar för vad? gäller roller och har annan funktion.")],
+      ["resultat_r", "Resultat", "Resultat. Vad blir resultatet av det?", undefined, digital("Arbetsbokens instruktion v7: hur relation och ansvar tillsammans påverkar resultatet.")],
     ],
     prompt: "Se hur relation och ansvar tillsammans påverkar resultatet.",
     source: "Arbetsboken, vecka 7. Boken s. 123–130.",
@@ -644,9 +652,9 @@ const WEEK_5_SECTIONS = [
     key: "ny-eller-vaxa",
     title: "Någon som är ny eller kan växa",
     corners: [
-      ["valkomna", "Välkomna", "Välkomna. Hur tas personen emot?"],
-      ["fortroende", "Förtroende", "Förtroende. Vad behöver finnas för att personen ska våga?"],
-      ["utveckla", "Utveckla", "Utveckla. Vilket ansvar kan du lämna över?"],
+      ["valkomna", "Välkomna", "Välkomna. Hur tas personen emot?", undefined, digital("Arbetsbokens instruktion v8: upplevelsen från den andra personens sida. Fördjupningen s. 138–146.")],
+      ["fortroende", "Förtroende", "Förtroende. Vad behöver finnas för att personen ska våga?", undefined, digital("Fördjupningen s. 138–146 och 158–166.")],
+      ["utveckla", "Utveckla", "Utveckla. Vilket ansvar kan du lämna över?", undefined, digital("Arbetsboken v8: vad behöver du släppa för att någon annan ska kunna växa. Fördjupningen s. 158–166.")],
     ],
     prompt: "Titta på upplevelsen från den andra personens sida.",
     source: "Arbetsboken, vecka 8. Boken s. 138–146 och 158–166.",
@@ -691,15 +699,16 @@ const WEEK_6_SECTIONS = [
   stanna([
     ["stress_gor", "Vad gör stress med ditt sätt att leda?"],
     ["stannade", "När stannade du senast utan att försöka prestera bättre?"],
-    ["inte_ledaren", "När var du senast inte den ledare du vill vara?"],
+    // Order 006: "När var du senast inte den ledare du vill vara?" (nyckel inte_ledaren)
+    // är borttagen. Samma händelse efterfrågas i triangeln Se · Lära · Vända.
   ]),
   triangle({
     key: "trycket",
     title: "Trycket och valet",
     corners: [
-      ["tryck", "Tryck", "Tryck. Vad pressar dig just nu?"],
-      ["val", "Val", "Val. Vad väljer du när trycket kommer?"],
-      ["riktning", "Riktning", "Riktning. Vart vill du egentligen?"],
+      ["tryck", "Tryck", "Tryck. Vad pressar dig just nu?", undefined, digital("Boken s. 148: stress och press.")],
+      ["val", "Val", "Val. Vad väljer du när trycket kommer?", undefined, digital("Boken s. 151: i mellanrummet finns ditt val.")],
+      ["riktning", "Riktning", "Riktning. Vart vill du egentligen?", undefined, digital("Boken s. 148–157: den inre kompassen.")],
     ],
     prompt: "Se vad som händer mellan trycket du känner och valet du faktiskt gör.",
     source: "Arbetsboken, vecka 9. Boken s. 148–157.",
@@ -711,13 +720,13 @@ const WEEK_6_SECTIONS = [
     key: "misstaget",
     title: "Den dag jag inte var den ledare jag vill vara",
     corners: [
-      ["se_m", "Se", "Se. Vad hände? Vad valde du?", "Beskriv det. Utan att försköna. Utan att döma."],
-      ["lara", "Lära", "Lära. Vad hade du gjort om du inte var rädd?"],
-      ["vanda", "Vända", "Vända. Vad gör du nu?"],
+      ["se_m", "Se", "Se. Vad var situationen? Vad valde du?", "Beskriv det. Utan att försköna. Utan att döma.", fromBook(187)],
+      ["lara", "Lära", "Lära. Vad hade du gjort annorlunda om du inte var rädd?", undefined, fromBook(187)],
+      ["vanda", "Vända", "Vända. Vad gör du nu?", undefined, digital("Boken s. 187: nästa gång välja lite modigare. Arbetsbokens instruktion v10: riktningen avgör vad du gör med det. Källans fråga om att göra annorlunda nästa gång ligger redan i Lära och skulle dubblera den.")],
     ],
     prompt: "Misstaget är material. Riktningen avgör vad du gör med det.",
     source: "Arbetsboken, vecka 10. Bokens övning s. 187 och 203.",
-    pre: [t("radd_for", "Vad var du rädd för?", { rows: 2 })],
+    pre: [t("radd_for", "Vad var du rädd för?", { rows: 2, origin: "book", refs: [187] })],
   }),
   {
     key: "principer",
@@ -737,12 +746,13 @@ const WEEK_6_SECTIONS = [
     title: "Tillbaka till början",
     lead: ["Läs dina första ord innan du skriver här. Försök inte låta klok. Beskriv vad som faktiskt har förändrats."],
     source: "Arbetsboken, Tillbaka till början",
-    doneWhen: { all: ["idag"] },
+    // Order 006: "Idag. Vad gör du annorlunda …" (nyckel idag) och "Jag behöver
+    // fortfarande träna på" (nyckel fortfarande) är borttagna. De efterfrågas i
+    // Avslut: annorlunda_nu och fortsatta_1–3.
+    doneWhen: { all: ["nar_jag_borjade"] },
     fields: [
       t("nar_jag_borjade", "När jag började. Vad gjorde du, undvek du eller fastnade du i?"),
-      t("idag", "Idag. Vad gör du annorlunda i verkliga situationer?"),
       t("manniskorna", "Människorna omkring mig. Vad tror du att de har märkt? Vad har någon faktiskt sagt?"),
-      t("fortfarande", "Jag behöver fortfarande träna på"),
     ],
   },
   {
@@ -913,7 +923,7 @@ function participantSection({ source, refs, quote, reading, fields, ...rest }) {
           },
         }
       : {}),
-    fields: fields.map(({ refs: _refs, ...f }) => f),
+    fields: fields.map(({ refs: _refs, origin: _origin, review: _review, support: _support, ...f }) => f),
   };
 }
 

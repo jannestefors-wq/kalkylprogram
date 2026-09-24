@@ -323,7 +323,8 @@ async function fillSection(page, label) {
 // Det som aldrig får synas för en deltagare. Källor och sidor för spårbarhet
 // finns kvar internt i innehållsregistret.
 const FORBIDDEN = [/Källa/, /arbetsbok/i, /köper du/i, /\bPDF\b/, /\bWord\b/, /HOLD/, /TODO|TBD/, /master/i, /crosswalk|provenance/i,
-  /\bSource\b/, /\bPASS\b|\bFAIL\b|\bDEV\b|TEST DATA|SOURCE VERIFIED/, /\(s\. \d/, /Bokens övning|Boken \(/, /intern/i];
+  /\bSource\b/, /\bPASS\b|\bFAIL\b|\bDEV\b|TEST DATA|SOURCE VERIFIED/, /\(s\. \d/, /Bokens övning|Boken \(/, /intern/i,
+  /kataly/i, /Claude/, /\bAI\b/, /PDF-sida|Word-master/i, /JAN REVIEW|DIGITALT FORMULERAD/i, /\b(åtta|nio|tio|\d+) trianglar/i];
 const assertClean = (text, where) => {
   for (const re of FORBIDDEN) assert.ok(!re.test(text), `${where}: ${re} syns för deltagaren (${text.match(new RegExp(".{0,40}" + re.source + ".{0,40}", re.flags))?.[0]})`);
 };
@@ -456,6 +457,30 @@ test("hela programmet på mobil: varje moment går att läsa och skriva i, inget
   assert.deepEqual(page.errors, []);
   await ctx.close();
 });
+
+// Order 006. Fast regel: SE vänster, HÖRA mitten, KÄNNA höger. Arbetsbokens
+// PDF har en annan placering. Den digitala versionen följer den inte.
+for (const kind of ["desktop", "mobile"]) {
+  test(`Se · Höra · Känna ligger vänster, mitten, höger (${kind})`, async () => {
+    const { ctx, page } = await open(kind, FULL);
+    await signIn(page);
+    await page.evaluate(() => { location.hash = "#/vecka-3/se-hora-kanna"; });
+    await page.waitForSelector("g[data-corner]");
+    const corners = await page.$$eval("g[data-corner]", (gs) => gs.map((g) => ({ key: g.dataset.corner, pos: g.dataset.position, label: g.textContent, x: g.getBoundingClientRect().x })));
+    assert.deepEqual(corners.map((c) => c.label), ["SE", "HÖRA", "KÄNNA"]);
+    assert.deepEqual(corners.map((c) => c.pos), ["left", "middle", "right"]);
+    assert.ok(corners[0].x < corners[1].x && corners[1].x < corners[2].x, "vänster till höger på skärmen");
+    const fields = await page.$$eval(".corner-field", (els) => els.map((e) => ({ pos: e.dataset.position, x: e.getBoundingClientRect().x, y: e.getBoundingClientRect().y, label: e.querySelector("label")?.textContent || "" })));
+    assert.deepEqual(fields.map((f) => f.pos), ["left", "middle", "right"]);
+    assert.ok(fields[0].label.startsWith("Se.") && fields[1].label.startsWith("Höra.") && fields[2].label.startsWith("Känna."));
+    // På desktop står fälten bredvid varandra, på mobil under varandra. Ordningen är densamma.
+    if (kind === "desktop") assert.ok(fields[0].x < fields[1].x && fields[1].x < fields[2].x);
+    else assert.ok(fields[0].y < fields[1].y && fields[1].y < fields[2].y);
+    assert.ok(fields[2].label.includes("medveten om men inte låta styra"));
+    assert.deepEqual(page.errors, []);
+    await ctx.close();
+  });
+}
 
 test("Jan ser delade avsnitt från alla veckor, programadmin ser bara status", async () => {
   const other = await open("desktop", FULL);

@@ -33,9 +33,9 @@ Länkarna skrivs ut och sparas i `data/inloggningslankar.txt`. En länk gäller 
 ## Testa
 
 ```bash
-npm test          # 23 tester mot servern
+npm test          # 28 tester mot servern
 npm run test:e2e  # 7 tester i Chromium mot servern
-node --no-warnings --test tests/preview.test.mjs  # 8 tester av förhandsvisningen, hela programmet på desktop och mobil
+node --no-warnings --test tests/preview.test.mjs  # 10 tester av förhandsvisningen, hela programmet på desktop och mobil
 ```
 
 ## Miljövariabler
@@ -65,6 +65,7 @@ Källor och sidreferenser ligger internt i registret och skickas aldrig till del
 
 ## Dokument
 
+- `docs/LEVERANSRAPPORT-006.md`. Beslutade slutkorrigeringar och hörnfrågor för Jans granskning.
 - `docs/LEVERANSRAPPORT-004.md`. Rensning av deltagarvyn. Status enligt order 004.
 - `docs/LEVERANSRAPPORT-003.md`. Hela utbildningen. Status enligt order 003.
 - `docs/LHM-SIX-WEEK-SOURCE-CROSSWALK-001.md`. Källkarta från bok och arbetsbok till sex veckor.

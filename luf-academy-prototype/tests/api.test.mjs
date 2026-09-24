@@ -358,6 +358,62 @@ test("Se. Höra. Känna. har fast ordning i registret", async () => {
   assert.ok(!/katalys/i.test(text), "inget Katalysatormaterial i utbildningen");
 });
 
+test("order 006: inget Katalysatorspråk i deltagarens utbildning", async () => {
+  const { STEPS, publicProgram } = await import("../server/content.mjs");
+  const { readFileSync } = await import("node:fs");
+  const client = readFileSync(new URL("../public/app.js", import.meta.url), "utf8");
+  for (const [where, text] of [["registret", JSON.stringify(STEPS)], ["programmet", JSON.stringify(publicProgram({ internal: true }))], ["klienten", client]]) {
+    assert.ok(!/kataly/i.test(text), `${where}: katalys, katalytisk eller Katalysator förekommer`);
+  }
+});
+
+test("order 006: Känna är en signal att undersöka, aldrig en slutsats om en annan människa", async () => {
+  const { STEPS, publicProgram } = await import("../server/content.mjs");
+  const text = JSON.stringify(publicProgram({ internal: true }));
+  assert.ok(!/(jag|du) känner att (han|hon|hen|personen|den andra|de|medarbetaren)/i.test(text));
+  const shk = STEPS.find((s) => s.key === "w3").sections.find((s) => s.model === "se-hora-kanna");
+  const kanna = shk.fields.find((f) => f.corner === "kanna");
+  assert.ok(kanna.label.includes("medveten om men inte låta styra") && kanna.hint.includes("En signal, inte ett bevis."));
+  const trygg = STEPS.find((s) => s.key === "w4").sections.find((s) => s.key === "trygghet").fields.find((f) => f.corner === "trygghet_t");
+  assert.ok(/inte något du kan veta säkert/.test(trygg.hint), "frågan om den andras trygghet är en fråga att undersöka");
+  const room = publicProgram().liveSupport.roomRules.join(" ");
+  assert.ok(room.includes("Observera före tolkning. Tystnad, blick, tempo och ordval kan ge oss frågor. De är aldrig facit på vad någon känner."));
+});
+
+test("order 006: hörnfrågor. Källans fråga först, digitala märks internt för Jan", async () => {
+  const { STEPS, publicProgram, JAN_REVIEW } = await import("../server/content.mjs");
+  const corners = STEPS.flatMap((s) => (s.sections || []).filter((x) => x.kind === "triangle").flatMap((x) => x.fields.filter((f) => f.corner).map((f) => ({ step: s.key, section: x.key, f }))));
+  assert.equal(corners.length, 30);
+  for (const { step, section, f } of corners) {
+    assert.ok(["book", "digital"].includes(f.origin), `${step}/${section}.${f.key} saknar ursprung`);
+    if (f.origin === "book") assert.ok(f.refs?.length, `${step}/${section}.${f.key} saknar sida`);
+    if (f.origin === "digital") assert.ok(f.review === JAN_REVIEW && f.support, `${step}/${section}.${f.key} saknar märkning eller stöd`);
+  }
+  assert.equal(corners.filter((c) => c.f.origin === "book").length, 11);
+  assert.equal(corners.filter((c) => c.f.origin === "digital").length, 19);
+  const text = JSON.stringify(publicProgram({ internal: true }));
+  assert.ok(!text.includes(JAN_REVIEW) && !text.includes("JAN REVIEW") && !/"origin"|"review"|"refs"/.test(text));
+});
+
+test("order 006: vecka 6 har inte längre de tre dubbleringarna", async () => {
+  const { STEPS } = await import("../server/content.mjs");
+  const w6 = STEPS.find((s) => s.key === "w6");
+  const fields = w6.sections.flatMap((s) => s.fields.map((f) => ({ path: `${s.key}.${f.key}`, label: f.label })));
+  const paths = fields.map((f) => f.path);
+  for (const gone of ["stanna.inte_ledaren", "tillbaka.idag", "tillbaka.fortfarande"]) assert.ok(!paths.includes(gone), `${gone} finns kvar`);
+  for (const kept of ["misstaget.se_m", "avslut.annorlunda_nu", "avslut.fortsatta_1", "avslut.fortsatta_2", "avslut.fortsatta_3"]) assert.ok(paths.includes(kept), `${kept} saknas`);
+  assert.equal(fields.filter((f) => /inte (var )?den ledare du vill vara|inte var den ledare jag vill vara/i.test(f.label)).length, 0, "misstaget efterfrågas bara i triangeln");
+  assert.equal(fields.filter((f) => /gör du annorlunda/i.test(f.label)).length, 1);
+  assert.deepEqual(fields.filter((f) => /träna på/i.test(f.label)).map((f) => f.path), ["avslut.fortsatta_1", "avslut.fortsatta_2", "avslut.fortsatta_3"]);
+});
+
+test("order 006: ingen totalsiffra för trianglar i deltagarens text", async () => {
+  const { publicProgram } = await import("../server/content.mjs");
+  const { readFileSync } = await import("node:fs");
+  const text = JSON.stringify(publicProgram({ internal: true })) + readFileSync(new URL("../public/app.js", import.meta.url), "utf8");
+  assert.ok(!/\b(åtta|nio|tio|\d+) trianglar/i.test(text));
+});
+
 test("källor finns kvar internt men når aldrig deltagaren", async () => {
   const { STEPS, publicProgram } = await import("../server/content.mjs");
   const sections = STEPS.flatMap((s) => s.sections || []);

@@ -2,7 +2,7 @@
 
 Internt. Ledarskap med hjärta och mod. Från arbetsbokens tio veckor till utbildningens sex veckor och 30 dagar.
 
-Skapad 2026-09-23 före byggandet av vecka 2 till 6.
+Skapad 2026-09-23 före byggandet av vecka 2 till 6. Uppdaterad 2026-09-24 enligt order 006, se sista avsnittet.
 
 ## Källor
 
@@ -66,8 +66,8 @@ Sidorna 16, 53, 111 och 147 är avdelningssidor (Del I till IV).
 
 **Vad varje triangel kräver**
 - **Hörnordning.** I PDF-mastern står det första ordet överst. Digitalt placeras hörnen i rubrikens läsordning: vänster, mitten (topp), höger. Det uppfyller den fasta regeln för Se · Höra · Känna: SE vänster, HÖRA mitten, KÄNNA höger. **Avvikelse att notera:** PDF-mastern vecka 3 har SE överst och HÖRA nere till vänster. Den digitala versionen följer Jans regel, inte PDF-bilden.
-- **Formuleringar.** Arbetsboken ger triangelns ord och veckans instruktion men inga hörnfrågor. Hörnfrågorna i Academy är formulerade för att öppna reflektion, inte för att tolka modellen. De ska granskas av Jan.
-- **Motsägelse i boken.** Boken säger "åtta trianglar" (s. 57). Kapitlen visar fem, kompendiet tre och s. 182 introducerar en nionde (Sägs · Görs · Tystas). Påverkar inte utbildningen. Noteras för Jan.
+- **Formuleringar.** Arbetsboken ger triangelns ord och veckans instruktion men inga hörnfrågor. Där boken har en egen fråga för hörnet används bokens fråga ordagrant (order 006): Se · Höra · Känna s. 61, Trygghet · Relation · Utveckling s. 60, Konflikt · Lösning · Ansvar s. 93, Se och Lära i Se · Lära · Vända s. 187. Övriga 19 hörnfrågor saknar förlaga i källan. De är märkta internt i registret som *DIGITALT FORMULERAD. JAN REVIEW.* med sitt källstöd, och listas i `LEVERANSRAPPORT-006.md`.
+- **Motsägelse i boken.** Boken säger "åtta trianglar" (s. 57): fem med egna kapitel och tre i kompendiet (s. 194). S. 182 introducerar en nionde (Sägs · Görs · Tystas). Källan förklarar inte avvikelsen. Deltagartexten anger ingen totalsiffra för trianglar (order 006, kontrolleras i test).
 
 ## Katalysatorn. Avgränsning
 
@@ -134,11 +134,11 @@ Varje vecka följer ryggraden: läs → stanna upp → din verklighet → vad ve
 | | |
 | --- | --- |
 | Bokens kapitel | Triangelmetodiken. Se — Höra — Känna. |
-| Exakt läsanvisning | Triangelmetodiken, s. 54–59, fram till rubriken *Katalytiskt ledarskap*. Se — Höra — Känna, s. 66–74. |
+| Exakt läsanvisning | Triangelmetodiken, s. 54–59, till och med avsnittet *Triangulering — att mäta det omätbara* (s. 58–59). Se — Höra — Känna, s. 66–74. Deltagarens not nämner inte längre rubriken som följer (order 006). |
 | PDF-sidor | 61–66, 73–81 |
 | Arbetsbokens ursprung | Vecka 3 av 10. |
 | Triangel | Se · Höra · Känna. Fast ordning: SE vänster, HÖRA mitten, KÄNNA höger. |
-| Övning | Bokens övning s. 74: tre kolumner, vad ser jag, vad har jag hört, vad känner jag, fyll i innan du agerar. Detta ÄR veckans digitala modell. |
+| Övning | Bokens övning s. 74: tre kolumner, vad ser jag, vad har jag hört, vad känner jag, fyll i innan du agerar. Detta ÄR veckans digitala modell. Hörnfrågorna är bokens egna från s. 61 (order 006). |
 | KÄNNA | Boken s. 67 och 61: din egen reaktion, information du ska vara medveten om men inte låta styra. Academy: "Något förändrades. Vad behöver jag förstå mer om?". Aldrig ett påstående om vad den andra känner. |
 | Stanna upp | Arbetsboken v3: vilket problem löser du för snabbt, vad har du faktiskt sett och hört, vilken del är din känsla eller tolkning. |
 | Fråga | Medtränarens "Min bästa fråga" används här för deltagarens egen situation. |
@@ -149,7 +149,7 @@ Varje vecka följer ryggraden: läs → stanna upp → din verklighet → vad ve
 | | |
 | --- | --- |
 | Bokens kapitel | Trygghet — Relation — Utveckling. Konflikt — Lösning — Ansvar. |
-| Exakt läsanvisning | Trygghet — Relation — Utveckling, s. 75–84. Konflikt — Lösning — Ansvar, s. 85–93. Fördjupning: Kommunikation — företagets livsnerv, s. 114–116. |
+| Exakt läsanvisning | Trygghet — Relation — Utveckling, s. 75–84. Konflikt — Lösning — Ansvar, s. 85–93. Fördjupning: Kommunikation — företagets livsnerv, s. 114–116, avsnitten *Svåra samtal — så gör du* (s. 114–115) och *Att våga vara ärlig* (s. 116). Avsnittet *Det svåra samtalet* s. 120 ingår inte och hänvisas inte till. |
 | PDF-sidor | 82–91, 92–100, fördjupning 121–123 |
 | Arbetsbokens ursprung | Vecka 4 av 10. Konfliktdelen av vecka 5. *Halvvägs* från vecka 5. |
 | Trianglar | Trygghet · Relation · Utveckling, "Använd triangeln för en person eller ett helt team." Konflikt · Lösning · Ansvar, "Börja inte med att vinna. Börja med att tydliggöra vad som faktiskt behöver lösas." |
@@ -184,7 +184,7 @@ Varje vecka följer ryggraden: läs → stanna upp → din verklighet → vad ve
 | Övningar | Bokens övning s. 187 och 203: skriv ner vad som hände, vad du valde och vad du hade gjort om du inte var rädd. De fem principerna s. 14–15, med frågan från s. 188: vilken har du tappat? |
 | Slutskattning | Samma karta. Start och nu visas bredvid varandra som deltagarens egen bild. |
 | Avslut | Vad gör du annorlunda nu? Vad vill du att människorna runt dig ska märka framöver? Riktning: upp till tre saker med uppföljning. Löfte, med bokens fråga s. 174. |
-| Slås ihop | Arbetsbokens *Det jag tar med mig* (fem frågor) slås ihop med avslut och riktning. |
+| Slås ihop | Arbetsbokens *Det jag tar med mig* (fem frågor) slås ihop med avslut och riktning. Order 006: tre dubbleringar borttagna. Stanna upp-frågan om när du senast inte var den ledare du vill vara (bärs av triangeln Se · Lära · Vända). I *Tillbaka till början*: Idag, vad gör du annorlunda, och Jag behöver fortfarande träna på (bärs av *Det här gör jag annorlunda nu*). |
 | Utgår | *Ledarskapet framåt* s. 180–185 (AI, valda sanningar, Taylor, katalytiskt ledarskap). |
 
 ### 30 DAGAR SENARE. VAD BLEV FAKTISKT KVAR?
@@ -195,8 +195,8 @@ Visar tillbaka: tre förändringsmål, startbild, slutbild, riktning och löfte.
 
 | Moment | Källa | Placering |
 | --- | --- | --- |
-| Så använder du boken | Arbetsboken | Översikten och introduktionen till vecka 1 |
-| Vårt gemensamma rum, fem regler | Arbetsboken | Sidan för träffen, varje vecka |
+| Så använder du boken | Arbetsboken | **Finns inte som eget moment.** Rättat i order 006. Punkt 3 syns som ledtext på sidan för träffen. Punkt 5 syns i *Förra veckan*. Punkterna 1, 2 och 4 syns inte som text. |
+| Vårt gemensamma rum, fem regler | Arbetsboken | Sidan för träffen, varje vecka. Regel 4 visas med arbetsbokens hela mening om att signaler aldrig är facit på vad någon känner (order 006). |
 | Medtränarens fem regler | Arbetsboken | Sidan för träffen, varje vecka |
 | Jag är medtränare, fyra frågor | Arbetsboken, alla veckor | Sidan för träffen. Frågorna visas som stöd. Bara "Vad väckte dagens samtal i mitt eget ledarskap?" sparas. |
 | Enskilda samtal 1 till 3 | Arbetsboken | *Samtal med Jan*: inför och efter. Inget hårdkodat antal. Inför kan delas med Jan. |
@@ -211,3 +211,16 @@ Visar tillbaka: tre förändringsmål, startbild, slutbild, riktning och löfte.
 2. Sidorna i vecka 2 är begränsade till s. 40–44 i andra kapitlet. Ska hela kapitlet läsas?
 3. Vecka 5 bär tre ursprungsveckor. Är läsmängden rimlig?
 4. Diplomkriterier.
+
+## Order 006. Beslutade slutkorrigeringar
+
+| Punkt | Ändring i källkoppling |
+| --- | --- |
+| Hörnfrågor | Bokens egna frågor används där de finns: s. 60, 61, 93 och 187. Varje hörnfråga har internt ursprung (`fromBook` eller `digital`). Bokens frågor kontrolleras ordagrant av `scripts/verify-book-references.mjs`. |
+| Katalytiskt | Ordet finns inte längre i deltagarens text. Testet söker på *kataly* och täcker alla böjningar. |
+| Känna | Bokens s. 61 är normerande för den digitala texten, inte s. 67. Frågan "Känner den här personen sig trygg?" (s. 60) har en hjälptext om att det är en fråga att undersöka. |
+| Vecka 2, s. 52 | Stanna upp-frågan "Vem söker du dig till när det verkligen skaver?" är arbetsbokens egen fråga. Den förutsätter ingen läsning. Temat finns i läst material, s. 43–44 (*Ingen klarar ledarskap ensam*). Ingen ändring. |
+| Hjälptext s. 122 | Beslut B. Texten "stå tyst i fikarummet i fem minuter och lyssna" står självständigt och nämner inte boken. Testet beskrivs också på s. 114, som ingår i fördjupningen i vecka 4. Ingen ändring av text eller läsning. |
+| Hjälptext s. 174 | Beslut B. Frågan "Vilken ledare vill du vara om fem år? Inte vilken titel. Vilken människa." står självständigt och nämner inte boken. Att lägga till läsning skulle öppna *Ledarskapet framåt*, som är avgränsat bort. Ingen ändring. |
+| Vecka 4, svåra samtal | Kontrollerat: s. 114–116 innehåller *Svåra samtal — så gör du* och *Att våga vara ärlig*. Deltagartexten namnger nu exakt de två avsnitten. |
+| Vecka 6 | Tre dubbleringar borttagna, se vecka 6 ovan. Borttagna nycklar: `stanna.inte_ledaren`, `tillbaka.idag`, `tillbaka.fortfarande`. Behållna: `misstaget.se_m`, `avslut.annorlunda_nu`, `avslut.fortsatta_1` till `3`. Ingen data migreras. Sparade svar under borttagna nycklar ligger kvar i databasen men visas inte. |
