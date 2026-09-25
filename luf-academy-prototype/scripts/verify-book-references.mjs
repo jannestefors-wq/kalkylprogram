@@ -17,6 +17,13 @@
 //  5. De fem principerna finns ordagrant på s. 14–15.
 //  6. Varje fält märkt som bokens egen fråga (origin "book") finns ordagrant
 //     på sina sidor. Hörnets ord före första punkten räknas inte.
+//  7. Version 2. En läsanvisning som är ett avsnitt i ett kapitel (inChapter)
+//     kontrolleras mot kapitlet: kapitlet finns i förteckningen, sidorna ligger
+//     inom kapitlet och avsnittets rubrik (eller rubriker) står på sidorna.
+//  8. Version 2. Hörnfrågor som är digitalt formulerade (origin "digital")
+//     jämförs inte med boken. Trygghet i vecka 4 är digital enligt order 011.
+//     Bokens ursprungliga fråga på s. 60 kontrolleras finnas kvar i boken, så
+//     att ändringen är ett medvetet val och inte en felläsning.
 import { readFileSync } from "node:fs";
 import { STEPS, FIVE_PRINCIPLES } from "../server/content.mjs";
 
@@ -55,6 +62,21 @@ for (const step of STEPS.filter((s) => s.built)) {
     const r = section.reading;
     if (r) {
       for (const ch of [...r.chapters, ...(r.optional || [])]) {
+        if (ch.inChapter) {
+          const idx = toc.findIndex((e) => e.title === norm(ch.inChapter));
+          check(idx >= 0, `${step.key} läsning: kapitlet "${ch.inChapter}" för avsnittet ${ch.title} finns i innehållsförteckningen`);
+          if (idx < 0) continue;
+          const [from, to = from] = ch.pages.split("–").map(Number);
+          const start = toc[idx].page;
+          const end = (toc[idx + 1]?.page || lastPrinted + 1) - 1;
+          check(from >= start && to <= end && from <= to, `${step.key} läsning: avsnittet ${ch.title} s. ${ch.pages} ligger inom kapitlet ${ch.inChapter} (s. ${start}–${end})`);
+          for (const heading of ch.headings || [ch.title]) {
+            check(span(from, to).includes(norm(heading)), `${step.key} läsning: rubriken "${heading}" står på s. ${ch.pages}`);
+          }
+          const [pf, pt = pf] = ch.pdfPages.split("–").map(Number);
+          check(pf === from + OFFSET && pt === to + OFFSET, `${step.key} läsning: PDF-sidor ${ch.pdfPages} motsvarar s. ${ch.pages}`);
+          continue;
+        }
         const idx = toc.findIndex((e) => e.title === norm(ch.title));
         check(idx >= 0, `${step.key} läsning: rubriken "${ch.title}" finns i innehållsförteckningen`);
         if (idx < 0) continue;
@@ -80,8 +102,12 @@ for (const step of STEPS.filter((s) => s.built)) {
       const found = f.refs.some((page) => span(page, page + 1).toLowerCase().includes(q));
       check(found, `${step.key}/${section.key}.${f.key} källfråga s. ${f.refs.join(", ")}: "${f.label}"`);
     }
+    for (const f of (section.fields || []).filter((x) => x.corner)) {
+      check(["book", "digital"].includes(f.origin), `${step.key}/${section.key}.${f.key} hörnfråga har ursprung`);
+    }
+    const hints = Array.isArray(section.hint) ? section.hint : [section.hint];
     const refTexts = [
-      { text: section.hint, refs: section.refs },
+      ...hints.map((text) => ({ text, refs: section.refs })),
       { text: section.note, refs: section.refs },
       ...(section.fields || []).map((f) => ({ text: f.hint, refs: f.refs })),
     ].filter((t) => t.text);
@@ -93,6 +119,17 @@ for (const step of STEPS.filter((s) => s.built)) {
         check(found, `${step.key}/${section.key} citat s. ${refs.join(", ")}: "${q}"`);
       }
     }
+  }
+}
+// 8. Trygghet i vecka 4. Digital fråga i version 2. Bokens fråga finns kvar på s. 60.
+{
+  const trygghet = STEPS.find((s) => s.key === "w4")?.sections.find((s) => s.key === "trygghet");
+  const corner = trygghet?.fields.find((f) => f.corner === "trygghet_sett");
+  check(corner?.origin === "digital", "w4/trygghet.trygghet_sett är märkt som digital fråga (order 011)");
+  check(span(60, 61).toLowerCase().includes(norm("Känner den här personen sig trygg?").toLowerCase()), "bokens trygghetsfråga finns kvar på s. 60 och ersätts medvetet");
+  check(!trygghet?.fields.some((f) => /Känner den här personen sig trygg/.test(f.label)), "den gamla trygghetsfrågan visas inte i version 2");
+  for (const key of ["relation_t", "utveckling_t"]) {
+    check(trygghet?.fields.find((f) => f.key === key)?.origin === "book", `w4/trygghet.${key} verifieras fortfarande mot boken`);
   }
 }
 for (const principle of FIVE_PRINCIPLES) check(span(14, 15).includes(norm(principle)), `princip s. 14–15: "${principle}"`);

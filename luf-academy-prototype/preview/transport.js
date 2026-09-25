@@ -9,7 +9,14 @@
 //   shared/<id>/items/..  avsnitt deltagaren aktivt delat. Läses bara av
 //                         sidans ägare (testrollen handledare) och deltagaren själv.
 //   roster/<id>           status utan fritext. Läses bara av ägaren.
+//   requests/<id>         förfrågan om samtal: bara att deltagaren vill boka
+//                         ett samtal och när. Ingen text. Läses bara av ägaren
+//                         (testrollen Jan) och deltagaren själv.
 //   testdata/cohort       testgruppen. Alla läser, bara ägaren skriver.
+//
+// Version 2: den privata vägledningen efter två Nej i rad räknas fram ur
+// deltagarens egna svar i webbläsaren. Deltagarens svar på rutan ligger i den
+// privata resan. Att rutan visas sparas aldrig.
 //
 // Ingen analys. Inga anrop lämnar sidan.
 
@@ -65,7 +72,7 @@
   function findField(stepKey, path) {
     const [sectionKey, fieldKey] = String(path).split(".");
     const sec = section(stepKey, sectionKey);
-    const field = sec?.fields.find((f) => f.key === fieldKey);
+    const field = sec?.fields.find((f) => f.key === fieldKey && f.kind !== "info");
     return field ? { section: sec, field } : null;
   }
 
@@ -92,6 +99,7 @@
     let assessments = {};
     let shares = [];
     let profile = null;
+    let support = { handled: [], talkRequestedAt: null };
     for (const d of snap.docs) {
       const body = d.data();
       if (d.id.startsWith("e:")) {
@@ -100,8 +108,9 @@
       } else if (d.id === "assessments") assessments = body.points || {};
       else if (d.id === "shares") shares = body.items || [];
       else if (d.id === "profile") profile = body;
+      else if (d.id === "support") support = { handled: body.handled || [], talkRequestedAt: body.talkRequestedAt || null };
     }
-    return { entries, assessments, shares, profile };
+    return { entries, assessments, shares, profile, support };
   }
 
   // Steget testpersonen står i. Testläget lagras i personens egen profil.
@@ -110,7 +119,8 @@
 
   async function touch(c, data) {
     const now = new Date().toISOString();
-    const startedSteps = STEPS.filter((s) => s.built && R.anyInStep(s.key, data.entries, data.assessments, STEPS)).map((s) => s.key);
+    // Bara veckorna. Startsamtalet och Samtal med Jan syns aldrig för administratören.
+    const startedSteps = STEPS.filter((s) => s.built && !s.aside && R.anyInStep(s.key, data.entries, data.assessments, STEPS)).map((s) => s.key);
     const started = startedSteps.join(",");
     const last = data.profile?.lastActivityAt ? Date.parse(data.profile.lastActivityAt) : 0;
     // Senast aktiv behöver inte vara exakt på sekunden. Skriv högst var femte minut.
@@ -128,12 +138,19 @@
     if (!active) return ref.delete();
     const sec = section(stepKey, sectionKey);
     const since = data.shares.find((s) => s.step === stepKey && s.section === sectionKey && s.kind === "share_with_facilitator").since;
+    // Samma som servern: bara synliga fält, området som nummer.
     return ref.set({
       step: stepKey,
       section: sectionKey,
       title: sec.title,
       since,
-      fields: sec.fields.map((f) => ({ label: f.label, value: data.entries[`${stepKey}:${sec.key}.${f.key}`]?.value || "" })),
+      fields: R.visibleFields(stepKey, sec, data.entries).map((f) => {
+        const raw = data.entries[`${stepKey}:${sec.key}.${f.key}`]?.value || "";
+        let value = raw;
+        if (f.kind === "area" && raw) value = raw === "nytt" ? f.newLabel : `Förändringsområde ${raw}`;
+        if (f.kind === "check") value = raw === "ja" ? "Ja" : "";
+        return { label: f.label, value };
+      }),
     });
   }
 
@@ -157,6 +174,7 @@
           lastActivityAt: data.profile?.lastActivityAt || null,
           cohort: { id: co.id, name: co.name, startDate: co.startDate, endDate: co.endDate, currentStep: currentStepOf(co, data), groupStep: co.currentStep, status: co.status },
           nextLiveSession: next,
+          reunion: (co.liveSessions || []).find((s) => s.step === "d30") || null,
           oneOnOnes: [],
         },
       ],
@@ -176,8 +194,47 @@
       shares: data.shares,
       locked: lockedFor(co, data),
       status: R.allStatuses(STEPS, data.entries, data.assessments, DIMS),
+      support: supportState(data),
       lastActivityAt: data.profile?.lastActivityAt || null,
     };
+  }
+
+  function supportState(data) {
+    return {
+      promptFor: R.supportPromptFor(STEPS, data.entries, data.support.handled),
+      talkRequestedAt: data.support.talkRequestedAt,
+    };
+  }
+
+  // Förfrågan om samtal. Bara tidpunkten skrivs där Jan kan läsa den.
+  async function requestTalk(c, data, now) {
+    const last = data.support.talkRequestedAt;
+    if (last && Date.parse(now) - Date.parse(last) < 24 * 3600 * 1000) return;
+    data.support.talkRequestedAt = now;
+    await c.db.doc(`requests/${c.uid}`).set({ requestedAt: now });
+  }
+
+  async function putTalkRequest(body) {
+    const c = await ctx();
+    if (Object.keys(body || {}).length) throw httpError(400, "unknown_key");
+    const data = await loadOwn(c);
+    await requestTalk(c, data, new Date().toISOString());
+    await own(c).doc("support").set(data.support);
+    return { support: supportState(data) };
+  }
+
+  async function putSupport(body) {
+    const c = await ctx();
+    const { action, step: streakStep, ...rest } = body || {};
+    if (Object.keys(rest).length) throw httpError(400, "unknown_key");
+    if (!["not_now", "request"].includes(action)) throw httpError(400, "unknown_action");
+    const data = await loadOwn(c);
+    const current = supportState(data).promptFor;
+    if (!current || current !== streakStep) throw httpError(409, "no_prompt");
+    data.support.handled = [...new Set([...data.support.handled, streakStep])];
+    if (action === "request") await requestTalk(c, data, new Date().toISOString());
+    await own(c).doc("support").set(data.support);
+    return { support: supportState(data) };
   }
 
   function assertOwn(enrollmentId) {
@@ -307,7 +364,8 @@
     const participants = [];
     for (const id of ids) {
       const items = await c.db.collection(`shared/${id}/items`).get();
-      participants.push({ name: nameOf(id), shared: items.docs.map((d) => d.data()) });
+      const req = await c.db.doc(`requests/${id}`).get();
+      participants.push({ name: nameOf(id), talkRequestedAt: req.exists ? req.data().requestedAt || null : null, shared: items.docs.map((d) => d.data()) });
     }
     return { cohorts: [{ id: co.id, name: co.name, startDate: co.startDate, participants }] };
   }
@@ -381,6 +439,8 @@
       if (sub === "/share" && method === "PUT") return putShare(body);
       if (sub === "/history" && method === "GET") return history(url);
       if (sub === "/test-step" && method === "PUT") return putTestStep(body);
+      if (sub === "/support" && method === "PUT") return putSupport(body);
+      if (sub === "/talk-request" && method === "PUT") return putTalkRequest(body);
     }
     throw httpError(404, "not_found");
   }

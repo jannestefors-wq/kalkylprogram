@@ -29,6 +29,11 @@ export function seed(db, { baseUrl = "http://127.0.0.1:4310", linkDays = 21, tod
         "INSERT INTO lr_live_session (id, cohort_id, step_key, starts_at, duration_minutes, teams_url, preparation) VALUES (?, ?, ?, ?, 90, '', ?)",
       ).run(`${c.id}-${step}`, c.id, step, at(d, 14), step === "w1" ? "Ta med situationen du har beskrivit och det du har valt att prova." : "");
     });
+    // Återträffen efter 30 dagar. 60 minuter. Spec avsnitt 18.
+    const reunion = new Date(c.start.getTime() + (5 * 7 + 3 + 30) * 86400000);
+    db.prepare(
+      "INSERT INTO lr_live_session (id, cohort_id, step_key, starts_at, duration_minutes, teams_url, preparation) VALUES (?, ?, 'd30', ?, 60, '', '')",
+    ).run(`${c.id}-d30`, c.id, at(reunion, 14));
   }
 
   const users = [

@@ -3,7 +3,7 @@ import { readFile } from "node:fs/promises";
 import { extname, join, normalize } from "node:path";
 import { fileURLToPath } from "node:url";
 import { tx } from "./db.mjs";
-import { MAP_DIMENSIONS, STEPS, findField, getSection, getStep, publicProgram } from "./content.mjs";
+import { AREA_NEW, MAP_DIMENSIONS, STEPS, findField, getSection, getStep, publicProgram } from "./content.mjs";
 import * as rules from "./rules.mjs";
 
 const PUBLIC_DIR = fileURLToPath(new URL("../public/", import.meta.url));
@@ -93,6 +93,8 @@ export function createApp(db, config = {}) {
       "INSERT INTO lr_event (enrollment_id, event_name, step_key, section_key, created_at) VALUES (?, ?, ?, ?, ?)",
     ),
     touchEnrollment: db.prepare("UPDATE lr_enrollment SET last_activity_at = ? WHERE id = ?"),
+    supportHandled: db.prepare("SELECT streak_end_step FROM lr_support_prompt WHERE enrollment_id = ?"),
+    lastTalkRequest: db.prepare("SELECT created_at FROM lr_talk_request WHERE enrollment_id = ? ORDER BY id DESC LIMIT 1"),
   };
 
   // ---------- Identitet ----------
@@ -165,6 +167,16 @@ export function createApp(db, config = {}) {
     return rules.lockedSections(STEPS, currentStepOf(enr), entries);
   }
 
+  // Privat vägledning. Läser bara deltagarens egna svar och lämnas bara
+  // tillbaka till deltagaren själv. Att rutan visas sparas aldrig.
+  function supportState(enr, entries) {
+    const handled = q.supportHandled.all(enr.id).map((r) => r.streak_end_step);
+    return {
+      promptFor: rules.supportPromptFor(STEPS, entries, handled),
+      talkRequestedAt: q.lastTalkRequest.get(enr.id)?.created_at || null,
+    };
+  }
+
   function journeyState(enr) {
     const entries = entryMap(enr.id);
     const assessments = assessmentMap(enr.id);
@@ -179,6 +191,7 @@ export function createApp(db, config = {}) {
       shares: q.shares.all(enr.id).map((s) => ({ step: s.step_key, section: s.section_key, kind: s.kind, since: s.created_at })),
       locked: lockedFor(enr, entries),
       status: rules.allStatuses(STEPS, entries, assessments, MAP_DIMENSIONS),
+      support: supportState(enr, entries),
       lastActivityAt: enr.last_activity_at,
     };
   }
@@ -190,6 +203,9 @@ export function createApp(db, config = {}) {
   }
 
   function deriveEvents(enr, stepKey, section, before, after) {
+    // Startsamtalet och Samtal med Jan ger aldrig någon händelse. Inget om
+    // enskilda samtal får bli mätning eller synas för administratören.
+    if (getStep(stepKey)?.aside) return;
     if (!before.anyInStep && after.anyInStep) recordOnce(enr.id, "week_started", stepKey);
     if (before.status !== "done" && after.status === "done") {
       recordOnce(enr.id, "section_completed", stepKey, section.key);
@@ -230,6 +246,10 @@ export function createApp(db, config = {}) {
           status: enr.cohort_status,
         },
         nextLiveSession: next && liveSessionOut(next),
+        reunion: (() => {
+          const r = sessions.find((s) => s.step_key === "d30");
+          return r ? liveSessionOut(r) : null;
+        })(),
         oneOnOnes: q.oneOnOnes.all(enr.id).map((o) => ({ id: o.id, scheduledAt: o.scheduled_at, status: o.status })),
       };
     });
@@ -388,11 +408,51 @@ export function createApp(db, config = {}) {
     if (keys.some((k) => !["name", "enrollmentId", "step", "section"].includes(k))) throw new HttpError(400, "unknown_key");
     const { name, enrollmentId, step = null, section = null } = body;
     if (!CLIENT_EVENTS.has(name)) throw new HttpError(400, "unknown_event");
-    if (step !== null && !getStep(step)) throw new HttpError(400, "unknown_step");
+    if (step !== null && (!getStep(step) || getStep(step).aside)) throw new HttpError(400, "unknown_step");
     if (section !== null && !getSection(step, section)) throw new HttpError(400, "unknown_section");
     const enr = enrollmentId ? ownEnrollment(user, enrollmentId) : null;
     q.insertEvent.run(enr?.id || null, name, step, section, nowIso());
     return { ok: true };
+  }
+
+  // Förfrågan om samtal. Enda vägen som når Jan: deltagaren trycker själv.
+  // Ingen text, inget svar och ingen källa följer med.
+  function createTalkRequest(enr, now) {
+    const last = q.lastTalkRequest.get(enr.id)?.created_at;
+    if (last && Date.parse(now) - Date.parse(last) < 24 * 3600 * 1000) return last;
+    db.prepare("INSERT INTO lr_talk_request (enrollment_id, created_at) VALUES (?, ?)").run(enr.id, now);
+    return now;
+  }
+
+  function putTalkRequest(req, enrollmentId, body) {
+    const user = requireUser(req);
+    const enr = ownEnrollment(user, enrollmentId);
+    if (Object.keys(body || {}).length) throw new HttpError(400, "unknown_key");
+    const now = nowIso();
+    tx(db, () => createTalkRequest(enr, now));
+    return { support: supportState(enr, entryMap(enr.id)) };
+  }
+
+  // Svar på den privata vägledningen efter två Nej i rad.
+  function putSupport(req, enrollmentId, body) {
+    const user = requireUser(req);
+    const enr = ownEnrollment(user, enrollmentId);
+    const keys = Object.keys(body || {});
+    if (keys.some((k) => !["action", "step"].includes(k))) throw new HttpError(400, "unknown_key");
+    const { action, step } = body;
+    if (!["not_now", "request"].includes(action)) throw new HttpError(400, "unknown_action");
+    const now = nowIso();
+    tx(db, () => {
+      const entries = entryMap(enr.id);
+      const current = supportState(enr, entries).promptFor;
+      // Svaret gäller bara den följd som faktiskt visas för deltagaren just nu.
+      if (!current || current !== step) throw new HttpError(409, "no_prompt");
+      db.prepare(
+        "INSERT INTO lr_support_prompt (enrollment_id, streak_end_step, choice, created_at) VALUES (?, ?, ?, ?)",
+      ).run(enr.id, step, action === "request" ? "requested" : "not_now", now);
+      if (action === "request") createTalkRequest(enr, now);
+    });
+    return { support: supportState(enr, entryMap(enr.id)) };
   }
 
   // Testläge. Flyttar en testperson genom resan utan att verklig tid går.
@@ -409,7 +469,25 @@ export function createApp(db, config = {}) {
     return journeyState({ ...enr, test_step: step });
   }
 
-  // Jan som handledare ser endast det som en deltagare aktivt har delat.
+  // Ett delat moment visas med de fält som syns för deltagaren. Förändringsområdet
+  // visas som nummer. Områdets egen text står i ett privat moment och delas inte.
+  function sharedFields(enrollmentId, stepKey, section) {
+    const values = {};
+    for (const f of section.fields) {
+      values[`${stepKey}:${section.key}.${f.key}`] = q.entry.get(enrollmentId, stepKey, `${section.key}.${f.key}`) || undefined;
+    }
+    return rules.visibleFields(stepKey, section, values).map((f) => {
+      const raw = values[`${stepKey}:${section.key}.${f.key}`]?.value || "";
+      let value = raw;
+      if (f.kind === "area" && raw) value = raw === AREA_NEW ? f.newLabel : `Förändringsområde ${raw}`;
+      if (f.kind === "check") value = raw === "ja" ? "Ja" : "";
+      if (f.kind === "multi") value = raw.split("\n").filter(Boolean).join("\n");
+      return { label: f.label, value };
+    });
+  }
+
+  // Jan som handledare ser endast det som en deltagare aktivt har delat,
+  // och förfrågningar om samtal som deltagaren själv har skickat.
   function facilitatorShared(req) {
     const user = requireUser(req);
     const cohorts = facilitatorCohorts(user);
@@ -429,8 +507,13 @@ export function createApp(db, config = {}) {
                 "SELECT step_key, section_key, created_at FROM lr_share WHERE enrollment_id = ? AND kind = 'share_with_facilitator' AND revoked_at IS NULL",
               )
               .all(p.id);
+            // Förfrågan om samtal: bara att deltagaren vill boka ett samtal, och när.
+            const talk = db
+              .prepare("SELECT created_at FROM lr_talk_request WHERE enrollment_id = ? ORDER BY id DESC LIMIT 1")
+              .get(p.id);
             return {
               name: p.display_name,
+              talkRequestedAt: talk?.created_at || null,
               shared: shares.map((s) => {
                 const section = getSection(s.step_key, s.section_key);
                 return {
@@ -438,10 +521,7 @@ export function createApp(db, config = {}) {
                   section: s.section_key,
                   title: section.title,
                   since: s.created_at,
-                  fields: section.fields.map((f) => ({
-                    label: f.label,
-                    value: q.entry.get(p.id, s.step_key, `${section.key}.${f.key}`)?.value || "",
-                  })),
+                  fields: sharedFields(p.id, s.step_key, section),
                 };
               }),
             };
@@ -590,6 +670,10 @@ export function createApp(db, config = {}) {
       return putAssessment(req, match[1], body);
     }
     if ((match = m(/^\/api\/journey\/([\w-]+)\/share$/)) && req.method === "PUT") return putShare(req, match[1], body);
+    if ((match = m(/^\/api\/journey\/([\w-]+)\/support$/)) && req.method === "PUT") return putSupport(req, match[1], body);
+    if ((match = m(/^\/api\/journey\/([\w-]+)\/talk-request$/)) && req.method === "PUT") {
+      return putTalkRequest(req, match[1], body);
+    }
     if ((match = m(/^\/api\/journey\/([\w-]+)\/test-step$/)) && req.method === "PUT") {
       return putTestStep(req, match[1], body);
     }

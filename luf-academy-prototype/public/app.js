@@ -50,6 +50,15 @@ function mount(...nodes) {
   window.scrollTo(0, 0);
 }
 
+// Ritar om sidan på samma plats. Används när ett val visar eller döljer frågor.
+function rerender() {
+  const y = window.scrollY;
+  const active = document.activeElement?.id;
+  route();
+  window.scrollTo(0, y);
+  if (active) document.getElementById(active)?.focus({ preventScroll: true });
+}
+
 // ---------- API ----------
 
 async function api(method, path, body, { keepalive = false } = {}) {
@@ -135,6 +144,12 @@ const saver = {
   queue(key, payload, delay = 700) {
     if (payload.kind === "entry" && payload.baseRevision == null) {
       payload.baseRevision = state.journey.entries[`${payload.step}:${payload.field}`]?.revision ?? 0;
+    }
+    // Värdet hålls även i resans tillstånd, så att en omritning av sidan
+    // (till exempel när ett val visar nya frågor) aldrig tappar text.
+    if (payload.kind === "entry") {
+      const k = `${payload.step}:${payload.field}`;
+      state.journey.entries[k] = { ...(state.journey.entries[k] || {}), value: payload.value };
     }
     this.pending.set(key, payload);
     this.persist();
@@ -319,6 +334,21 @@ const isLocked = (stepKey, sectionKey) => state.journey.locked[`${stepKey}:${sec
 const isOpen = (stepKey) => (state.journey.openSteps || []).includes(stepKey);
 const activeShare = (stepKey, sectionKey, kind) =>
   state.journey.shares.find((s) => s.step === stepKey && s.section === sectionKey && s.kind === kind);
+const sectionOf = (stepKey, sectionKey) => step(stepKey)?.sections.find((s) => s.key === sectionKey) || null;
+
+// Samma regel som servern: ett fält syns när villkoret i samma moment är uppfyllt.
+function isVisible(stepKey, section, field, depth = 0) {
+  if (!field.showWhen) return true;
+  if (depth > 5) return false;
+  const parent = section.fields.find((f) => f.key === field.showWhen.field);
+  if (!parent || !isVisible(stepKey, section, parent, depth + 1)) return false;
+  const value = entryValue(stepKey, `${section.key}.${parent.key}`);
+  if (parent.kind === "multi") return value.split("\n").some((v) => field.showWhen.in.includes(v));
+  return field.showWhen.in.includes(value);
+}
+const visibleOf = (stepKey, section, fields = section.fields) => fields.filter((f) => isVisible(stepKey, section, f));
+// Fält som styr andra fält. När de ändras ritas momentet om.
+const drivesOthers = (section, field) => section.fields.some((f) => f.showWhen?.field === field.key || f.hintWhen?.some((w) => w.field === field.key));
 
 function nextSectionKey(stepKey) {
   const sections = step(stepKey).sections;
@@ -330,8 +360,12 @@ function nextSectionKey(stepKey) {
   return open ? open.key : sections[sections.length - 1].key;
 }
 
+function actionSection(stepKey) {
+  return step(stepKey)?.sections.find((s) => s.kind === "action") || null;
+}
 function actionChosen(stepKey) {
-  return Boolean(entryValue(stepKey, "handling.prova").trim());
+  const a = actionSection(stepKey);
+  return Boolean(a && a.fields.some((f) => f.kind !== "info" && entryValue(stepKey, `${a.key}.${f.key}`).trim()));
 }
 function returnSection(stepKey) {
   return step(stepKey).sections.find((s) => s.kind === "return");
@@ -349,6 +383,22 @@ function weekProgress(stepKey) {
   const counted = step(stepKey).sections.filter((s) => s.doneWhen && !s.optional);
   const done = counted.filter((s) => statusOf(stepKey, s.key) === "done").length;
   return { done, total: counted.length };
+}
+
+// Deltagarens tre förändringsområden, med egna ord från vecka 1.
+function areas() {
+  return [1, 2, 3].map((n) => ({ n, text: entryValue("w1", `forandring.mal_${n}`), how: entryValue("w1", `forandring.mal_${n}_hur`) }));
+}
+function areaLabel(value, field) {
+  if (value === "nytt") return field?.newLabel || "Något nytt";
+  const a = areas().find((x) => String(x.n) === value);
+  return a ? (a.text.trim() ? `${a.n}. ${a.text}` : `Område ${a.n}`) : "";
+}
+// Svaret på Blev det av? för ett steg, och var det står.
+function outcomeOf(stepKey) {
+  const sec = step(stepKey)?.sections.find((s) => s.outcomeField);
+  if (sec) return { value: entryValue(stepKey, `${sec.key}.${sec.outcomeField}`), stopped: entryValue(stepKey, `${sec.key}.stoppade`), section: sec };
+  return null;
 }
 
 // ---------- Router ----------
@@ -482,6 +532,39 @@ function renderSignedOut(message) {
 
 // ---------- Översikt ----------
 
+function privacyBlock() {
+  return h("section", { class: "privacy", "aria-label": "Integritet" }, program().privacyText.map((l) => h("p", {}, l)));
+}
+
+// Privat vägledning efter två Nej i rad. Visas bara för deltagaren.
+// Att rutan visas skickas ingenstans. Jan får veta något först när
+// deltagaren själv trycker Be om ett samtal.
+function supportCard() {
+  const sp = state.journey.support;
+  if (!sp?.promptFor) return null;
+  const text = program().supportPrompt;
+  const answer = async (action) => {
+    try {
+      const out = await api("PUT", `/api/journey/${state.enrollment.id}/support`, { action, step: sp.promptFor });
+      state.journey.support = out.support;
+      rerender();
+    } catch {
+      notice("Det gick inte att spara ditt svar just nu. Försök igen.");
+    }
+  };
+  return h(
+    "section",
+    { class: "card support-card", "aria-label": "Privat fråga" },
+    text.lines.map((l) => h("p", { class: "support-line" }, l)),
+    h(
+      "div",
+      { class: "support-actions" },
+      h("button", { type: "button", class: "button primary", onclick: () => answer("request") }, text.request),
+      h("button", { type: "button", class: "button quiet", onclick: () => answer("not_now") }, text.notNow),
+    ),
+  );
+}
+
 function renderOverview() {
   const enr = state.enrollment;
   const current = step(state.journey.currentStep) || step("w1");
@@ -500,6 +583,7 @@ function renderOverview() {
       h("div", {}, h("dt", {}, "Start"), h("dd", {}, fmtPlainDate(enr.cohort.startDate))),
       h("div", {}, h("dt", {}, "Nu"), h("dd", {}, current.label)),
     ),
+    privacyBlock(),
   );
 
   let focus;
@@ -509,8 +593,7 @@ function renderOverview() {
       "section",
       { class: "focus-card is-recall" },
       h("p", { class: "kicker" }, `${ps.label}. Du bestämde dig för att prova`),
-      h("blockquote", { class: "own-words" }, entryValue(pending, "handling.prova")),
-      entryValue(pending, "handling.nar") && h("p", { class: "muted" }, `Planerat till ${fmtPlainDate(entryValue(pending, "handling.nar"))}.`),
+      planRecall(pending, { large: false }),
       h("a", { class: "button primary", href: stepHref(pending, returnSection(pending).key) }, returnStarted(pending) ? "Fortsätt skriva om vad som hände" : "Berätta vad som hände"),
       h("a", { class: "button quiet", href: stepHref(current.key, nextSectionKey(current.key)) }, "Fortsätt min ledarskapsresa"),
     );
@@ -552,6 +635,17 @@ function renderOverview() {
       : h("p", { class: "muted" }, "Ingen träff inlagd ännu."),
   );
 
+  const start = step("start");
+  const startCard =
+    start &&
+    h(
+      "section",
+      { class: "card" },
+      h("p", { class: "kicker" }, start.title),
+      h("a", { class: "button quiet", href: stepHref("start", "infor") }, sectionOf("start", "infor").title),
+      h("a", { class: "button quiet", href: stepHref("start", "efter") }, sectionOf("start", "efter").title),
+    );
+
   const talk = step("samtal");
   const oneOnOne = enr.oneOnOnes[0];
   const talkCard =
@@ -559,21 +653,20 @@ function renderOverview() {
     h(
       "section",
       { class: "card" },
-      h("p", { class: "kicker" }, "Samtal med Jan"),
+      h("p", { class: "kicker" }, talk.title),
       oneOnOne?.scheduledAt && h("p", {}, `${cap(fmtDay(oneOnOne.scheduledAt))} ${fmtTime(oneOnOne.scheduledAt)}`),
-      h("p", { class: "muted" }, "Förbered dig inför ett enskilt samtal, och skriv efteråt vad som blev tydligare."),
-      h("a", { class: "button quiet", href: stepHref("samtal", "infor") }, "Inför samtalet"),
+      h("a", { class: "button quiet", href: stepHref("samtal", "behov") }, talk.title),
     );
 
-  const goals = [1, 2, 3].map((n) => entryValue("w1", `forandring.mal_${n}`)).filter((v) => v.trim());
-  const skaver = entryValue("w1", "karta.skaver_mest");
+  const goals = areas().filter((a) => a.text.trim());
+  const skaver = entryValue("start", "infor.skaver");
   const goalsCard =
     (goals.length > 0 || skaver) &&
     h(
       "section",
       { class: "card" },
-      skaver && [h("p", { class: "kicker" }, "När du började skrev du att det här skavde mest"), h("p", { class: "own-words" }, skaver)],
-      goals.length > 0 && [h("p", { class: "kicker" }, "Du ville att människorna runt dig skulle märka"), h("ol", { class: "own-list" }, goals.map((g) => h("li", {}, g)))],
+      skaver && [h("p", { class: "kicker" }, "Det som skavde mest"), h("p", { class: "own-words" }, skaver)],
+      goals.length > 0 && [h("p", { class: "kicker" }, "Tre saker jag vill förändra"), h("ol", { class: "own-list" }, goals.map((g) => h("li", { value: g.n }, g.text)))],
     );
 
   const journeyList = h(
@@ -602,7 +695,12 @@ function renderOverview() {
       "div",
       { class: "overview shell" },
       main,
-      h("div", { class: "overview-grid" }, h("div", { class: "col" }, focus, goalsCard, journeyList), h("div", { class: "col" }, liveCard, talkCard, state.me.prototype && testModeCard())),
+      h(
+        "div",
+        { class: "overview-grid" },
+        h("div", { class: "col" }, supportCard(), focus, goalsCard, journeyList),
+        h("div", { class: "col" }, startCard, liveCard, talkCard, state.me.prototype && testModeCard()),
+      ),
     ),
   );
   document.title = "Min ledarskapsresa";
@@ -635,7 +733,7 @@ function testModeCard() {
 }
 
 const cap = (s) => (s ? s[0].toUpperCase() + s.slice(1) : s);
-const sectionTitle = (stepKey, sectionKey) => step(stepKey).sections.find((s) => s.key === sectionKey)?.title || sectionKey;
+const sectionTitle = (stepKey, sectionKey) => sectionOf(stepKey, sectionKey)?.title || sectionKey;
 
 // ---------- Vecka ----------
 
@@ -694,7 +792,7 @@ function renderWeek(stepKey, sectionKey) {
       : h("a", { class: "button primary", href: "#/" }, "Till min översikt"),
   );
 
-  mount(h("div", { class: "week shell" }, rail, h("article", { class: `section section-${section.kind}`, "aria-labelledby": "section-title", "data-step": stepKey }, body, footer)));
+  mount(h("div", { class: "week shell" }, rail, h("article", { class: `section section-${section.kind}`, "aria-labelledby": "section-title", "data-step": stepKey, "data-section": section.key }, body, footer)));
   document.title = `${section.title}. ${s.label}`;
   if (section.kind === "return" && actionChosen(stepKey)) track("action_revisited", stepKey, section.key);
 }
@@ -709,7 +807,7 @@ function dotLabel(stepKey, sec) {
 }
 function updateRailStatus() {
   const stepKey = state.view?.stepKey;
-  if (!stepKey) return;
+  if (!stepKey || !step(stepKey)) return;
   document.querySelectorAll(".rail-item[data-section]").forEach((a) => {
     const sec = step(stepKey).sections.find((s) => s.key === a.dataset.section);
     if (!sec) return;
@@ -719,13 +817,24 @@ function updateRailStatus() {
 }
 
 function sectionHead(section, stepKey) {
+  const hints = section.hint ? (Array.isArray(section.hint) ? section.hint : [section.hint]) : [];
   return [
     h("p", { class: "kicker" }, step(stepKey).label),
     h("h1", { id: "section-title" }, section.title),
+    section.privacy && privacyBlock(),
     section.lead && h("div", { class: "lead-lines" }, section.lead.map((l) => h("p", {}, l))),
     section.note && h("p", { class: "note" }, section.note),
-    section.hint && h("p", { class: "book-hint" }, section.hint),
+    section.noteLines && h("div", { class: "note" }, section.noteLines.map((l) => h("p", {}, l))),
+    hints.map((t) => h("p", { class: "book-hint" }, t)),
   ];
+}
+
+// Fälten i ett moment, i ordning. Dolda fält ritas inte. Textblock ritas som text.
+function fieldList(stepKey, section, fields, opts = {}) {
+  return visibleOf(stepKey, section, fields).map((f) => (f.kind === "info" ? infoBlock(f) : fieldEl(stepKey, section, f, opts)));
+}
+function infoBlock(field) {
+  return h("div", { class: "info-block", "data-info": field.key }, field.title && h("p", { class: "small-heading" }, field.title), field.lines.map((l) => h("p", {}, l)));
 }
 
 function renderSection(stepKey, section) {
@@ -758,8 +867,19 @@ function renderSection(stepKey, section) {
       return renderClosing(stepKey, section);
     case "live":
       return renderLive(stepKey, section);
+    case "talk":
+      return renderTalk(stepKey, section);
+    case "reunion":
+      return renderReunion(stepKey, section);
     default:
-      return h("div", {}, sectionHead(section, stepKey), h("div", { class: "group-card" }, section.fields.map((f) => fieldEl(stepKey, section, f))), shareControls(stepKey, section));
+      return h(
+        "div",
+        {},
+        sectionHead(section, stepKey),
+        section.recallStep && recallAction(section.recallStep),
+        section.fields.length > 0 && h("div", { class: "group-card" }, fieldList(stepKey, section, section.fields)),
+        shareControls(stepKey, section),
+      );
   }
 }
 
@@ -842,21 +962,18 @@ function renderMap(stepKey, section) {
       h("div", { class: "scale" }, h("span", { class: "scale-end is-low" }, dim.low), group, h("span", { class: "scale-end is-high" }, dim.high)),
     );
   });
-  const after = section.fields.filter((f) => f.place === "after");
   return h(
     "div",
     {},
     sectionHead(section, stepKey),
     locked && h("p", { class: "lock-note" }, "Startpunkten är satt. Den står kvar så att du kan jämföra i slutet av utbildningen."),
     h("div", { class: "map" }, rows),
-    section.compareWith ? mapComparison(section) : point === "start" && h("p", { class: "muted small" }, "Du markerar samma karta igen när utbildningen är slut och 30 dagar senare. Då ser du själv vad som har rört sig."),
-    after.length > 0 && h("div", { class: "group-card after-map" }, after.map((f) => fieldEl(stepKey, section, f))),
+    section.compareWith ? mapComparison([...section.compareWith, section.measurePoint]) : point === "start" && h("p", { class: "muted small" }, "Du markerar samma karta igen när utbildningen är slut och 30 dagar senare. Då ser du själv vad som har rört sig."),
   );
 }
 
 // Deltagarens egen bild av sin förflyttning. Samma skala. Ingen summa, inget betyg.
-function mapComparison(section) {
-  const points = [...section.compareWith, section.measurePoint];
+function mapComparison(points) {
   const labels = program().measurePointLabels;
   const steps = program().mapScaleSteps;
   const box = h("section", { class: "compare", "aria-label": "Din egen bild av din förflyttning" });
@@ -891,20 +1008,35 @@ const compareBoxes = new Set();
 
 // ---------- Fält ----------
 
+function hintFor(stepKey, section, field) {
+  const special = field.hintWhen?.find((w) => w.in.includes(entryValue(stepKey, `${section.key}.${w.field}`)));
+  return special ? special.text : field.hint;
+}
+
+// Ett värde som text, för återblickar och låsta planer.
+function displayValue(field, value) {
+  if (field.kind === "date") return fmtPlainDate(value) || "Inget datum";
+  if (field.kind === "area") return areaLabel(value, field) || "Inget valt";
+  if (field.kind === "check") return value === "ja" ? "Ja" : "Nej";
+  if (field.kind === "multi") return value ? value.split("\n").join(" ") : "Inget valt";
+  return value || "Inget skrivet";
+}
+
 function fieldEl(stepKey, section, field, { readOnly = false } = {}) {
   const path = `${section.key}.${field.key}`;
   const key = `e|${stepKey}|${path}`;
   const id = `f-${section.key}-${field.key}`;
   const value = entryValue(stepKey, path);
-  const wrap = h("div", { class: `field ${field.secondary ? "is-secondary" : ""} ${field.tone ? `tone-${field.tone}` : ""}` });
+  const wrap = h("div", { class: `field ${field.secondary ? "is-secondary" : ""} ${field.tone ? `tone-${field.tone}` : ""}`, "data-field": field.key });
   const label = h("label", { for: id, class: "field-label" }, field.label);
+  const guide = hintFor(stepKey, section, field);
 
   if (readOnly) {
-    wrap.append(h("p", { class: "field-label" }, field.label), h("p", { class: "own-words" }, field.kind === "date" ? fmtPlainDate(value) || "Inget datum" : value || "Inget skrivet"));
+    wrap.append(h("p", { class: "field-label" }, field.label), h("p", { class: "own-words" }, displayValue(field, value)));
     return wrap;
   }
 
-  if (field.kind === "choice") return choiceField(stepKey, section, field, key, path, value, wrap);
+  if (["choice", "area", "multi", "check"].includes(field.kind)) return choiceField(stepKey, section, field, key, path, value, wrap);
 
   let input;
   if (field.kind === "date") {
@@ -919,7 +1051,7 @@ function fieldEl(stepKey, section, field, { readOnly = false } = {}) {
   const conflict = h("div", { class: "conflict", hidden: true });
   const onInput = () => {
     if (input.tagName === "TEXTAREA") autosize(input);
-    if (section.kind === "people" && field.kind === "short") nameHint(input.value, hint);
+    if (field.nameCheck) nameHint(input.value, hint);
     saver.queue(key, { kind: "entry", step: stepKey, field: path, value: input.value });
   };
   input.addEventListener("input", onInput);
@@ -966,54 +1098,73 @@ function fieldEl(stepKey, section, field, { readOnly = false } = {}) {
   const waiting = saver.pending.get(key);
   if (waiting?.conflict && waiting.server) showConflict(waiting.server);
 
-  wrap.append(...[label, field.hint ? h("p", { class: "field-guide" }, field.hint) : null, input, hint, conflict].filter(Boolean));
+  wrap.append(...[label, guide ? h("p", { class: "field-guide" }, guide) : null, input, hint, conflict].filter(Boolean));
+  if (field.optional) label.append(h("span", { class: "optional" }, " Frivilligt"));
   if (state.journey.entries[`${stepKey}:${path}`]?.revision > 1) wrap.append(historyToggle(stepKey, path));
   if (input.tagName === "TEXTAREA") requestAnimationFrame(() => autosize(input));
   return wrap;
 }
 
-// Ett val bland fasta alternativ. Sparas direkt.
+// Val bland fasta alternativ: ett val, förändringsområde, flera val eller en kryssruta.
+// Sparas direkt. Om valet styr andra frågor ritas momentet om.
 function choiceField(stepKey, section, field, key, path, value, wrap) {
-  const group = h("div", { class: "choices", role: "radiogroup", "aria-label": field.label });
+  const multiple = field.kind === "multi" || field.kind === "check";
+  const selected = () => new Set(entryValue(stepKey, path).split("\n").filter(Boolean));
+  const labelOf = (opt) => (field.kind === "area" ? areaLabel(opt, field) : field.kind === "check" ? field.label : opt);
+  const group = h("div", { class: `choices ${multiple ? "is-multi" : ""} kind-${field.kind}`, role: multiple ? "group" : "radiogroup", "aria-label": field.label });
   const buttons = field.options.map((opt) =>
     h("button", {
       type: "button",
-      role: "radio",
-      class: `choice ${opt === value ? "is-on" : ""}`,
-      "aria-checked": opt === value ? "true" : "false",
+      role: multiple ? "checkbox" : "radio",
+      class: `choice ${selected().has(opt) ? "is-on" : ""}`,
+      "aria-checked": selected().has(opt) ? "true" : "false",
+      "data-value": opt,
       onclick: () => {
-        const next = opt === entryValue(stepKey, path) ? "" : opt;
+        let next;
+        if (multiple) {
+          const set = selected();
+          if (set.has(opt)) set.delete(opt);
+          else set.add(opt);
+          next = field.options.filter((o) => set.has(o)).join("\n");
+        } else {
+          next = opt === entryValue(stepKey, path) ? "" : opt;
+        }
+        const on = new Set(next.split("\n"));
         buttons.forEach((b) => {
-          const on = b.textContent === next;
-          b.classList.toggle("is-on", on);
-          b.setAttribute("aria-checked", on ? "true" : "false");
+          const isOn = on.has(b.dataset.value);
+          b.classList.toggle("is-on", isOn);
+          b.setAttribute("aria-checked", isOn ? "true" : "false");
         });
-        state.journey.entries[`${stepKey}:${path}`] = { ...(state.journey.entries[`${stepKey}:${path}`] || {}), value: next };
         saver.queue(key, { kind: "entry", step: stepKey, field: path, value: next }, 100);
+        if (drivesOthers(section, field)) rerender();
       },
-    }, opt),
+    }, labelOf(opt)),
   );
   group.append(...buttons);
   // Konflikt: valet har ändrats på en annan enhet. Visa det sparade valet öppet.
   // Ett val är ett klick, så deltagaren väljer igen i stället för att jämföra texter.
-  const notice = h("p", { class: "field-hint", "aria-live": "polite", hidden: true });
+  const noticeEl = h("p", { class: "field-hint", "aria-live": "polite", hidden: true });
   const showConflict = (server) => {
     state.journey.entries[`${stepKey}:${path}`] = { value: server.value, revision: server.revision, updatedAt: server.updatedAt };
     if (saver.pending.get(key)?.conflict) saver.pending.delete(key);
     saver.persist();
     renderSaveStatus();
+    const on = new Set(String(server.value || "").split("\n"));
     buttons.forEach((b) => {
-      const on = b.textContent === server.value;
-      b.classList.toggle("is-on", on);
-      b.setAttribute("aria-checked", on ? "true" : "false");
+      const isOn = on.has(b.dataset.value);
+      b.classList.toggle("is-on", isOn);
+      b.setAttribute("aria-checked", isOn ? "true" : "false");
     });
-    notice.hidden = false;
-    notice.textContent = `Valet ändrades på en annan enhet. Sparat val: ${server.value || "inget"}. Välj igen om du vill ändra.`;
+    noticeEl.hidden = false;
+    noticeEl.textContent = `Valet ändrades på en annan enhet. Sparat val: ${server.value ? displayValue(field, server.value) : "inget"}. Välj igen om du vill ändra.`;
   };
   saver.conflictHandlers.set(key, showConflict);
   const waiting = saver.pending.get(key);
   if (waiting?.conflict && waiting.server) showConflict(waiting.server);
-  wrap.append(h("p", { class: "field-label" }, field.label), group, notice);
+  const guide = hintFor(stepKey, section, field);
+  if (field.kind !== "check") wrap.append(h("p", { class: "field-label" }, field.label, field.optional ? h("span", { class: "optional" }, " Frivilligt") : null));
+  if (guide) wrap.append(h("p", { class: "field-guide" }, guide));
+  wrap.append(group, noticeEl);
   return wrap;
 }
 
@@ -1055,10 +1206,11 @@ function renderGrouped(stepKey, section, groupTitle) {
     "div",
     {},
     sectionHead(section, stepKey),
-    groups.map((g) => h("fieldset", { class: "group-card" }, h("legend", { class: "visually-hidden" }, groupTitle(g)), section.fields.filter((f) => f.group === g).map((f) => fieldEl(stepKey, section, f)))),
+    groups.map((g) => h("fieldset", { class: "group-card" }, h("legend", { class: "visually-hidden" }, groupTitle(g)), fieldList(stepKey, section, section.fields.filter((f) => f.group === g)))),
   );
 }
 
+// Högst fyra rader. Två räcker. En ny rad visas när deltagaren vill.
 function renderPeople(stepKey, section) {
   const groups = [...new Set(section.fields.map((f) => f.group))];
   const filled = groups.filter((g) => section.fields.some((f) => f.group === g && entryValue(stepKey, `${section.key}.${f.key}`).trim()));
@@ -1068,7 +1220,7 @@ function renderPeople(stepKey, section) {
   function draw() {
     list.replaceChildren(
       ...groups.slice(0, visible).map((g) =>
-        h("fieldset", { class: "group-card person" }, h("legend", { class: "small-heading" }, `Person ${g}`), section.fields.filter((f) => f.group === g).map((f) => fieldEl(stepKey, section, f))),
+        h("fieldset", { class: "group-card person" }, h("legend", { class: "small-heading" }, `Person ${g}`), fieldList(stepKey, section, section.fields.filter((f) => f.group === g))),
       ),
     );
     add.hidden = visible >= groups.length;
@@ -1091,7 +1243,7 @@ function renderSituation(stepKey, section) {
           { class: `situation-band band-${g.key}`, "aria-labelledby": `band-${g.key}` },
           h("h2", { class: "band-title", id: `band-${g.key}` }, g.title),
           g.hint && h("p", { class: "band-hint" }, g.hint),
-          section.fields.filter((f) => f.group === g.key).map((f) => fieldEl(stepKey, section, f)),
+          fieldList(stepKey, section, section.fields.filter((f) => f.group === g.key)),
         ),
       ),
     ),
@@ -1100,28 +1252,38 @@ function renderSituation(stepKey, section) {
 }
 
 function renderAction(stepKey, section) {
-  // Servern är facit, men klienten vet redan om Vad hände? är påbörjat.
-  const locked = isLocked(stepKey, section.key) || (section.lockedWhen === "returnStarted" && returnStarted(stepKey));
+  // Servern är facit. Planen låses när Vad hände? har börjat skrivas.
+  const locked = isLocked(stepKey, section.key) || (section.lockedWhen === "returnStarted" && !section.returnAt && returnStarted(stepKey));
   return h(
     "div",
     {},
     sectionHead(section, stepKey),
     locked && h("p", { class: "lock-note" }, "Du har börjat skriva om vad som hände. Planen står kvar som du skrev den, så att du kan jämföra."),
-    h("div", { class: "group-card" }, section.fields.map((f) => fieldEl(stepKey, section, f, { readOnly: Boolean(locked) }))),
-    !locked && actionChosen(stepKey) && h("p", { class: "muted small" }, "När du har provat kommer du tillbaka och skriver vad som hände. Då ligger det här kvar."),
+    h("div", { class: "group-card" }, fieldList(stepKey, section, section.fields, { readOnly: Boolean(locked) })),
+    !locked && actionChosen(stepKey) && !section.returnAt && h("p", { class: "muted small" }, "När du har provat kommer du tillbaka och skriver vad som hände. Då ligger det här kvar."),
     shareControls(stepKey, section),
   );
 }
 
+// Planen som deltagaren skrev, med egna ord. Bara fält som syns.
 function planRecall(stepKey, { large = true } = {}) {
-  const plan = (k) => entryValue(stepKey, `handling.${k}`);
-  return [
-    h("blockquote", { class: `own-words ${large ? "large" : ""}` }, plan("prova")),
-    plan("situation") && h("p", {}, h("span", { class: "small-heading" }, "Situation "), plan("situation")),
-    plan("lagga_marke") && h("p", {}, h("span", { class: "small-heading" }, "Du ville lägga märke till "), plan("lagga_marke")),
-    plan("forvantan") && h("p", {}, h("span", { class: "small-heading" }, "Du trodde att "), plan("forvantan")),
-    plan("nar") && h("p", { class: "muted" }, `Planerat till ${fmtPlainDate(plan("nar"))}.`),
-  ];
+  const a = actionSection(stepKey);
+  if (!a) return null;
+  const shown = visibleOf(stepKey, a).filter((f) => f.kind !== "info" && entryValue(stepKey, `${a.key}.${f.key}`).trim());
+  return h(
+    "div",
+    { class: `plan-recall ${large ? "large" : ""}` },
+    shown.map((f) => {
+      const v = entryValue(stepKey, `${a.key}.${f.key}`);
+      if (f.key === "nar") return h("p", { class: "muted" }, `Planerat till ${fmtPlainDate(v)}.`);
+      return [h("p", { class: "small-heading" }, f.label), h("p", { class: "own-words" }, displayValue(f, v))];
+    }),
+  );
+}
+function recallAction(stepKey) {
+  return actionChosen(stepKey)
+    ? h("aside", { class: "recall" }, h("p", { class: "kicker" }, `${step(stepKey).label}. Du bestämde dig för att prova`), planRecall(stepKey, { large: false }))
+    : null;
 }
 
 function renderReturn(stepKey, section) {
@@ -1135,7 +1297,7 @@ function renderReturn(stepKey, section) {
     h("h1", { id: "section-title" }, section.title),
     recall,
     h("div", { class: "lead-lines" }, section.lead.map((l) => h("p", {}, l))),
-    h("div", { class: "group-card" }, section.fields.map((f) => fieldEl(stepKey, section, f))),
+    h("div", { class: "group-card" }, fieldList(stepKey, section, section.fields)),
     shareControls(stepKey, section),
   );
 }
@@ -1154,31 +1316,31 @@ function triangleFigure(stepKey, section) {
   svg.setAttribute("role", "img");
   svg.setAttribute("aria-label", `Triangel: ${section.corners.map((c) => c.label).join(", ")}. Från vänster till höger.`);
   const pos = [
-    { x: 60, y: 150, anchor: "middle" },
-    { x: 160, y: 34, anchor: "middle" },
-    { x: 260, y: 150, anchor: "middle" },
+    { x: 60, y: 150 },
+    { x: 160, y: 34 },
+    { x: 260, y: 150 },
   ];
   const line = document.createElementNS(ns, "polygon");
   line.setAttribute("points", pos.map((p) => `${p.x},${p.y}`).join(" "));
   line.setAttribute("class", "triangle-edge");
   svg.append(line);
   section.corners.forEach((c, i) => {
-    const filled = Boolean(entryValue(stepKey, `${section.key}.${c.key}`).trim());
+    const filled = c.key ? Boolean(entryValue(stepKey, `${section.key}.${c.key}`).trim()) : false;
     const g = document.createElementNS(ns, "g");
-    g.setAttribute("class", `corner ${filled ? "is-filled" : ""}`);
-    g.setAttribute("data-corner", c.key);
+    g.setAttribute("class", `corner ${filled ? "is-filled" : ""} ${c.key ? "" : "is-word"}`);
+    g.setAttribute("data-corner", c.key || c.label.toLowerCase());
     g.setAttribute("data-position", ["left", "middle", "right"][i]);
     const circle = document.createElementNS(ns, "circle");
     circle.setAttribute("cx", pos[i].x);
     circle.setAttribute("cy", pos[i].y);
-    circle.setAttribute("r", 26);
+    circle.setAttribute("r", 30);
     const text = document.createElementNS(ns, "text");
     text.setAttribute("x", pos[i].x);
-    text.setAttribute("y", pos[i].y + 5);
+    text.setAttribute("y", pos[i].y + 4);
     text.setAttribute("text-anchor", "middle");
     text.textContent = c.label.toUpperCase();
     g.append(circle, text);
-    g.addEventListener("click", () => document.getElementById(`f-${section.key}-${c.key}`)?.focus());
+    if (c.key) g.addEventListener("click", () => document.getElementById(`f-${section.key}-${c.key}`)?.focus());
     svg.append(g);
   });
   return svg;
@@ -1186,32 +1348,39 @@ function triangleFigure(stepKey, section) {
 
 function renderTriangle(stepKey, section) {
   const pre = section.fields.filter((f) => f.place === "pre");
-  const cornerFields = section.corners.map((c) => section.fields.find((f) => f.corner === c.key));
+  const cornerFields = section.displayOnly ? [] : section.corners.map((c) => section.fields.find((f) => f.corner === c.key));
   const post = section.fields.filter((f) => f.place === "post");
-  const figure = h("figure", { class: `triangle model-${section.model}` }, triangleFigure(stepKey, section), h("figcaption", {}, section.prompt));
-  const refresh = () => {
-    const fresh = triangleFigure(stepKey, section);
-    figure.firstChild.replaceWith(fresh);
-  };
-  const corners = h(
-    "div",
-    { class: "corner-fields" },
-    cornerFields.map((f, i) => {
-      const el = fieldEl(stepKey, section, f);
-      el.classList.add("corner-field");
-      el.dataset.position = ["left", "middle", "right"][i];
-      el.addEventListener("input", () => setTimeout(refresh, 50));
-      return el;
-    }),
+  const figure = h(
+    "figure",
+    { class: `triangle model-${section.model} ${section.displayOnly ? "is-model" : ""}` },
+    section.figureLead && h("p", { class: "figure-lead" }, section.figureLead),
+    triangleFigure(stepKey, section),
+    h("figcaption", {}, section.prompt),
   );
+  const refresh = () => figure.querySelector("svg").replaceWith(triangleFigure(stepKey, section));
+  const corners =
+    cornerFields.length > 0 &&
+    h(
+      "div",
+      { class: "corner-fields" },
+      cornerFields.map((f, i) => {
+        const el = fieldEl(stepKey, section, f);
+        el.classList.add("corner-field");
+        el.dataset.position = ["left", "middle", "right"][i];
+        el.addEventListener("input", () => setTimeout(refresh, 50));
+        return el;
+      }),
+    );
+  const preList = fieldList(stepKey, section, pre);
+  const postList = fieldList(stepKey, section, post);
   return h(
     "div",
     {},
     sectionHead(section, stepKey),
-    pre.length > 0 && h("div", { class: "group-card" }, pre.map((f) => fieldEl(stepKey, section, f))),
+    preList.length > 0 && h("div", { class: "group-card" }, preList),
     figure,
     corners,
-    post.length > 0 && h("div", { class: "group-card" }, post.map((f) => fieldEl(stepKey, section, f))),
+    postList.length > 0 && h("div", { class: "group-card" }, postList),
     shareControls(stepKey, section),
   );
 }
@@ -1222,32 +1391,66 @@ function renderBridge(stepKey, section) {
   const from = step(section.fromStep);
   const ret = returnSection(from.key);
   const what = (k) => entryValue(from.key, `${ret.key}.${k}`);
+  const outcome = what("blev");
   const happened = what("hande") || what("gjorde_faktiskt");
-  const learned = what("larde") || what("upptackte");
+  let after;
+  if (outcome === "Nej") {
+    after = [
+      h("p", { class: "small-heading" }, "Förra veckan blev det inte av."),
+      h("p", { class: "small-heading" }, "Du skrev att det här stoppade dig:"),
+      h("p", { class: "own-words" }, what("stoppade") || "Inget skrivet"),
+    ];
+  } else if (outcome && happened) {
+    after = [h("p", { class: "small-heading" }, "Efteråt skrev du att det här hände"), h("p", { class: "own-words" }, happened)];
+  } else {
+    after = [h("p", {}, "Du har inte skrivit vad som hände ännu. Gör det först. Det är där lärandet sitter."), h("a", { class: "button primary", href: stepHref(from.key, ret.key) }, "Berätta vad som hände")];
+  }
   return h(
     "div",
     {},
     h("p", { class: "kicker" }, step(stepKey).label),
-    h("h1", { id: "section-title" }, "Innan vi går vidare"),
-    actionChosen(from.key)
-      ? h(
-          "aside",
-          { class: "recall" },
-          h("p", { class: "kicker" }, `${from.label}. Du bestämde dig för att prova`),
-          planRecall(from.key, { large: false }),
-          happened
-            ? [h("p", { class: "small-heading" }, "Efteråt skrev du att det här hände"), h("p", { class: "own-words" }, happened), learned && [h("p", { class: "small-heading" }, "Och det här lärde du dig"), h("p", { class: "own-words" }, learned)]]
-            : [h("p", {}, "Du har inte skrivit vad som hände ännu. Gör det först. Det är där lärandet sitter."), h("a", { class: "button primary", href: stepHref(from.key, ret.key) }, "Berätta vad som hände")],
-        )
-      : h("aside", { class: "recall is-empty" }, h("p", {}, `Du valde ingen handling i ${from.label.toLowerCase()}. Det går att gå tillbaka.`), h("a", { class: "button quiet", href: stepHref(from.key, "handling") }, `Till ${from.label.toLowerCase()}`)),
+    h("h1", { id: "section-title" }, section.title),
     h("div", { class: "lead-lines" }, h("p", {}, "Vi börjar med vad du gjorde och vad som hände. Inte med vad du tänkte göra.")),
+    actionChosen(from.key)
+      ? h("aside", { class: "recall" }, h("p", { class: "kicker" }, `${from.label}. Du bestämde dig för att prova`), planRecall(from.key, { large: false }), after)
+      : h("aside", { class: "recall is-empty" }, h("p", {}, `Du valde ingen handling i ${from.label.toLowerCase()}. Det går att gå tillbaka.`), h("a", { class: "button quiet", href: stepHref(from.key, "handling") }, `Till ${from.label.toLowerCase()}`)),
   );
 }
 
 function goalsRecall() {
-  const goals = [1, 2, 3].map((n) => ({ g: entryValue("w1", `forandring.mal_${n}`), m: entryValue("w1", `forandring.mal_${n}_marks`) })).filter((x) => x.g.trim());
-  if (!goals.length) return h("p", { class: "muted" }, "Du skrev inga förändringsmål i vecka 1. Du kan göra det nu.");
-  return h("ol", { class: "own-list" }, goals.map((x) => h("li", {}, x.g, x.m && h("span", { class: "muted small block" }, `Du skulle märka det på: ${x.m}`))));
+  const goals = areas().filter((x) => x.text.trim());
+  if (!goals.length) return h("p", { class: "muted" }, "Du har inte skrivit dina tre saker ännu.");
+  return h("ol", { class: "own-list" }, goals.map((x) => h("li", { value: x.n }, x.text, x.how && h("span", { class: "muted small block" }, x.how))));
+}
+
+// Blev det av?, vecka för vecka. Med det som stoppade, när svaret var Nej.
+function outcomesRecall(stepKeys, { withStopped = false } = {}) {
+  const rows = stepKeys
+    .map((k) => ({ s: step(k), o: outcomeOf(k) }))
+    .filter((r) => r.o && r.o.value);
+  if (!rows.length) return h("p", { class: "muted" }, "Inga svar ännu.");
+  return h(
+    "ol",
+    { class: "timeline" },
+    rows.map(({ s, o }) =>
+      h(
+        "li",
+        {},
+        h("p", { class: "small-heading" }, `${s.label}. Blev det av?`),
+        h("p", { class: "own-words" }, o.value),
+        withStopped && o.value === "Nej" && o.stopped && [h("p", { class: "small-heading" }, "Vad stoppade dig?"), h("p", { class: "own-words" }, o.stopped)],
+      ),
+    ),
+  );
+}
+
+function recallFields(stepKey, sectionKey, keys) {
+  const sec = sectionOf(stepKey, sectionKey);
+  if (!sec) return [];
+  return keys
+    .map((k) => sec.fields.find((f) => f.key === k))
+    .filter((f) => f && entryValue(stepKey, `${sectionKey}.${f.key}`).trim())
+    .map((f) => [h("p", { class: "small-heading" }, f.label), h("p", { class: "own-words" }, displayValue(f, entryValue(stepKey, `${sectionKey}.${f.key}`)))]);
 }
 
 function renderHalfway(stepKey, section) {
@@ -1255,60 +1458,62 @@ function renderHalfway(stepKey, section) {
     "div",
     {},
     sectionHead(section, stepKey),
-    h("aside", { class: "recall" }, h("p", { class: "kicker" }, "När du började ville du att människorna runt dig skulle märka"), goalsRecall()),
-    h("div", { class: "group-card" }, section.fields.map((f) => fieldEl(stepKey, section, f))),
+    h(
+      "aside",
+      { class: "recall" },
+      h("p", { class: "kicker" }, sectionTitle("w1", "forandring")),
+      goalsRecall(),
+      outcomesRecall(["w1", "w2", "w3"]),
+    ),
+    h("div", { class: "group-card" }, fieldList(stepKey, section, section.fields)),
   );
 }
 
-function startRecall() {
-  const items = [
-    ["Varför du var här", entryValue("w1", "karta.varfor_har")],
-    ["Det som skavde mest", entryValue("w1", "karta.skaver_mest")],
-  ].filter(([, v]) => v.trim());
-  return items.map(([k, v]) => [h("p", { class: "small-heading" }, k), h("p", { class: "own-words" }, v)]);
-}
-
-function actionsRecall() {
-  const weeks = weekSteps().filter((s) => returnSection(s.key) && actionChosen(s.key));
-  if (!weeks.length) return null;
-  return h(
-    "ol",
-    { class: "timeline" },
-    weeks.map((s) => {
-      const ret = returnSection(s.key);
-      const happened = entryValue(s.key, `${ret.key}.hande`);
-      return h(
-        "li",
-        {},
-        h("p", { class: "small-heading" }, s.label),
-        h("p", { class: "own-words" }, entryValue(s.key, "handling.prova")),
-        happened ? h("p", { class: "muted" }, `Det här hände: ${happened}`) : h("p", { class: "muted" }, "Vad som hände är inte skrivet."),
-      );
-    }),
-  );
+function skaverRecall() {
+  return recallFields("start", "infor", ["skaver"]);
 }
 
 function renderLookback(stepKey, section) {
   const isD30 = stepKey === "d30";
-  const direction = [1, 2, 3].map((n) => ({ f: entryValue("w6", `avslut.fortsatta_${n}`), u: entryValue("w6", `avslut.folja_upp_${n}`) })).filter((x) => x.f.trim());
-  const promise = entryValue("w6", "avslut.lofte");
+  let recall;
+  if (isD30) {
+    // Spec avsnitt 17. Från starten och från vecka 6.
+    recall = [
+      h("aside", { class: "recall lookback" }, h("p", { class: "kicker" }, "Från starten"), skaverRecall(), h("p", { class: "small-heading" }, sectionTitle("w1", "forandring")), goalsRecall(), mapComparison(["start"])),
+      h(
+        "aside",
+        { class: "recall lookback" },
+        h("p", { class: "kicker" }, "Från vecka 6"),
+        recallFields("w6", "tillbaka", ["inte_forandrats"]),
+        recallFields("w6", "avslut", ["fortsatta_1", "folja_upp_1", "fortsatta_2", "folja_upp_2", "testar"]),
+        mapComparison(["end"]),
+        recallAction("w6"),
+      ),
+    ];
+  } else {
+    // Hela resan. Spec avsnitt 14.
+    recall = h(
+      "aside",
+      { class: "recall lookback" },
+      h("p", { class: "kicker" }, "Från starten"),
+      skaverRecall(),
+      h("p", { class: "small-heading" }, sectionTitle("w1", "forandring")),
+      goalsRecall(),
+      mapComparison(["start"]),
+      outcomesRecall(["w1", "w2", "w3", "w4", "w5"], { withStopped: true }),
+      h("p", { class: "small-heading" }, sectionTitle("w4", "halvvags")),
+      recallFields("w4", "halvvags", ["forandrats", "medveten", "inte_gjort"]),
+      h("p", { class: "small-heading" }, `${sectionTitle("w4", "spegel")}. ${step("w4").label}`),
+      recallFields("w4", "spegel", ["vem", "tog_med"]),
+    );
+  }
   return h(
     "div",
     {},
     sectionHead(section, stepKey),
-    h(
-      "aside",
-      { class: "recall lookback" },
-      h("p", { class: "kicker" }, "Det här var ditt startläge"),
-      startRecall(),
-      h("p", { class: "small-heading" }, "Det här ville du förändra"),
-      goalsRecall(),
-      !isD30 && [h("p", { class: "small-heading" }, "Det här provade du, och det här hände"), actionsRecall() || h("p", { class: "muted" }, "Inga handlingar skrivna ännu.")],
-      isD30 && direction.length > 0 && [h("p", { class: "small-heading" }, "Din riktning efter sex veckor"), h("ol", { class: "own-list" }, direction.map((x) => h("li", {}, x.f, x.u && h("span", { class: "muted small block" }, `Uppföljning: ${x.u}`))))],
-      isD30 && promise && [h("p", { class: "small-heading" }, "Du lovade dig själv att"), h("p", { class: "own-words" }, promise)],
-    ),
-    isD30 && mapComparison({ compareWith: ["start"], measurePoint: "end" }),
-    section.fields.length > 0 && h("div", { class: "group-card" }, section.fields.map((f) => fieldEl(stepKey, section, f))),
+    recall,
+    section.fields.length > 0 && h("div", { class: "group-card" }, fieldList(stepKey, section, section.fields)),
+    shareControls(stepKey, section),
   );
 }
 
@@ -1319,10 +1524,8 @@ function renderClosing(stepKey, section) {
     "div",
     {},
     sectionHead(section, stepKey),
-    h("div", { class: "group-card" }, single.filter((f) => f.key !== "lofte").map((f) => fieldEl(stepKey, section, f))),
-    h("p", { class: "small-heading" }, "Min riktning framåt"),
-    groups.map((g) => h("fieldset", { class: "group-card" }, h("legend", { class: "visually-hidden" }, `Riktning ${g}`), section.fields.filter((f) => f.group === g).map((f) => fieldEl(stepKey, section, f)))),
-    h("div", { class: "group-card promise" }, single.filter((f) => f.key === "lofte").map((f) => fieldEl(stepKey, section, f))),
+    groups.map((g) => h("fieldset", { class: "group-card" }, h("legend", { class: "visually-hidden" }, `${g}`), fieldList(stepKey, section, section.fields.filter((f) => f.group === g)))),
+    h("div", { class: "group-card" }, fieldList(stepKey, section, single)),
     shareControls(stepKey, section),
   );
 }
@@ -1340,7 +1543,50 @@ function renderLive(stepKey, section) {
       h("section", { class: "live-block" }, h("p", { class: "small-heading" }, "Under träffen, när du är medtränare"), h("ul", { class: "rules" }, ls.coachQuestions.map((q) => h("li", {}, q))), h("p", { class: "muted small" }, "Ha frågorna i huvudet. De sparas inte här.")),
       h("section", { class: "live-block" }, h("p", { class: "small-heading" }, "Vårt gemensamma rum"), h("ul", { class: "rules" }, ls.roomRules.map((r) => h("li", {}, r)))),
     ),
-    h("div", { class: "group-card" }, section.fields.map((f) => fieldEl(stepKey, section, f))),
+    h("div", { class: "group-card" }, fieldList(stepKey, section, section.fields)),
+  );
+}
+
+// Samtal med Jan vid behov. Knappen skickar bara att deltagaren vill boka ett samtal.
+function renderTalk(stepKey, section) {
+  const sp = state.journey.support || {};
+  const request = async () => {
+    try {
+      const out = await api("PUT", `/api/journey/${state.enrollment.id}/talk-request`, {});
+      state.journey.support = out.support;
+      rerender();
+    } catch {
+      notice("Det gick inte att skicka just nu. Försök igen.");
+    }
+  };
+  return h(
+    "div",
+    {},
+    sectionHead(section, stepKey),
+    h(
+      "div",
+      { class: "talk-request" },
+      h("button", { type: "button", class: "button primary", onclick: request }, section.button),
+      sp.talkRequestedAt && h("p", { class: "muted small", role: "status" }, `Förfrågan skickad ${fmtDate(sp.talkRequestedAt)}.`),
+    ),
+  );
+}
+
+// Återträffen. Information och tid. Ingen ny kurslogik.
+function renderReunion(stepKey, section) {
+  const r = state.enrollment.reunion;
+  return h(
+    "div",
+    {},
+    sectionHead(section, stepKey),
+    r &&
+      h(
+        "div",
+        { class: "card reunion" },
+        h("h2", { class: "h3" }, cap(fmtDay(r.startsAt))),
+        h("p", {}, `${fmtTime(r.startsAt)} i Teams. ${r.durationMinutes} minuter.`),
+        r.teamsUrl ? h("a", { class: "button quiet", href: r.teamsUrl, target: "_blank", rel: "noopener noreferrer" }, "Öppna Teams") : h("p", { class: "muted" }, "Länken läggs in före träffen."),
+      ),
   );
 }
 
@@ -1387,7 +1633,7 @@ function confirmShare(stepKey, section) {
       { method: "dialog", class: "dialog-body" },
       h("h2", {}, "Dela med Jan"),
       h("p", {}, `Jan kommer att kunna läsa det du skrivit under ${section.title}:`),
-      h("ul", {}, section.fields.map((f) => h("li", {}, f.label))),
+      h("ul", {}, visibleOf(stepKey, section).filter((f) => f.kind !== "info").map((f) => h("li", {}, f.label))),
       h("p", {}, "Inget annat från din resa. Ingen annan i gruppen. Om du ändrar texten ser Jan den nya versionen. Du kan ta tillbaka delningen när du vill."),
       h(
         "div",
@@ -1408,7 +1654,7 @@ async function setShare(stepKey, section, kind, active) {
   try {
     const out = await api("PUT", `/api/journey/${state.enrollment.id}/share`, { step: stepKey, section: section.key, kind, active });
     state.journey.shares = out.shares;
-    route();
+    rerender();
   } catch {
     notice("Det gick inte att ändra delningen just nu. Ingenting har delats. Försök igen.");
   }
@@ -1436,6 +1682,7 @@ async function renderFacilitator() {
               "div",
               { class: "participant" },
               h("p", { class: "small-heading" }, p.name),
+              p.talkRequestedAt && h("p", { class: "talk-flag" }, `Vill boka ett samtal. ${fmtDate(p.talkRequestedAt)}.`),
               p.shared.length
                 ? p.shared.map((s) =>
                     h("div", { class: "shared-block" }, h("p", { class: "shared-title" }, `${s.title}. Delat ${fmtDate(s.since)}`), s.fields.filter((f) => f.value).map((f) => h("div", { class: "shared-field" }, h("p", { class: "field-label" }, f.label), h("p", { class: "own-words" }, f.value)))),
@@ -1497,7 +1744,7 @@ function liveSessionEditor(s, stepLabel) {
   return h(
     "div",
     { class: "session-row" },
-    h("span", { class: "session-when" }, `${stepLabel(s.step)}. ${cap(fmtDay(s.startsAt))} ${fmtTime(s.startsAt)}`),
+    h("span", { class: "session-when" }, `${stepLabel(s.step)}. ${cap(fmtDay(s.startsAt))} ${fmtTime(s.startsAt)}. ${s.durationMinutes} minuter`),
     url,
     h("button", {
       type: "button",

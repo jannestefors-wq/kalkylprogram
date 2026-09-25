@@ -19,13 +19,13 @@ const overrides = `
 .prototype-band { background: transparent; color: var(--muted); border-bottom: 1px solid var(--line); font-size: 11px; padding: 4px 12px; }
 `;
 
-const html = `<title>Min ledarskapsresa</title>
+const html = `<title>LMHM version 2</title>
 <meta name="robots" content="noindex, nofollow">
 <style>
 ${css}
 ${overrides}
 </style>
-<div id="prototype-band" class="prototype-band" hidden>Testversion. Ej produktion.</div>
+<div id="prototype-band" class="prototype-band" hidden>Testversion. LMHM version 2. Ej produktion.</div>
 <header class="topbar">
   <a class="brand" href="#/"><span class="brand-name">LUF Academy</span><span class="brand-line">Ledarskap utan filter</span></a>
   <nav id="account" class="account" aria-label="Konto"></nav>
@@ -46,6 +46,8 @@ ${app}
 `;
 
 mkdirSync(new URL("../preview/dist/", import.meta.url), { recursive: true });
-const out = new URL("../preview/dist/min-ledarskapsresa.html", import.meta.url);
+// Version 2 byggs till en egen fil och publiceras som en egen artefakt.
+// Nuvarande Human Test (min-ledarskapsresa.html) byggs inte om och ersätts inte.
+const out = new URL("../preview/dist/lmhm-v2-human-test.html", import.meta.url);
 writeFileSync(out, html);
 console.log(`${out.pathname} ${(html.length / 1024).toFixed(0)} KB`);

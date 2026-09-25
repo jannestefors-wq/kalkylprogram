@@ -22,7 +22,8 @@ function loadPlaywright() {
 }
 const { chromium, devices } = loadPlaywright();
 
-const SHOTS = new URL("../docs/skarmbilder/", import.meta.url).pathname;
+// Version 2. Egna bilder, så att version 1:s dokumentation står kvar orörd.
+const SHOTS = new URL("../docs/skarmbilder-v2/server/", import.meta.url).pathname;
 mkdirSync(SHOTS, { recursive: true });
 
 let server, base, links, browser, db;
@@ -97,7 +98,7 @@ test("desktop: hela vecka 1, autosparning, utloggning och återkomst", async () 
 
   // Översikt
   const overview = await page.textContent("main");
-  for (const s of ["Ledarskap med hjärta och mod", "Testdeltagare Jan", "Grupp A", "Nästa träff", "Vecka 1", "Vecka 6", "30 dagar", "Fortsätt min ledarskapsresa"]) {
+  for (const s of ["Ledarskap med hjärta och mod", "Testdeltagare Jan", "Grupp A", "Nästa träff", "Vecka 1", "Vecka 6", "30 dagar", "Fortsätt min ledarskapsresa", "Det här är din resa.", "Startsamtalet"]) {
     assert.ok(overview.includes(s), `översikten saknar: ${s}`);
   }
   assert.ok(!/poäng|badge|streak/i.test(overview));
@@ -137,24 +138,23 @@ test("desktop: hela vecka 1, autosparning, utloggning och återkomst", async () 
   await type(page, "#f-forandring-mal_1", "Att jag lyssnar klart innan jag svarar.");
   await type(page, "#f-forandring-mal_2", "Att jag tar det svåra samtalet direkt.");
   await type(page, "#f-forandring-mal_3", "Att jag säger vad jag tycker tidigt.");
+  await type(page, "#f-forandring-mal_1_hur", "Teamet pratar mer.");
   await saved(page);
   // Människorna runt mig: fullständigt namn ger en mild påminnelse
-  await go(page, "vecka-1/manniskor", "#f-manniskor-person_1");
-  await type(page, "#f-manniskor-person_1", "Anna Svensson");
+  await go(page, "vecka-1/manniskor", "#f-manniskor-vem_1");
+  await type(page, "#f-manniskor-vem_1", "Anna Svensson");
   await page.waitForSelector(".field-hint:not(:empty)");
-  await type(page, "#f-manniskor-person_1", "En projektledare i mitt team");
+  await type(page, "#f-manniskor-vem_1", "En projektledare i mitt team");
   assert.equal((await page.textContent(".field-hint")).trim(), "");
   // En verklig situation. Observation före tolkning, visuellt åtskilda.
   await go(page, "vecka-1/situation", ".situation");
   const bands = await page.$$eval(".situation-band", (els) => els.map((e) => e.querySelector(".band-title").textContent));
-  assert.deepEqual(bands, ["Det som hände", "Min tolkning", "Mitt agerande", "Efteråt"]);
+  assert.deepEqual(bands, ["Det som hände", "Min tolkning", "Mitt agerande"]);
   const [obsColor, tolkColor] = await page.$$eval(".band-observation, .band-tolkning", (els) => els.map((e) => getComputedStyle(e).borderLeftColor));
   assert.notEqual(obsColor, tolkColor);
   await type(page, "#f-situation-vad_hande", "Projektledaren lämnade avstämningen efter tio minuter.");
-  await type(page, "#f-situation-sag_horde", "Hon stängde datorn och sa: jag har ett annat möte.");
   await type(page, "#f-situation-tolkning", "SITUATIONENS-TOLKNING. Jag tror att hon tycker mötena är meningslösa.");
-  await type(page, "#f-situation-gjorde", "Jag fortsatte med dagordningen.");
-  await type(page, "#f-situation-gjorde_inte", "Jag frågade inte.");
+  await type(page, "#f-situation-gjorde_lat", "Jag fortsatte med dagordningen. Jag frågade inte.");
   await saved(page);
   // Ta med till nästa träff och Dela med Jan
   await page.click("button.toggle:has-text(\"Ta med till nästa träff\")");
@@ -167,16 +167,15 @@ test("desktop: hela vecka 1, autosparning, utloggning och återkomst", async () 
   await page.click("dialog button[value=share]");
   await page.waitForSelector("text=Delat med Jan sedan");
   await page.screenshot({ path: `${SHOTS}05-situation-desktop.png`, fullPage: true });
-  // Närvaro
-  await go(page, "vecka-1/narvaro", "#f-narvaro-eget_svar");
-  await type(page, "#f-narvaro-eget_svar", "NARVARO-PRIVAT. Efter första meningen.");
-  await type(page, "#f-narvaro-stanna_kvar", "Då hade jag hört varför.");
+  // Min privata reflektion
+  await go(page, "vecka-1/privat", "#f-privat-vet_redan");
+  await type(page, "#f-privat-vet_redan", "NARVARO-PRIVAT. Efter första meningen.");
   await saved(page);
-  // Det här ska jag prova
-  await go(page, "vecka-1/handling", "#f-handling-prova");
-  await type(page, "#f-handling-prova", "Ställa en öppen fråga och vänta på svaret.");
-  await type(page, "#f-handling-situation", "Torsdagens avstämning.");
-  await type(page, "#f-handling-lagga_marke", "När jag vill fylla tystnaden.");
+  // Det här ska jag prova. Den gemensamma motorn.
+  await go(page, "vecka-1/handling", '[data-field="omrade"]');
+  await page.click('[data-field="omrade"] .choice[data-value="1"]');
+  await type(page, "#f-handling-gora", "Ställa en öppen fråga och vänta på svaret.");
+  await type(page, "#f-handling-marks", "När jag vill fylla tystnaden.");
   await page.fill("#f-handling-nar", "2026-09-24");
   await page.locator("#f-handling-nar").blur();
   await saved(page);
@@ -212,11 +211,11 @@ test("desktop: hela vecka 1, autosparning, utloggning och återkomst", async () 
 test("autosparning: fel syns, texten finns kvar och sparas när nätet är tillbaka", async () => {
   const { ctx, page } = await newPage("desktop");
   await login(page, "deltagare-a3");
-  await page.goto(`${base}/#/vecka-1/narvaro`);
-  await page.waitForSelector("#f-narvaro-missade");
+  await page.goto(`${base}/#/vecka-1/stanna`);
+  await page.waitForSelector("#f-stanna-filter");
 
   offline = true;
-  await type(page, "#f-narvaro-missade", "Text skriven utan nät.");
+  await type(page, "#f-stanna-filter", "Text skriven utan nät.");
   await page.waitForSelector(".save-status.is-error", { timeout: 8000 });
   assert.ok((await page.textContent(".save-status")).includes("Din text finns kvar här"));
   const pending = await page.evaluate(() => Object.entries(localStorage).find(([k]) => k.startsWith("lr-osparat:"))?.[1] || "");
@@ -232,27 +231,27 @@ test("autosparning: fel syns, texten finns kvar och sparas när nätet är tillb
   });
   await page.reload();
   assert.deepEqual(dialogs, ["beforeunload"], "varning innan osparad text lämnas");
-  await page.waitForSelector("#f-narvaro-missade");
-  assert.equal(await page.inputValue("#f-narvaro-missade"), "Text skriven utan nät.");
+  await page.waitForSelector("#f-stanna-filter");
+  assert.equal(await page.inputValue("#f-stanna-filter"), "Text skriven utan nät.");
 
   await page.waitForSelector(".save-status.is-error");
   offline = false;
   await page.click(".save-status.is-error button");
   await saved(page);
-  const stored = db.prepare("SELECT value FROM lr_entry WHERE field_key = 'narvaro.missade'").all().map((r) => r.value);
+  const stored = db.prepare("SELECT value FROM lr_entry WHERE field_key = 'stanna.filter'").all().map((r) => r.value);
   assert.ok(stored.includes("Text skriven utan nät."));
   assert.equal(await page.evaluate(() => Object.keys(localStorage).filter((k) => k.startsWith("lr-osparat:")).length), 0);
   await ctx.close();
 });
 
 test("order 010: två enheter. Konflikt syns, lokal text ligger kvar, inget skrivs över tyst", async () => {
-  const row = () => ({ ...db.prepare("SELECT value, revision FROM lr_entry WHERE field_key = 'infor.forsta' AND step_key = 'samtal'").get() });
+  const row = () => ({ ...db.prepare("SELECT value, revision FROM lr_entry WHERE field_key = 'infor.forsta' AND step_key = 'start'").get() });
   const localPending = (page) => page.evaluate(() => Object.entries(localStorage).find(([k]) => k.startsWith("lr-osparat:"))?.[1] || "");
   const a = await newPage("desktop");
   const b = await newPage("mobile");
   for (const d of [a, b]) {
     await login(d.page, "deltagare-b1");
-    await d.page.goto(`${base}/#/samtal/infor`);
+    await d.page.goto(`${base}/#/startsamtal/infor`);
     await d.page.waitForSelector("#f-infor-forsta");
   }
   // Båda enheterna har laddat sidan innan något är sparat.
@@ -343,12 +342,16 @@ test("mobil: samma konto på ny enhet, återkomsten och Vad hände?", async () =
   await page.waitForSelector(".recall");
   assert.ok((await page.textContent(".recall")).includes("Ställa en öppen fråga och vänta på svaret."));
   assert.ok((await page.textContent(".recall")).includes("När jag vill fylla tystnaden."));
+  await page.tap('[data-field="blev"] .choice[data-value="Ja"]');
+  await page.waitForSelector("#f-vad-hande-gjorde_faktiskt");
   await page.tap("#f-vad-hande-gjorde_faktiskt");
   await page.keyboard.type("Jag ställde frågan och räknade tyst till fem.");
   await type(page, "#f-vad-hande-hande", "Hon sa att tempot i mötena är för högt.");
-  await type(page, "#f-vad-hande-upptackte", "Att jag fyller tystnaden för att slippa obehaget.");
-  await type(page, "#f-vad-hande-prova_annorlunda", "Fråga en gång till.");
-  await page.locator("#f-vad-hande-prova_annorlunda").blur();
+  await page.tap('[data-field="markte"] .choice[data-value="Ja"]');
+  await page.waitForSelector("#f-vad-hande-bygger");
+  await type(page, "#f-vad-hande-bygger", "Hon sa det själv.");
+  await type(page, "#f-vad-hande-nasta", "Fråga en gång till.");
+  await page.locator("#f-vad-hande-nasta").blur();
   await saved(page);
   await noHorizontalScroll(page, "vad hände mobil");
   const box = await page.locator("#f-vad-hande-hande").boundingBox();
@@ -358,7 +361,7 @@ test("mobil: samma konto på ny enhet, återkomsten och Vad hände?", async () =
   // Planen står kvar som skriven, nu låst
   await page.goto(`${base}/#/vecka-1/handling`);
   await page.waitForSelector(".lock-note");
-  assert.equal(await page.locator("#f-handling-prova").count(), 0);
+  assert.equal(await page.locator("#f-handling-gora").count(), 0);
   assert.ok((await page.textContent(".section-action")).includes("Ställa en öppen fråga och vänta på svaret."));
 
   assert.deepEqual(page.errors, []);

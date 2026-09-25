@@ -331,6 +331,26 @@ blockquote.own-words { margin: 6px 0 14px; padding-left: 16px; border-left: 2px 
   .compare-end.is-high { text-align: right; }
 }
 
+/* ---------- Version 2 ---------- */
+.privacy { border-left: 3px solid var(--gold); padding: 4px 0 4px 16px; margin: 18px 0 8px; }
+.privacy p { margin: 0; font-family: var(--serif); font-size: 17px; line-height: 1.5; }
+.support-card { border-left: 4px solid var(--gold); }
+.support-line { font-family: var(--serif); font-size: 20px; margin: 0 0 4px; }
+.support-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+.info-block { background: #f4ecde; border-left: 3px solid var(--gold); border-radius: 4px; padding: 12px 14px; margin: 4px 0 18px; }
+.info-block p { margin: 0 0 6px; }
+.info-block p:last-child { margin-bottom: 0; }
+.optional { font-weight: 400; color: var(--muted); font-size: 14px; }
+.figure-lead { font-family: var(--serif); font-size: 18px; margin: 0 0 6px; }
+.triangle.is-model .corner { cursor: default; }
+.plan-recall .own-words { margin-top: 0; }
+.plan-recall.large .own-words { font-size: 19px; }
+.choices.kind-check .choice { border-radius: 8px; }
+.choices.is-multi .choice { border-radius: 8px; width: 100%; }
+.talk-request { margin: 12px 0 20px; }
+.talk-flag { font-weight: 600; color: var(--gold-text); margin: 0 0 8px; }
+.reunion { margin: 12px 0 20px; }
+
 /* ---------- Mobil ---------- */
 @media (max-width: 899px) {
   body { font-size: 16px; }

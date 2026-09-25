@@ -3,8 +3,8 @@
 // 16:00 svensk tid. Sommartiden slutar 25 oktober 2026.
 const at = (ymd) => `${ymd}T${ymd < "2026-10-25" ? "14" : "15"}:00:00.000Z`;
 export const TEST_COHORT = {
-  id: "testgrupp-human-test",
-  name: "Testgrupp. Human Test",
+  id: "testgrupp-lmhm-v2",
+  name: "Testgrupp. LMHM version 2",
   startDate: "2026-09-23",
   endDate: "2026-11-03",
   currentStep: "w1",
@@ -20,5 +20,8 @@ export const TEST_COHORT = {
     durationMinutes: 90,
     teamsUrl: "",
     preparation: step === "w1" ? "Ta med situationen du har beskrivit och det du har valt att prova." : "",
-  })),
+  })).concat([
+    // Återträffen, 60 minuter, cirka 30 dagar efter vecka 6.
+    { id: "testgrupp-d30", step: "d30", startsAt: at("2026-12-03"), durationMinutes: 60, teamsUrl: "", preparation: "" },
+  ]),
 };

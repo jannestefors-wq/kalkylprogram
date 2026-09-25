@@ -4,7 +4,15 @@ Utbildningen **Ledarskap med hjärta och mod**. Sex veckor, live i grupper om h�
 
 Den ligger avsiktligt utanför LUF-produktionen. Se `docs/READ-ONLY-ANALYS.md` för varför.
 
-## Förhandsvisning för Human Test
+## LMHM version 2 (order 014)
+
+Version 2 byggs på grenen `claude/lmhm-v2-build-014`. Innehållet följer `docs/LMHM-V2-FINAL-CONTENT-SPEC.md`.
+Egen förhandsvisning för Human Test: https://claude.ai/artifact/WGfXyGaZAGQ7frDdrrkWcQ. Byggs med `npm run build:preview` till `preview/dist/lmhm-v2-human-test.html`.
+Se `docs/LMHM-V2-BUILD-014.md`, `docs/LMHM-V2-FIELD-MAP.md` och `docs/LMHM-V2-CONTENT-CROSSWALK.md`.
+
+Nuvarande Human Test nedan är version 1. Den är inte ombyggd och inte ersatt.
+
+## Förhandsvisning för Human Test (version 1)
 
 Privat sida på claude.ai: https://claude.ai/artifact/EWhqnURcS4QVh1a5uZDF7S
 

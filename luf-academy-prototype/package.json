@@ -4,11 +4,16 @@
   "private": true,
   "description": "LUF Academy. Ledarskap med hjärta och mod. Min ledarskapsresa. Isolerad prototyp för Vecka 1.",
   "type": "module",
-  "engines": { "node": ">=22.13.0" },
+  "engines": {
+    "node": ">=22.13.0"
+  },
   "scripts": {
     "seed": "node --no-warnings scripts/seed.mjs",
     "start": "node --no-warnings server/main.mjs",
-    "test": "node --no-warnings --test tests/api.test.mjs",
-    "test:e2e": "node --no-warnings --test tests/e2e.test.mjs"
+    "test": "node --no-warnings --test tests/api.test.mjs tests/v2.test.mjs tests/content.test.mjs",
+    "test:e2e": "node --no-warnings --test tests/e2e.test.mjs",
+    "test:preview": "node --no-warnings --test tests/preview.test.mjs",
+    "verify:book": "node --no-warnings scripts/verify-book-references.mjs",
+    "build:preview": "node --no-warnings scripts/build-preview.mjs"
   }
 }
