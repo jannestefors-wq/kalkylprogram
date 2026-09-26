@@ -4,6 +4,8 @@ Källa: leverans order 013, godkänd som enda innehållsspecifikation i order 01
 
 Det här är den enda innehållsspecifikation som byggordern behöver för Ledarskap med hjärta och mod version 2. Allt från order 010, tillägg 011, kontrollen 012 och dina beslut i order 013 är inarbetat. Ingen kod är ändrad, och nuvarande Human Test är orört.
 
+**INTERN KÄLLA:** HUMAN EXPERIENCE REVIEW 001, accepted changes: 3. Införda i order 015: ledtexten till läsningen i vecka 1 (avsnitt 19), en tredje rad i den privata rutan efter två Nej (avsnitt 16) och ledtexten till "Vad har jag fortfarande inte gjort?" i Halvvägs. I övrigt är dokumentet oförändrat sedan order 014. Noteringen visas aldrig för deltagaren.
+
 **Märkning i dokumentet**
 • **DELTAGARTEXT** står i citatblock. Den visas exakt som den står.
 • **JAN** är text och frågor för Jan som handledare. Den visas aldrig i appen.
@@ -460,7 +462,7 @@ Undertitel: "Vad behöver jag göra eftersom jag har ansvaret?"
 Fält:
 1. "Vad har faktiskt förändrats?" Ledtext: "Något som syns i handling eller i hur andra reagerar."
 2. "Vad har jag bara blivit mer medveten om?" Ledtext: "Medvetenhet är början. Men den är inte samma sak som förändring."
-3. "Vad har jag fortfarande inte gjort?" Ledtext: "Vad väntar du på?"
+3. "Vad har jag fortfarande inte gjort?" Ledtext: "Vad krävs för att det ska bli av?"
 
 **Spegeln.** Se avsnitt 15.
 
@@ -702,6 +704,7 @@ Knapp: "Be om ett samtal med Jan"
 2. Då visas en privat ruta, bara för deltagaren:
    > Två veckor i rad blev det inte som du hade tänkt.
    > Vill du prata med Jan om vad som stoppar dig?
+   > Den här rutan ser bara du.
 
    Knappar: "Be om ett samtal" och "Inte nu"
 3. Inget skickas till Jan och inget registreras när rutan visas.
@@ -783,7 +786,7 @@ Allt utom kartan kan delas med Jan. Klar när D2, D3 eller D4, D5 och D10 är if
 | 6 | Stress, press och den inre kompassen | 148–157 | Epilog | 191–193 |
 | 6 | Den dag du gör allt fel | 186–190 | | |
 
-Ledtext i vecka 1: "Läs innan första träffen. Stanna där något skaver."
+Ledtext i vecka 1: "Läs under första veckan. Du behöver inte vara klar innan första träffen. Stanna där något skaver."
 
 **INTERN KÄLLA:** tryckt sida är PDF-sidan minus 7. Sidorna 180 till 185 och rubriken om katalytiskt ledarskap på s. 59 ingår inte. Sidorna 79 till 81 läses i vecka 3 och ingår också i kapitlet i vecka 4.
 

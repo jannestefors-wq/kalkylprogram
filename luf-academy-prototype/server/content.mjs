@@ -66,7 +66,7 @@ export const PRIVACY_TEXT = [
 
 // Spec avsnitt 16. Privat vägledning efter två Nej i rad. Visas bara för deltagaren.
 export const SUPPORT_PROMPT = {
-  lines: ["Två veckor i rad blev det inte som du hade tänkt.", "Vill du prata med Jan om vad som stoppar dig?"],
+  lines: ["Två veckor i rad blev det inte som du hade tänkt.", "Vill du prata med Jan om vad som stoppar dig?", "Den här rutan ser bara du."],
   request: "Be om ett samtal",
   notNow: "Inte nu",
 };
@@ -302,7 +302,7 @@ const WEEK_1_SECTIONS = [
       { title: "Utan filter", pages: "7–15", pdfPages: "14–22" },
       { title: "Människan först", pages: "17–27", pdfPages: "24–34" },
     ],
-    { note: "Läs innan första träffen. Stanna där något skaver." },
+    { note: "Läs under första veckan. Du behöver inte vara klar innan första träffen. Stanna där något skaver." },
   ),
   stanna([
     ["filter", "Vilket filter känner du igen mest hos dig själv: corporatespråk, prestige, rädsla eller fasad?"],
@@ -535,7 +535,7 @@ const WEEK_4_SECTIONS = [
     fields: [
       t("forandrats", "Vad har faktiskt förändrats?", { hint: "Något som syns i handling eller i hur andra reagerar." }),
       t("medveten", "Vad har jag bara blivit mer medveten om?", { hint: "Medvetenhet är början. Men den är inte samma sak som förändring." }),
-      t("inte_gjort", "Vad har jag fortfarande inte gjort?", { hint: "Vad väntar du på?" }),
+      t("inte_gjort", "Vad har jag fortfarande inte gjort?", { hint: "Vad krävs för att det ska bli av?" }),
     ],
   },
   spegel(),

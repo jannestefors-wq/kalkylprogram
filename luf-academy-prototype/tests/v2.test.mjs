@@ -81,7 +81,8 @@ test("v2: integritetstexten och den privata frågan finns ordagrant", () => {
     "Du väljer själv vad du delar, och du kan ta tillbaka det.",
     "Den som administrerar kursen ser vilka veckor du har börjat på. Aldrig det du skriver.",
   ]);
-  assert.deepEqual(SUPPORT_PROMPT.lines, ["Två veckor i rad blev det inte som du hade tänkt.", "Vill du prata med Jan om vad som stoppar dig?"]);
+  // Order 015: en tredje rad som säger att rutan är privat. Samma knappar.
+  assert.deepEqual(SUPPORT_PROMPT.lines, ["Två veckor i rad blev det inte som du hade tänkt.", "Vill du prata med Jan om vad som stoppar dig?", "Den här rutan ser bara du."]);
   assert.equal(SUPPORT_PROMPT.request, "Be om ett samtal");
   assert.equal(SUPPORT_PROMPT.notNow, "Inte nu");
   assert.equal(getSection("start", "infor").privacy, true);
@@ -260,6 +261,11 @@ test("v2: två Nej i rad visar privat fråga. Inget går till Jan eller admin. I
   assert.equal(lena.talkRequestedAt, null);
   const adminView = JSON.stringify((await admin.get("/api/admin/overview")).body);
   assert.ok(!adminView.includes(PRIVATE) && !/support|prompt|talk|Nej/.test(adminView), "admin ser ingen privat signal");
+  // Order 015: rutans text når varken Jan eller administratören.
+  for (const line of SUPPORT_PROMPT.lines) {
+    assert.ok(!janView.includes(line), `Jans vy innehåller rutans text: ${line}`);
+    assert.ok(!adminView.includes(line), `administratörens vy innehåller rutans text: ${line}`);
+  }
   const newEvents = db.prepare("SELECT event_name FROM lr_event WHERE id > (SELECT IFNULL(MAX(id), 0) - ? FROM lr_event)").all(countRows("lr_event") - eventsBefore);
   assert.ok(newEvents.every((e) => ["week_started", "section_completed", "action_chosen", "what_happened_completed"].includes(e.event_name)), "inga händelser om vägledningen");
   // Fel följd kan inte besvaras.

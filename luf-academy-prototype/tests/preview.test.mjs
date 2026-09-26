@@ -336,6 +336,8 @@ test("två Nej i rad: privat ruta, Inte nu skickar inget, Be om ett samtal skick
   await page.waitForSelector(".support-card");
   const card = await page.textContent(".support-card");
   assert.ok(card.includes("Två veckor i rad blev det inte som du hade tänkt.") && card.includes("Vill du prata med Jan om vad som stoppar dig?"));
+  assert.ok(card.includes("Den här rutan ser bara du."), "order 015: rutan säger att bara deltagaren ser den");
+  assert.ok(card.includes("Be om ett samtal") && card.includes("Inte nu"));
   await shot(page, "04-privat-fraga-desktop");
   // Att rutan visas skrivs ingenstans.
   assert.ok(![...store.keys()].some((k) => k.startsWith("requests/")), "ingen förfrågan");
@@ -555,6 +557,10 @@ test("hela programmet på mobil: varje moment går att läsa och skriva i, inget
       const mainText = await page.textContent("main");
       assert.ok(!mainText.includes("[object") && !/\bnull\b|\bundefined\b/.test(mainText), `${s.key}/${sec.key}: inga trasiga element`);
       assertClean(mainText, `${s.key}/${sec.key}`);
+      // Order 015. Nya ledtexter syns, de gamla gör det inte.
+      assert.ok(!mainText.includes("Läs innan första träffen") && !mainText.includes("Vad väntar du på?"), `${s.key}/${sec.key}: gammal ledtext syns`);
+      if (s.key === "w1" && sec.kind === "reading") assert.ok(mainText.includes("Läs under första veckan. Du behöver inte vara klar innan första träffen. Stanna där något skaver."));
+      if (sec.key === "halvvags") assert.ok(mainText.includes("Vad har jag fortfarande inte gjort?") && mainText.includes("Vad krävs för att det ska bli av?"));
       if (sec.kind === "reading") {
         for (const c of sec.reading.chapters) assert.ok(mainText.includes(c.title) && mainText.includes(`Sidor ${c.pages}`), `${s.key}: ${c.title} Sidor ${c.pages}`);
       }

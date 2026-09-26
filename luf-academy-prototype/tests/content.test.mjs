@@ -133,6 +133,9 @@ const RETIRED = [
   ["gamla misstagsrubriken", /Den dag jag inte var den ledare jag vill vara/],
   ["gamla planfälten", /"prova"|"lagga_marke"|"forvantan"|"annorlunda"/],
   ["gamla varför du var här", /Varför du var här|varfor_har|skaver_mest/],
+  // Order 015, HUMAN EXPERIENCE REVIEW 001.
+  ["gamla läsledtexten i vecka 1", /Läs innan första träffen/],
+  ["gamla ledtexten i Halvvägs", /Vad väntar du på\?/],
 ];
 const KATALYSATOR = [/kataly/i, /Diagnos före lösning/i, /Struktur · Kultur · Mindset/i, /Kulturkartan/i, /Sägs · Görs · Tystas/i, /Följ konsekvensen/i, /GO eller NO GO/i, /Vad har vi själva skapat/i, /systemkonsekvens/i];
 
@@ -178,4 +181,28 @@ test("innehåll: P4 i jag-form och ingen fråga om någon annans känslor", () =
   assert.ok(!/\bvi\b/i.test(byggt.label));
   const labels = STEPS.flatMap((s) => s.sections.flatMap((x) => x.fields.map((f) => f.label || "")));
   assert.ok(!labels.some((l) => /Känner (den här personen|hen|han|hon)/.test(l)));
+});
+
+test("order 015: tre godkända ändringar, två skyddade texter oförändrade", () => {
+  const section = (step, key) => STEPS.find((s) => s.key === step).sections.find((s) => s.key === key);
+  assert.equal(section("w1", "lasning").reading.note, "Läs under första veckan. Du behöver inte vara klar innan första träffen. Stanna där något skaver.");
+  assert.deepEqual(publicProgram().supportPrompt, {
+    lines: ["Två veckor i rad blev det inte som du hade tänkt.", "Vill du prata med Jan om vad som stoppar dig?", "Den här rutan ser bara du."],
+    request: "Be om ett samtal",
+    notNow: "Inte nu",
+  });
+  const inteGjort = section("w4", "halvvags").fields.find((f) => f.key === "inte_gjort");
+  assert.equal(inteGjort.label, "Vad har jag fortfarande inte gjort?");
+  assert.equal(inteGjort.hint, "Vad krävs för att det ska bli av?");
+  // Skyddade: K2 och trygghetshörnet i vecka 4.
+  for (const step of ["w1", "w2", "w3", "w4", "w5"]) {
+    const k2 = section(step, "vad-hande").fields.find((f) => f.key === "kostar");
+    assert.equal(k2.label, "Vad kostar det att vänta?");
+    assert.equal(k2.optional, true);
+  }
+  const trygg = section("w4", "trygghet").fields.find((f) => f.corner === "trygghet_sett");
+  assert.equal(trygg.label, "Trygghet. Vad har du sett eller hört som tyder på att personen vågar säga vad den tänker, fråga, göra fel eller säga emot?");
+  // Den interna noteringen i specifikationen syns aldrig för deltagaren.
+  assert.ok(SPEC.includes("HUMAN EXPERIENCE REVIEW 001, accepted changes: 3"));
+  assert.ok(!corpus().includes("HUMAN EXPERIENCE REVIEW"));
 });
