@@ -268,7 +268,8 @@ Vägledning i alla veckor. Rubrik: "Här finns lärandet"
 > vad gjorde du?
 > vad hände?
 > märkte någon något?
-> Om det inte blev av är det också information.
+> Om det inte blev av:
+> det är också information.
 > Då försöker vi förstå vad som stoppade dig och vad du gör nu.
 > Skriv verkligheten. Inte den snyggaste versionen av den.
 
@@ -1292,6 +1293,7 @@ Order 019 lägger inga fält till vecka 1 till 6. De sex nya fälten finns bara 
 • Människorna runt mig: raden om att välja två till fyra ingår nu i vägledningen.
 • Spegeln: raden "Lyssna klart. Försvara inget. Tacka." står sist i vägledningen i stället för i ingressen.
 • Hela resan: uppmaningen att läsa sina första ord ingår nu i vägledningen.
+• Vägledningen i vecka 4 och 5 har rubriken "Vad är målet den här veckan?". Rubriken är ny. Texten i vecka 5 är ordern i du-form.
 • Vecka 6, Inför veckan: första raden säger pressen kommer tillbaka i stället för trycket ökar.
 
 ## 27. Tre månader. Då och nu.

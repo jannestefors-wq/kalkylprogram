@@ -105,7 +105,7 @@ const RETURN_GUIDE = guide(
   ["Nu jämför vi inte med vad du ville göra.", "Vi tittar på vad du faktiskt gjorde och vad som faktiskt hände.", "Om det blev av:"],
   {
     list: ["vad gjorde du?", "vad hände?", "märkte någon något?"],
-    after: ["Om det inte blev av är det också information.", "Då försöker vi förstå vad som stoppade dig och vad du gör nu.", "Skriv verkligheten. Inte den snyggaste versionen av den."],
+    after: ["Om det inte blev av:", "det är också information.", "Då försöker vi förstå vad som stoppade dig och vad du gör nu.", "Skriv verkligheten. Inte den snyggaste versionen av den."],
   },
 );
 
