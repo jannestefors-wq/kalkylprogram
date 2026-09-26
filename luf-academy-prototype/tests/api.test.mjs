@@ -403,7 +403,7 @@ test("7 till 15. hela Vecka 1-kedjan på servern", async () => {
 test("steg öppnas i ordning. Testläget flyttar bara testpersonen.", async () => {
   const p = await participant("deltagare-a3");
   const put = (step, field, value = "test") => p.c.put(`/api/journey/${p.enr}/entry`, { step, field, value });
-  assert.deepEqual(p.me.program.steps.filter((s) => s.built).map((s) => s.key), ["w1", "w2", "w3", "w4", "w5", "w6", "d30", "start", "samtal"]);
+  assert.deepEqual(p.me.program.steps.filter((s) => s.built).map((s) => s.key), ["w1", "w2", "w3", "w4", "w5", "w6", "d30", "m3", "start", "samtal"]);
   assert.equal((await put("w2", "stanna.skjutit_upp_beslut")).status, 403, "vecka 2 är stängd när gruppen är i vecka 1");
   assert.equal((await put("d30", "kvar.fortfarande")).status, 403);
   assert.equal((await put("samtal", "infor.tanka_kring")).status, 200, "samtal med Jan är alltid öppet");

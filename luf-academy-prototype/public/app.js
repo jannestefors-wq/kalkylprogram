@@ -21,6 +21,13 @@ const fmtDay = (iso) =>
 const fmtTime = (iso) =>
   iso ? new Intl.DateTimeFormat("sv-SE", { hour: "2-digit", minute: "2-digit", timeZone: TZ }).format(new Date(iso)) : "";
 const fmtPlainDate = (ymd) => (ymd ? fmtDate(`${ymd}T12:00:00Z`) : "");
+// Ett datum ett annat år visas med årtal. 3 februari 2027.
+const fmtOpensDate = (ymd) => {
+  if (!ymd) return "";
+  const d = new Date(`${ymd}T12:00:00Z`);
+  const sameYear = new Intl.DateTimeFormat("sv-SE", { year: "numeric", timeZone: TZ }).format(d) === new Intl.DateTimeFormat("sv-SE", { year: "numeric", timeZone: TZ }).format(new Date());
+  return sameYear ? fmtDate(d.toISOString()) : new Intl.DateTimeFormat("sv-SE", { day: "numeric", month: "long", year: "numeric", timeZone: TZ }).format(d);
+};
 
 // ---------- DOM ----------
 
@@ -669,6 +676,9 @@ function renderOverview() {
       goals.length > 0 && [h("p", { class: "kicker" }, "Tre saker jag vill förändra"), h("ol", { class: "own-list" }, goals.map((g) => h("li", { value: g.n }, g.text)))],
     );
 
+  // Hela tidslinjen. Start, vecka 1 till 6, 30 dagar och 3 månader. Order 019 punkt 22.
+  const opensAt = state.journey.opensAt || {};
+  const timeline = [start, ...weekSteps()].filter(Boolean);
   const journeyList = h(
     "section",
     { class: "card journey-card", "aria-label": "Resan" },
@@ -676,19 +686,37 @@ function renderOverview() {
     h(
       "ol",
       { class: "journey" },
-      weekSteps().map((s) => {
-        const open = isOpen(s.key);
+      timeline.map((s) => {
+        const isStart = s.key === "start";
+        const open = isStart || isOpen(s.key);
         const pr = open ? weekProgress(s.key) : null;
-        const label = !open ? "Öppnas senare" : pr.done ? `${pr.done} av ${pr.total} skrivna` : s.key === current.key ? "Pågår" : "Öppen";
-        const inner = [h("span", { class: "journey-label" }, s.label), h("span", { class: "journey-title" }, s.title), h("span", { class: "journey-state" }, label)];
+        const label = !open
+          ? opensAt[s.key] ? `Öppnas ${fmtOpensDate(opensAt[s.key])}` : "Öppnas senare"
+          : pr.done ? `${pr.done} av ${pr.total} skrivna` : s.key === current.key ? "Pågår" : "Öppen";
+        const inner = [h("span", { class: "journey-label" }, isStart ? "Start" : s.label), h("span", { class: "journey-main" }, h("span", { class: "journey-title" }, s.title), s.phase && h("span", { class: "journey-phase" }, s.phase)), h("span", { class: "journey-state" }, label)];
         return h(
           "li",
-          { class: `journey-step ${open ? "is-open" : "is-locked"} ${s.key === current.key ? "is-current" : ""}` },
-          open ? h("a", { href: stepHref(s.key, nextSectionKey(s.key)) }, inner) : h("div", { "aria-disabled": "true" }, inner),
+          { class: `journey-step ${isStart ? "is-start" : ""} ${open ? "is-open" : "is-locked"} ${s.key === current.key ? "is-current" : ""}`, "data-step": s.key },
+          open ? h("a", { href: stepHref(s.key, isStart ? "infor" : nextSectionKey(s.key)) }, inner) : h("div", { "aria-disabled": "true" }, inner),
         );
       }),
     ),
   );
+
+  // Din förändringsresa. Öppen tills deltagaren har börjat, sedan går den att fälla ut.
+  const story = program().journeyStory;
+  const storyCard =
+    story &&
+    h(
+      "section",
+      { class: "card story-card", "aria-label": story.title },
+      h(
+        "details",
+        { class: "story", open: state.journey.lastActivityAt ? null : true },
+        h("summary", {}, h("span", { class: "story-title" }, story.title)),
+        h("div", { class: "story-body" }, story.paragraphs.map((p) => h("div", { class: "story-par" }, p.map((l) => h("p", {}, l))))),
+      ),
+    );
 
   mount(
     h(
@@ -698,7 +726,7 @@ function renderOverview() {
       h(
         "div",
         { class: "overview-grid" },
-        h("div", { class: "col" }, supportCard(), focus, goalsCard, journeyList),
+        h("div", { class: "col" }, supportCard(), storyCard, focus, goalsCard, journeyList),
         h("div", { class: "col" }, startCard, liveCard, talkCard, state.me.prototype && testModeCard()),
       ),
     ),
@@ -751,12 +779,12 @@ function renderWeek(stepKey, sectionKey) {
     "nav",
     { class: "rail", "aria-label": `${s.label}. Moment` },
     h("a", { class: "rail-back", href: "#/" }, "Min ledarskapsresa"),
-    h("p", { class: "rail-week" }, s.label),
+    h("p", { class: "rail-week" }, whereLabel(s)),
     h("p", { class: "rail-title" }, s.title),
     h(
       "details",
       { class: "rail-details", open: window.matchMedia("(min-width: 900px)").matches || null },
-      h("summary", {}, `Moment ${index + 1} av ${s.sections.length}. ${section.title}`),
+      h("summary", { "aria-label": `Moment ${index + 1} av ${s.sections.length}. ${section.title}` }, h("span", { class: "rail-now" }, section.title), h("span", { class: "rail-count" }, `${index + 1} av ${s.sections.length}`)),
       h(
         "ol",
         { class: "rail-list" },
@@ -816,16 +844,46 @@ function updateRailStatus() {
   });
 }
 
-function sectionHead(section, stepKey) {
+// Var i resan deltagaren är. Fasen först, räknaren sekundärt. Order 019 punkt 23.
+const whereLabel = (s) => (s.phase && !s.aside ? `${s.label} · ${s.phase}` : s.label);
+
+// Vägledning före fälten. Order 019 punkt 2. Information, inga fält.
+// Förklaringar står direkt under rubriken. Exempel står närmast fälten.
+function guideLine(l) {
+  return typeof l === "string" ? h("p", {}, l) : h("p", { class: "guide-term" }, h("strong", {}, l.term), " ", l.text);
+}
+function guideEl(g) {
+  const body = [
+    ...(g.lines || []).map(guideLine),
+    g.list && h("ul", { class: "guide-list" }, g.list.map((x) => h("li", {}, x))),
+    ...(g.after || []).map(guideLine),
+  ];
+  if (g.example) {
+    return h(
+      "aside",
+      { class: "guide is-example", "aria-label": g.label },
+      h("p", { class: "guide-label" }, g.label),
+      g.sub && h("p", { class: "guide-sub" }, g.sub),
+      body,
+    );
+  }
+  return h("section", { class: "guide", "aria-label": g.heading }, h("h2", { class: "guide-heading" }, g.heading), body);
+}
+const explainGuides = (section) => (section.guides || []).filter((g) => !g.example).map(guideEl);
+const exampleGuides = (section) => (section.guides || []).filter((g) => g.example).map(guideEl);
+
+function sectionHead(section, stepKey, { examples = true } = {}) {
   const hints = section.hint ? (Array.isArray(section.hint) ? section.hint : [section.hint]) : [];
   return [
-    h("p", { class: "kicker" }, step(stepKey).label),
+    h("p", { class: "kicker" }, whereLabel(step(stepKey))),
     h("h1", { id: "section-title" }, section.title),
     section.privacy && privacyBlock(),
+    explainGuides(section),
     section.lead && h("div", { class: "lead-lines" }, section.lead.map((l) => h("p", {}, l))),
     section.note && h("p", { class: "note" }, section.note),
     section.noteLines && h("div", { class: "note" }, section.noteLines.map((l) => h("p", {}, l))),
     hints.map((t) => h("p", { class: "book-hint" }, t)),
+    examples && exampleGuides(section),
   ];
 }
 
@@ -891,6 +949,7 @@ function renderIntro(stepKey, section) {
     h("p", { class: "kicker" }, `${s.label}. ${s.subtitle}`),
     h("h1", { id: "section-title" }, section.title),
     h("div", { class: "intro-lines" }, section.lead.map((l) => h("p", {}, l))),
+    explainGuides(section),
     section.quote && h("blockquote", { class: "book-quote" }, h("p", {}, `”${section.quote.text}”`), h("footer", {}, "Ur Ledarskap med hjärta och mod")),
   );
 }
@@ -968,17 +1027,27 @@ function renderMap(stepKey, section) {
     sectionHead(section, stepKey),
     locked && h("p", { class: "lock-note" }, "Startpunkten är satt. Den står kvar så att du kan jämföra i slutet av utbildningen."),
     h("div", { class: "map" }, rows),
-    section.compareWith ? mapComparison([...section.compareWith, section.measurePoint]) : point === "start" && h("p", { class: "muted small" }, "Du markerar samma karta igen när utbildningen är slut och 30 dagar senare. Då ser du själv vad som har rört sig."),
+    section.compareWith
+      ? mapComparison([...section.compareWith, section.measurePoint], { afterDone: section.compareAfterDone ? point : null, skipEmpty: Boolean(section.compareAfterDone) })
+      : point === "start" && h("p", { class: "muted small" }, "Du markerar samma karta igen när utbildningen är slut, 30 dagar senare och efter tre månader. Då ser du själv vad som har rört sig."),
   );
 }
 
 // Deltagarens egen bild av sin förflyttning. Samma skala. Ingen summa, inget betyg.
-function mapComparison(points) {
+// afterDone: kartorna visas sida vid sida först när alla sex skalor för den punkten är markerade.
+// skipEmpty: en tidigare karta som aldrig gjordes visas inte.
+function mapComparison(allPoints, { afterDone = null, skipEmpty = false } = {}) {
   const labels = program().measurePointLabels;
   const steps = program().mapScaleSteps;
   const box = h("section", { class: "compare", "aria-label": "Din egen bild av din förflyttning" });
   const draw = () => {
     const values = (p) => state.journey.assessments[p] || {};
+    const marked = (p) => program().mapDimensions.filter((d) => values(p)[d.key]).length;
+    if (afterDone && marked(afterDone) < program().mapDimensions.length) {
+      box.replaceChildren(h("p", { class: "muted small compare-wait" }, "När du har markerat alla sex skalor ser du kartan bredvid dina tidigare kartor."));
+      return;
+    }
+    const points = skipEmpty ? allPoints.filter((p) => p === afterDone || marked(p) > 0) : allPoints;
     box.replaceChildren(h("div", { class: "compare-inner" },
       h("p", { class: "small-heading" }, "Din egen bild av din förflyttning"),
       h("ul", { class: "compare-legend" }, points.map((p, i) => h("li", {}, h("span", { class: `marker m${i}`, "aria-hidden": "true" }), labels[p]))),
@@ -1293,8 +1362,9 @@ function renderReturn(stepKey, section) {
   return h(
     "div",
     {},
-    h("p", { class: "kicker" }, step(stepKey).label),
+    h("p", { class: "kicker" }, whereLabel(step(stepKey))),
     h("h1", { id: "section-title" }, section.title),
+    explainGuides(section),
     recall,
     h("div", { class: "lead-lines" }, section.lead.map((l) => h("p", {}, l))),
     h("div", { class: "group-card" }, fieldList(stepKey, section, section.fields)),
@@ -1376,9 +1446,10 @@ function renderTriangle(stepKey, section) {
   return h(
     "div",
     {},
-    sectionHead(section, stepKey),
+    sectionHead(section, stepKey, { examples: false }),
     preList.length > 0 && h("div", { class: "group-card" }, preList),
     figure,
+    exampleGuides(section),
     corners,
     postList.length > 0 && h("div", { class: "group-card" }, postList),
     shareControls(stepKey, section),
@@ -1408,7 +1479,7 @@ function renderBridge(stepKey, section) {
   return h(
     "div",
     {},
-    h("p", { class: "kicker" }, step(stepKey).label),
+    h("p", { class: "kicker" }, whereLabel(step(stepKey))),
     h("h1", { id: "section-title" }, section.title),
     h("div", { class: "lead-lines" }, h("p", {}, "Vi börjar med vad du gjorde och vad som hände. Inte med vad du tänkte göra.")),
     actionChosen(from.key)
@@ -1476,7 +1547,14 @@ function skaverRecall() {
 function renderLookback(stepKey, section) {
   const isD30 = stepKey === "d30";
   let recall;
-  if (isD30) {
+  if (stepKey === "m3") {
+    // Order 019 punkt 21. Det deltagaren skrev när hen började, efter vecka 6 och efter 30 dagar.
+    recall = [
+      h("aside", { class: "recall lookback" }, h("p", { class: "kicker" }, "När du började"), h("p", { class: "small-heading" }, sectionTitle("w1", "forandring")), goalsRecall(), mapComparison(["start", "end", "d30"], { skipEmpty: true })),
+      h("aside", { class: "recall lookback" }, h("p", { class: "kicker" }, "Efter vecka 6"), recallFields("w6", "avslut", ["fortsatta_1", "folja_upp_1", "fortsatta_2", "folja_upp_2"])),
+      h("aside", { class: "recall lookback" }, h("p", { class: "kicker" }, "Efter 30 dagar"), recallFields("d30", "kvar", ["fortfarande", "nasta_steg"])),
+    ];
+  } else if (isD30) {
     // Spec avsnitt 17. Från starten och från vecka 6.
     recall = [
       h("aside", { class: "recall lookback" }, h("p", { class: "kicker" }, "Från starten"), skaverRecall(), h("p", { class: "small-heading" }, sectionTitle("w1", "forandring")), goalsRecall(), mapComparison(["start"])),
@@ -1720,12 +1798,12 @@ async function renderAdmin() {
           h(
             "table",
             { class: "table" },
-            h("thead", {}, h("tr", {}, h("th", {}, "Deltagare"), h("th", {}, "Status"), h("th", {}, "Senast aktiv"), h("th", {}, "Påbörjat"))),
+            h("thead", {}, h("tr", {}, h("th", {}, "Deltagare"), h("th", {}, "Status"), h("th", {}, "Senast aktiv"), h("th", {}, "Påbörjat"), h("th", {}, "Tre månader"))),
             h(
               "tbody",
               {},
               c.participants.map((p) =>
-                h("tr", {}, h("td", {}, p.name), h("td", {}, p.status), h("td", {}, p.lastActivityAt ? `${fmtDate(p.lastActivityAt)} ${fmtTime(p.lastActivityAt)}` : "Inte ännu"), h("td", {}, p.startedSteps.map(stepLabel).join(", ") || "Inget")),
+                h("tr", {}, h("td", {}, p.name), h("td", {}, p.status), h("td", {}, p.lastActivityAt ? `${fmtDate(p.lastActivityAt)} ${fmtTime(p.lastActivityAt)}` : "Inte ännu"), h("td", {}, p.startedSteps.map(stepLabel).join(", ") || "Inget"), h("td", {}, followUpLabel(p.followUp3m))),
               ),
             ),
           ),
@@ -1736,6 +1814,12 @@ async function renderAdmin() {
     ),
   );
   document.title = "Grupper";
+}
+
+// Bara status. Aldrig text, aldrig kartan.
+function followUpLabel(f) {
+  if (!f) return "Inte öppen";
+  return { not_open: f.opensAt ? `Öppnas ${fmtOpensDate(f.opensAt)}` : "Inte öppen", open: "Öppnad", started: "Påbörjad", completed: "Slutförd" }[f.status] || "Inte öppen";
 }
 
 function liveSessionEditor(s, stepLabel) {

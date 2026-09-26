@@ -43,8 +43,133 @@ export const MAP_DIMENSIONS = [
   { key: "ansvar", label: "Ansvar", low: "Skjuter", high: "Agerar" },
 ];
 export const MAP_SCALE_STEPS = 6;
-export const MEASURE_POINTS = ["start", "end", "d30"];
-export const MEASURE_POINT_LABELS = { start: "När du började", end: "Efter sex veckor", d30: "30 dagar senare" };
+export const MEASURE_POINTS = ["start", "end", "d30", "m3"];
+export const MEASURE_POINT_LABELS = { start: "När du började", end: "Efter sex veckor", d30: "30 dagar senare", m3: "Tre månader senare" };
+
+// ---------- Pedagogisk vägledning. Order 019, HUMAN TEST PEDAGOGICAL JOURNEY 019 ----------
+//
+// Förstå först. Skriv sedan. Vägledningen är information och aldrig ett fält.
+// Den sparas inte, räknas inte i klarstatus och skapar inga nya krav.
+//   guide(rubrik, rader, { list, after }): Varför det här finns, Vad vi letar
+//   efter, Så gör du. Rubriken skrivs som deltagaren ser den.
+//   example(rader, { sub, after }): märks alltid "Exempel, inte facit".
+//   En rad kan vara text eller { term, text } när en del ska stå i fetstil.
+const guide = (heading, lines = [], extra = {}) => ({ heading, lines, ...extra });
+const example = (lines, extra = {}) => ({ example: true, label: "Exempel, inte facit", lines, ...extra });
+const ex = (term, text) => ({ term, text });
+
+// Översikten, före veckorna. Order 019 punkt 1.
+export const JOURNEY_STORY = {
+  title: "Din förändringsresa",
+  paragraphs: [
+    ["Du börjar inte här för att lära dig fler modeller.", "Vi börjar med att förstå hur du faktiskt leder idag."],
+    [
+      "Vad gör du när det blir svårt?",
+      "Vad undviker du?",
+      "Vad får dig att kliva fram?",
+      "Vad händer med dig under press?",
+      "Vilka mönster och drivkrafter påverkar dina beslut, relationer och sättet du möter andra människor?",
+    ],
+    ["Tillsammans försöker vi förstå ditt nuläge innan du bestämmer vad du vill förändra."],
+    ["Sedan väljer du tre saker i ditt eget ledarskap som du vill arbeta med."],
+    ["Varje vecka tar du något av dem ut i verkligheten.", "Du provar.", "Du kommer tillbaka.", "Vi tittar på vad som faktiskt hände.", "Inte på vad du tänkte göra.", "Inte på vad som borde ha hänt."],
+    ["Sedan justerar du och provar igen."],
+    [
+      "Efter sex veckor tittar du tillbaka på hela resan.",
+      "Efter 30 dagar ser vi vad som blev kvar när utbildningen inte längre höll dig i handen.",
+      "Efter tre månader jämför du då och nu.",
+    ],
+    ["Målet är inte att du ska kunna mer om ledarskap.", "Målet är att du ska börja leda annorlunda. Och att människorna omkring dig ska kunna märka skillnaden."],
+  ],
+};
+
+// Order 019 punkt 7. Samma introduktion på alla Stanna upp.
+const STANNA_GUIDE = guide("Varför stannar vi här?", [
+  "De här frågorna är inte ett test.",
+  "De finns för att sakta ner det automatiska svaret.",
+  "Du behöver inte svara på allt.",
+  "Stanna där något får dig att reagera, försvara dig, bli nyfiken eller tänka en extra gång.",
+  "Det är ofta där det finns något att förstå.",
+]);
+
+// Order 019 punkt 13. Samma introduktion på varje veckas handling.
+const ACTION_GUIDE = guide(
+  "Här lämnar utbildningen skärmen",
+  ["Det här är inte en skrivövning.", "Nu ska något hända i din verklighet.", "Välj hellre något litet som du faktiskt gör än något stort som låter bra.", "Bestäm:"],
+  { list: ["vad du ska göra", "i vilken situation", "hur det skulle kunna märkas", "och när du ska göra det."], after: ["Sedan kommer du tillbaka hit.", "Det är först då vi vet något."] },
+);
+
+// Order 019 punkt 14. Samma introduktion på alla Vad hände?. Flödet är oförändrat.
+const RETURN_GUIDE = guide(
+  "Här finns lärandet",
+  ["Nu jämför vi inte med vad du ville göra.", "Vi tittar på vad du faktiskt gjorde och vad som faktiskt hände.", "Om det blev av:"],
+  {
+    list: ["vad gjorde du?", "vad hände?", "märkte någon något?"],
+    after: ["Om det inte blev av är det också information.", "Då försöker vi förstå vad som stoppade dig och vad du gör nu.", "Skriv verkligheten. Inte den snyggaste versionen av den."],
+  },
+);
+
+// Order 019 punkt 15. Samma förklaring på alla Träffen.
+const LIVE_GUIDE = guide("Vad händer på träffen?", [
+  "Du träffar Jan och din grupp online.",
+  "Gruppen består av högst sex deltagare.",
+  "Du behöver inte redovisa allt du har skrivit.",
+  "Du väljer själv vad du vill ta med in i rummet.",
+  "Vi arbetar med verkliga situationer.",
+  "När någon annan står i centrum hjälper resten av gruppen personen att tänka genom att lyssna, fråga och skilja observation från antagande.",
+  "Vi försöker inte lösa varandras problem.",
+  "Vi hjälper varandra att se mer.",
+  "Det som delas i gruppen stannar i gruppen.",
+  "Efter träffen skriver du vad samtalet väckte i ditt eget ledarskap.",
+]);
+
+// Order 019 punkt 16. Spegeln.
+const MIRROR_GUIDE = guide("Varför gör vi det här?", [
+  "Din egen känsla av förändring räcker inte alltid.",
+  "Därför frågar du en människa som arbetar nära dig om hen har märkt någon skillnad.",
+  "Du ber inte om beröm.",
+  "Du ber om en spegel.",
+  "Ditt jobb är inte att förklara eller försvara.",
+  "Lyssna klart. Försvara inget. Tacka.",
+]);
+
+// Order 019 punkt 6. Varför läser du det här? En per vecka.
+const READING_WHY = "Varför läser du det här?";
+const READING_GUIDES = {
+  w1: guide(READING_WHY, ["De här sidorna hjälper dig att börja känna igen ditt eget ledarskap.", "Läs inte för att minnas allt.", "Läs för att upptäcka.", "Leta efter sådant som får dig att tänka:"], {
+    list: ["“Det där gör jag.”", "“Det där undviker jag.”", "“Det där behöver jag förstå bättre.”"],
+    after: ["Det du reagerar på blir material i din egen förändringsresa."],
+  }),
+  w2: guide(READING_WHY, [
+    "Den här veckan tittar vi på det du redan vet behöver hända men ändå skjuter upp.",
+    "När du läser, leta efter vad som händer i dig när ansvar börjar kosta.",
+    "Vad är verklig risk?",
+    "Och vad är obehag som du försöker slippa?",
+  ]),
+  w3: guide(READING_WHY, ["Vi tränar på att skilja det du faktiskt vet från det du tolkar.", "Leta efter skillnaden mellan:"], {
+    list: ["det du ser", "det du hör", "din egen signal", "och slutsatsen du drar."],
+    after: ["Det är den skillnaden du sedan använder i en verklig återkoppling."],
+  }),
+  w4: guide(READING_WHY, [
+    "Ett svårt samtal fungerar sällan bättre för att vi väntar.",
+    "Men samtalet blir inte heller bra bara för att vi “tar det”.",
+    "När du läser, leta efter vad trygghet och relation faktiskt ser ut som i beteenden.",
+    "Vad behöver finnas för att någon ska kunna höra det svåra?",
+    "Och vad är fortfarande ditt ansvar att säga?",
+  ]),
+  w5: guide(READING_WHY, [
+    "När något inte fungerar är det lätt att börja med personen.",
+    "Den här veckan tränar du på att lyfta blicken.",
+    "Kan problemet också finnas i gruppen?",
+    "I rollerna?",
+    "I förutsättningarna?",
+    "I något du själv har byggt eller låtit bli att bygga?",
+    "Läs för att upptäcka fler möjliga förklaringar innan du bestämmer vad problemet är.",
+  ]),
+  w6: guide(READING_WHY, ["Det är lättare att leda som man vill när allt fungerar.", "Den här veckan tittar vi på vad som händer med ditt ledarskap när trycket ökar.", "Läs för att känna igen:"], {
+    list: ["vad som pressar dig", "vilka val du gör automatiskt", "och vilken riktning du vill kunna hålla även när det blir svårt."],
+  }),
+};
 
 // De fem principerna. Boken s. 14–15, ordagrant.
 export const FIVE_PRINCIPLES = [
@@ -112,11 +237,12 @@ const YES_PARTLY = ["Ja", "Delvis"];
 
 // ---------- Byggstenar som återkommer varje vecka ----------
 
-function reading(chapters, { optional = [], note = "" } = {}) {
+function reading(chapters, { optional = [], note = "", guides } = {}) {
   return {
     key: "lasning",
     kind: "reading",
     title: "Inför den här veckan",
+    guides,
     reading: { chapters, optional, note },
     fields: [],
   };
@@ -129,7 +255,8 @@ function stanna(questions) {
     kind: "reflection",
     title: "Stanna upp",
     lead: ["Svara inte snabbt. Det du först skriver är ofta det du redan vet. Stanna lite längre."],
-    note: "Svara på de frågor som biter. Du behöver inte svara på alla.",
+    // Order 019: den gemensamma introduktionen ersätter raden "Svara på de frågor som biter".
+    guides: [STANNA_GUIDE],
     doneWhen: { atLeast: 1 },
     source: "Arbetsboken, Läs och landa",
     fields: questions.map(([key, label]) => t(key, label)),
@@ -157,6 +284,7 @@ function action(lead, { hint, refs, fields = PLAN_FIELDS, doneWhen, returnAt } =
     title: "Det här ska jag prova",
     lead,
     note: "Det finns inget facit. Det är du som väljer.",
+    guides: [ACTION_GUIDE],
     hint,
     refs,
     shareable: true,
@@ -174,6 +302,7 @@ function whatHappened() {
     kind: "return",
     title: "Vad hände?",
     lead: ["Fyll i efter veckan. Oavsett hur det gick."],
+    guides: [RETURN_GUIDE],
     recallFrom: "handling",
     outcomeField: "blev",
     shareable: true,
@@ -223,6 +352,7 @@ function live() {
     title: "Träffen",
     lead: ["När någon annan står i centrum är du medtränare. Ditt lärande fortsätter."],
     note: "Skriv inte ner någon annans case här. Det som delas i gruppen stannar i gruppen.",
+    guides: [LIVE_GUIDE],
     doneWhen: { atLeast: 1 },
     source: "Arbetsboken, Jag är medtränare och Vårt gemensamma rum",
     fields: [t("vackte", "Efter träffen. Vad väckte dagens samtal i mitt eget ledarskap?", { rows: 4 })],
@@ -240,9 +370,10 @@ function spegel(extraLine) {
       "\"Jag försöker förändra det här. Har du märkt någon skillnad?\"",
       "Säg att det är frivilligt att svara.",
       "Fråga gärna någon som inte automatiskt håller med dig.",
-      "Lyssna klart. Försvara inget. Tacka.",
       ...(extraLine ? [extraLine] : []),
     ],
+    // Order 019: "Lyssna klart. Försvara inget. Tacka." står nu sist i Varför gör vi det här?
+    guides: [MIRROR_GUIDE],
     shareable: true,
     doneWhen: { all: ["vem", "tog_med"] },
     source: "Order 010 och 011. Boken s. 81.",
@@ -257,12 +388,13 @@ function spegel(extraLine) {
 // Hörn: [nyckel, ord, fråga, hjälptext, ursprung]. Ursprunget är internt.
 // För Se · Höra · Känna är det den fasta regeln: SE vänster, HÖRA mitten, KÄNNA höger.
 // displayOnly: triangeln visas med hörnorden men utan hörnfält.
-function triangle({ key, title, corners, prompt, source, lead, figureLead, pre = [], post = [], model, doneWhen, shareable, note, refs, displayOnly }) {
+function triangle({ key, title, corners, prompt, source, lead, figureLead, pre = [], post = [], model, doneWhen, shareable, note, refs, displayOnly, guides }) {
   return {
     key,
     refs,
     kind: "triangle",
     title,
+    guides,
     model: model || "triangle",
     displayOnly: Boolean(displayOnly),
     corners: corners.map(([k, label]) => ({ key: displayOnly ? null : k, label })),
@@ -288,12 +420,22 @@ const WEEK_1_SECTIONS = [
     key: "intro",
     kind: "intro",
     title: "Människan först",
+    // Order 019 punkt 5. Vecka 1 är nuläget.
     lead: [
-      "Ledarskap börjar inte med modellen.",
-      "Det börjar med vad du faktiskt gör när du möter andra människor.",
-      "Den här veckan väljer du vad som behöver förändras.",
-      "Inte det som låter bra.",
-      "Det som människorna runt dig skulle märka.",
+      "Den här veckan börjar vi inte med att förändra dig.",
+      "Vi börjar med att förstå dig.",
+      "Hur leder du idag?",
+      "Vad gör du automatiskt?",
+      "Vad undviker du?",
+      "Vad händer när du blir stressad, ifrågasatt eller osäker?",
+      "Vad får dig att kliva fram?",
+      "Vad får dig att ta över?",
+      "Vad får dig att backa?",
+      "Vi försöker tillsammans förstå både vad du gör och vad som verkar driva dina val.",
+      "Det kan handla om ansvar, rädsla, kontroll, prestige, omsorg, trygghet eller något helt annat.",
+      "Det här är inte en diagnos.",
+      "Det är ett sätt att börja se sina egna mönster.",
+      "Först när du ser nuläget kan du välja vad du faktiskt vill förändra.",
     ],
     fields: [],
   },
@@ -302,7 +444,7 @@ const WEEK_1_SECTIONS = [
       { title: "Utan filter", pages: "7–15", pdfPages: "14–22" },
       { title: "Människan först", pages: "17–27", pdfPages: "24–34" },
     ],
-    { note: "Läs under första veckan. Du behöver inte vara klar innan första träffen. Stanna där något skaver." },
+    { note: "Läs under första veckan. Du behöver inte vara klar innan första träffen. Stanna där något skaver.", guides: [READING_GUIDES.w1] },
   ),
   stanna([
     ["filter", "Vilket filter känner du igen mest hos dig själv: corporatespråk, prestige, rädsla eller fasad?"],
@@ -314,6 +456,17 @@ const WEEK_1_SECTIONS = [
     title: "Var är jag nu?",
     lead: ["Markera var du upplever att du befinner dig idag.", "Det här är ingen bedömning. Det är en startpunkt."],
     note: "Självskattning. Ditt eget perspektiv just nu. Inget test och ingen poäng.",
+    guides: [
+      guide("Varför gör du kartan?", [
+        "Det här är ingen mätning av om du är en bra eller dålig ledare.",
+        "Det är din bild av dig själv just nu.",
+        "Vi sparar den för att du senare ska kunna jämföra:",
+        "Då och nu.",
+        "Du kommer göra kartan igen.",
+        "Inte för att jaga bättre siffror.",
+        "För att se om din egen bild av ditt ledarskap har förändrats.",
+      ]),
+    ],
     measurePoint: "start",
     doneWhen: { allDimensions: true },
     fields: [],
@@ -324,6 +477,19 @@ const WEEK_1_SECTIONS = [
     title: "Tre saker jag vill förändra",
     lead: ["Om sex veckor. Vad skulle du vilja att människorna runt dig märkte var annorlunda?"],
     noteLines: ["Skriv det du själv vill förändra. Inte det du borde.", "Välj något du kan påverka, och som någon skulle kunna märka.", "Du får ändra dem senare."],
+    guides: [
+      guide("Vad letar vi efter?", [
+        "Välj inte tre egenskaper du tycker att en bra chef borde ha.",
+        "Välj något i ditt eget sätt att leda som du vill förändra.",
+        "Det ska vara tillräckligt konkret för att kunna synas i vardagen.",
+      ]),
+      example([
+        ex("För brett:", "“Jag vill bli tydligare.”"),
+        ex("Mer användbart:", "“När jag lämnar över ansvar ska jag säga vilket resultat jag förväntar mig och när vi följer upp, utan att tala om exakt hur personen ska göra.”"),
+        ex("För brett:", "“Jag vill lyssna bättre.”"),
+        ex("Mer användbart:", "“I svåra samtal ska jag ställa minst en fråga innan jag börjar förklara min egen bild.”"),
+      ]),
+    ],
     source: "Boken s. 198. Arbetsboken, Tre saker. Order 013 A1.",
     doneWhen: { all: ["mal_1", "mal_1_hur", "mal_2", "mal_2_hur", "mal_3", "mal_3_hur"] },
     fields: [1, 2, 3].flatMap((n) => [
@@ -335,8 +501,20 @@ const WEEK_1_SECTIONS = [
     key: "manniskor",
     kind: "people",
     title: "Människorna runt mig",
-    lead: ["Vilka påverkas faktiskt av ditt ledarskap just nu?", "Välj två till fyra. Roll eller initial räcker."],
+    // Order 019: "Välj två till fyra" står nu i Varför tittar vi på människorna runt dig?
+    lead: ["Vilka påverkas faktiskt av ditt ledarskap just nu?"],
     note: "Skriv roll eller initial i stället för namn. \"En projektledare i mitt team\" räcker ofta.",
+    guides: [
+      guide("Varför tittar vi på människorna runt dig?", [
+        "Ledarskap händer inte inne i dig.",
+        "Det händer mellan dig och andra människor.",
+        "Välj två till fyra personer eller roller som faktiskt påverkas av hur du leder.",
+        "De hjälper dig att hålla förändringen nära verkligheten.",
+        "Du behöver inte skriva namn.",
+        "Frågan är:",
+        "Vad behöver du förstå bättre om människan framför dig?",
+      ]),
+    ],
     doneWhen: { atLeast: 2 },
     fields: [1, 2, 3, 4].map((n) => t(`vem_${n}`, "Vem, och vad behöver jag förstå bättre om hen?", { rows: 2, group: n, nameCheck: true })),
   },
@@ -345,6 +523,22 @@ const WEEK_1_SECTIONS = [
     kind: "situation",
     title: "En situation från min verklighet",
     lead: ["Välj något som faktiskt har hänt med någon du leder. Börja med det som hände. Vänta med tolkningen."],
+    guides: [
+      guide("Varför delar vi upp situationen?", ["När något händer blandar hjärnan snabbt ihop:"], {
+        list: ["vad som hände", "vad vi tror att det betyder", "och vad vi själva gjorde."],
+        after: ["Här delar du isär dem."],
+      }),
+      guide("Så gör du", [
+        ex("Vad hände?", "Skriv det en kamera hade kunnat se eller höra."),
+        ex("Min tolkning", "Här får du skriva vad du tror att det betydde."),
+        ex("Mitt agerande", "Vad gjorde du? Och vad gjorde du inte?"),
+      ]),
+      example([
+        ex("Händelse:", "“Hon kom sent till mötet och svarade kort på två frågor.”"),
+        ex("Tolkning:", "“Jag tänkte att hon inte brydde sig.”"),
+        ex("Agerande:", "“Jag blev kort tillbaka och frågade aldrig vad som hade hänt.”"),
+      ]),
+    ],
     shareable: true,
     doneWhen: { all: ["vad_hande", "tolkning", "gjorde_lat"] },
     groups: [
@@ -368,6 +562,17 @@ const WEEK_1_SECTIONS = [
     ],
     prompt: "Se vad som står mellan dig och ett ärligare möte.",
     source: "Arbetsboken, vecka 1",
+    guides: [
+      example(
+        [
+          ex("Situation:", "En medarbetare kommer sent."),
+          ex("Filter:", "“Jag märker att jag direkt tänker: hon tar inget ansvar.”"),
+          ex("Människa:", "“Jag vet egentligen väldigt lite om vad som hänt före mötet.”"),
+          ex("Närvaro:", "“Jag själv är stressad och lyssnar bara halvt.”"),
+        ],
+        { sub: "Filter · Människa · Närvaro" },
+      ),
+    ],
     lead: ["Utgå från situationen du just beskrev. Skriv vid varje hörn."],
   }),
   action(["Välj en verklig situation den här veckan. Litet nog för att bli gjort. Tydligt nog för att gå att följa upp."], {
@@ -407,6 +612,7 @@ const WEEK_2_SECTIONS = [
         { title: "När det kostar att göra rätt", pages: "131–137", pdfPages: "138–144" },
         { title: "Att säga nej utan att skapa drama", pages: "106–107", pdfPages: "113–114", inChapter: "Individ — Team — Organisation" },
       ],
+      guides: [READING_GUIDES.w2],
     },
   ),
   stanna([
@@ -425,6 +631,16 @@ const WEEK_2_SECTIONS = [
     ],
     prompt: "Se skillnaden mellan obehag och verklig risk.",
     source: "Arbetsboken, vecka 2. Boken s. 36, 131–132. Order 009 och 010.",
+    guides: [
+      example(
+        [
+          ex("Rädsla:", "“Jag är rädd att samtalet ska bli konflikt.”"),
+          ex("Mod:", "“Jag tar samtalet ändå och börjar med det jag faktiskt sett.”"),
+          ex("Ansvar:", "“Mitt ansvar är att vara tydlig och lyssna. Inte att styra den andras reaktion.”"),
+        ],
+        { sub: "Rädsla · Mod · Ansvar" },
+      ),
+    ],
     shareable: true,
     pre: [
       choice("galler", "Vad gäller det?", ["Ett samtal", ...W2_DECISION_KINDS, "Något annat jag behöver kliva fram i"]),
@@ -476,7 +692,7 @@ const WEEK_3_SECTIONS = [
     { title: "Triangelmetodiken", pages: "54–59", pdfPages: "61–66", note: "Till och med avsnittet Triangulering — att mäta det omätbara." },
     { title: "Se — Höra — Känna", pages: "66–74", pdfPages: "73–81" },
     { title: "Konsten att ge och ta emot feedback", pages: "79–81", pdfPages: "86–88", inChapter: "Trygghet — Relation — Utveckling" },
-  ]),
+  ], { guides: [READING_GUIDES.w3] }),
   stanna([
     ["for_snabbt", "Vilket problem försöker du lösa för snabbt?"],
     ["kansla_tolkning", "Vilken del är din egen känsla eller tolkning?"],
@@ -491,6 +707,17 @@ const WEEK_3_SECTIONS = [
       ["kanna", "Känna", "Känna. Vad är din känsla, som du behöver vara medveten om men inte låta styra?", "Något förändrades. Vad behöver jag förstå mer om? En signal, inte ett bevis.", fromBook(61)],
     ],
     prompt: "Skriv bara sådant du faktiskt kan placera i respektive hörn.",
+    guides: [
+      example(
+        [
+          ex("SE:", "“Hon tittade på klockan tre gånger och svarade kort.”"),
+          ex("HÖRA:", "“Jag hinner inte med det här.”"),
+          ex("KÄNNA:", "“Jag märker att jag blir irriterad och orolig.”"),
+          ex("TOLKNING:", "“Hon bryr sig inte.”"),
+        ],
+        { sub: "Se · Höra · Känna", after: ["De tre första är material. Den sista är din slutsats."] },
+      ),
+    ],
     source: "Boken s. 66–74. Hörnfrågorna: boken s. 61. Arbetsboken, vecka 3.",
     lead: ["Tänk på någon du leder, där något skaver just nu. Fyll i de tre innan du säger något."],
     shareable: true,
@@ -551,6 +778,8 @@ const WEEK_4_SECTIONS = [
       "För att du har ansvaret.",
     ],
     quote: { text: "Ingen utvecklas i otrygghet.", page: 75 },
+    // Order 019 punkt 18.
+    guides: [guide("Vad är målet den här veckan?", ["Målet är inte att bli bekväm med svåra samtal.", "Målet är att kunna ta ansvar för dem på ett tydligt och mänskligt sätt."])],
     fields: [],
   },
   reading(
@@ -564,6 +793,7 @@ const WEEK_4_SECTIONS = [
         { title: "Varför vi alltid börjar i fel ände", pages: "98", pdfPages: "105", inChapter: "Person — Process — Produkt" },
         { title: "Avrekrytering med värdighet", pages: "145", pdfPages: "152", inChapter: "Att välkomna, rekrytera och introducera" },
       ],
+      guides: [READING_GUIDES.w4],
     },
   ),
   stanna([["for_tidigt", "Vem försöker du utveckla innan grunden är på plats?"]]),
@@ -576,6 +806,16 @@ const WEEK_4_SECTIONS = [
       ["utveckling_t", "Utveckling", "Utveckling. Är utvecklingsmålen realistiska?", undefined, fromBook(60)],
     ],
     prompt: "Använd triangeln för en person eller ett helt team.",
+    guides: [
+      example(
+        [
+          ex("Trygghet:", "“Personen har sagt emot mig tidigare och berättat när något blivit fel.”"),
+          ex("Relation:", "“Vi kan prata om misstag utan att samtalet stänger.”"),
+          ex("Utveckling:", "“Det jag ber personen förändra är konkret och möjligt.”"),
+        ],
+        { sub: "Trygghet · Relation · Utveckling" },
+      ),
+    ],
     source: "Boken s. 75–84. Hörnfrågorna Relation och Utveckling: boken s. 60. Trygghet: order 011.",
     pre: [short("vem", "Vem eller vilka gäller det?", { placeholder: "Roll, initial eller teamet" })],
   }),
@@ -588,6 +828,16 @@ const WEEK_4_SECTIONS = [
       ["ansvar_k", "Ansvar", "Ansvar. Vem tar ansvar för vad?", "Om du leder kommer ditt ansvar först. Inte för att det är ditt fel. För att du kan förändra.", fromBook(93)],
     ],
     prompt: "Börja inte med att vinna. Börja med att tydliggöra vad som faktiskt behöver lösas.",
+    guides: [
+      example(
+        [
+          ex("Konflikt:", "“Två personer undviker varandra efter återkommande missar i överlämningen.”"),
+          ex("Lösning:", "“Vi behöver komma överens om hur överlämningen ska fungera.”"),
+          ex("Ansvar:", "“Jag behöver samla dem, tydliggöra problemet och följa upp.”"),
+        ],
+        { sub: "Konflikt · Lösning · Ansvar" },
+      ),
+    ],
     source: "Bokens övning s. 93. Boken s. 91–92 och 145. Order 009, 010 och 011.",
     shareable: true,
     pre: [
@@ -634,6 +884,13 @@ const WEEK_5_SECTIONS = [
       "Men du står kvar i ditt eget ansvar.",
     ],
     quote: { text: "Om du bara ser individen missar du teamet.", page: 101 },
+    // Order 019 punkt 18.
+    guides: [
+      guide("Vad är målet den här veckan?", [
+        "Målet är inte att hitta någon annan än individen att skylla på.",
+        "Målet är att undersöka fler nivåer innan du bestämmer vad problemet är. Och sedan göra något inom ditt eget ansvar.",
+      ]),
+    ],
     fields: [],
   },
   reading(
@@ -647,6 +904,7 @@ const WEEK_5_SECTIONS = [
         { title: "Delegering som utvecklingsverktyg", pages: "164", pdfPages: "171", inChapter: "Att utveckla andra ledare" },
         { title: "Att leda uppåt och När din chef är problemet", pages: "174–176", pdfPages: "181–183", inChapter: "Ledarskapet framåt", headings: ["Att leda uppåt", "När din chef är problemet"] },
       ],
+      guides: [READING_GUIDES.w5],
     },
   ),
   stanna([
@@ -659,6 +917,17 @@ const WEEK_5_SECTIONS = [
     displayOnly: true,
     corners: [["individ", "Individ"], ["team", "Team"], ["organisation", "Organisation"]],
     prompt: "Placera problemet där du tror att det sitter. Fråga sedan vad som talar för att det sitter på en annan nivå.",
+    guides: [
+      example(
+        [
+          ex("Problem:", "“En person missar ofta deadlines.”"),
+          ex("Individ:", "Personen kan sakna planering eller kompetens."),
+          ex("Team:", "Personen kan vara beroende av andra som lämnar underlag sent."),
+          ex("Organisation:", "Prioriteringarna kan ändras varje vecka."),
+        ],
+        { sub: "Individ · Team · Organisation", after: ["Poängen är inte att välja rätt ruta snabbt.", "Poängen är att undersöka fler möjliga förklaringar."] },
+      ),
+    ],
     source: "Boken s. 101–110, 128–129. Arbetsboken, vecka 6. Order 009, 010 och 013.",
     lead: ["Välj ett problem du har tänkt på som en persons problem. Något som faktiskt pågår."],
     shareable: true,
@@ -712,7 +981,7 @@ const WEEK_6_SECTIONS = [
     kind: "intro",
     title: "Ledarskap under press",
     lead: [
-      "Sista veckan handlar om vad som håller när trycket ökar.",
+      "Sista veckan handlar om vad som håller när pressen kommer tillbaka.",
       "Du kommer att möta dina egna ord från början.",
       "Titta på vad som hände. Och på vad som inte hände.",
       "Det är inte perfektion som räknas. Det är riktningen.",
@@ -725,7 +994,7 @@ const WEEK_6_SECTIONS = [
       { title: "Stress, press och den inre kompassen", pages: "148–157", pdfPages: "155–164" },
       { title: "Den dag du gör allt fel", pages: "186–190", pdfPages: "193–197" },
     ],
-    { optional: [{ title: "Epilog", pages: "191–193", pdfPages: "198–200" }] },
+    { optional: [{ title: "Epilog", pages: "191–193", pdfPages: "198–200" }], guides: [READING_GUIDES.w6] },
   ),
   stanna([
     ["stress_gor", "Vad gör stress med ditt sätt att leda?"],
@@ -737,6 +1006,16 @@ const WEEK_6_SECTIONS = [
     displayOnly: true,
     corners: [["tryck", "Tryck"], ["val", "Val"], ["riktning", "Riktning"]],
     prompt: "Se vad som händer mellan trycket du känner och valet du faktiskt gör.",
+    guides: [
+      example(
+        [
+          ex("Tryck:", "“En kund är arg och kräver svar direkt.”"),
+          ex("Val:", "“Jag märker att jag vill svara snabbt och försvara oss.”"),
+          ex("Riktning:", "“Jag stannar, tar reda på vad som hänt och svarar först när jag vet.”"),
+        ],
+        { sub: "Tryck · Val · Riktning" },
+      ),
+    ],
     source: "Arbetsboken, vecka 9. Boken s. 148–157. Order 011 beslut 3.",
     note: "”Om jag är i obalans, tillför jag inte mer obalans.”",
     refs: [149],
@@ -747,7 +1026,13 @@ const WEEK_6_SECTIONS = [
     key: "tillbaka",
     kind: "lookback",
     title: "Hela resan",
-    lead: ["Läs dina första ord innan du skriver här. Försök inte låta klok. Beskriv vad som faktiskt har förändrats."],
+    // Order 019 punkt 19: "Läs dina första ord" står nu i Nu jämför du med dig själv.
+    lead: ["Försök inte låta klok. Beskriv vad som faktiskt har förändrats."],
+    guides: [
+      guide("Nu jämför du med dig själv", ["Läs det du skrev när utbildningen började.", "Inte för att bedöma om du lyckats.", "För att se:"], {
+        list: ["vad som faktiskt har förändrats", "vad som inte har förändrats", "vad du gör annorlunda", "och vad som fortfarande testar dig."],
+      }),
+    ],
     source: "Arbetsboken, Tillbaka till början. Order 010.",
     shareable: true,
     doneWhen: { all: ["forandrats", "inte_forandrats"] },
@@ -766,6 +1051,16 @@ const WEEK_6_SECTIONS = [
       ["vanda", "Vända", "Vända. Vad gör du nu?", undefined, digital("Boken s. 187: nästa gång välja lite modigare. Arbetsbokens instruktion v10: riktningen avgör vad du gör med det.")],
     ],
     prompt: "Misstaget är material. Riktningen avgör vad du gör med det.",
+    guides: [
+      example(
+        [
+          ex("Se:", "“Jag höjde rösten och började argumentera.”"),
+          ex("Lära:", "“Jag försökte vinna samtalet eftersom jag kände mig ifrågasatt.”"),
+          ex("Vända:", "“Jag tar upp samtalet igen och börjar med min del.”"),
+        ],
+        { sub: "Se · Lära · Vända" },
+      ),
+    ],
     source: "Arbetsboken, vecka 10. Bokens övning s. 187 och 203.",
   }),
   {
@@ -825,7 +1120,21 @@ const DAY_30_SECTIONS = [
     key: "intro",
     kind: "intro",
     title: "Vad blev faktiskt kvar?",
-    lead: ["Trettio dagar har gått.", "Här är det du skrev.", "Svara kort. Svara ärligt."],
+    // Order 019 punkt 20.
+    lead: [
+      "Trettio dagar har gått.",
+      "Det här är ingen utvärdering av kursen.",
+      "Och inget prov på om du lyckats.",
+      "Under en månad har vardagen fått trycka på igen.",
+      "Nu tittar vi på vad som överlevde vardagen.",
+      "Vad gör du fortfarande?",
+      "Vad föll bort?",
+      "Vad stoppade det?",
+      "Vad märkte människorna runt dig?",
+      "Och vad gör du nu?",
+      "Svara med det som faktiskt hände.",
+      "Inte med det du hade hoppats skulle hända.",
+    ],
     fields: [],
   },
   {
@@ -876,6 +1185,69 @@ const DAY_30_SECTIONS = [
   },
 ];
 
+// ---------- Tre månader. Då och nu. Order 019 punkt 21 ----------
+//
+// Ingen ny undervisning, ingen ny träff, ingen ny modell. Öppnas tre
+// kalendermånader efter gruppens slutdatum (vecka 6). Nya nycklar.
+// Fritexten är privat som standard och kan delas aktivt med Jan.
+// Kartan kan aldrig delas.
+
+const MONTH_3_SECTIONS = [
+  {
+    key: "intro",
+    kind: "intro",
+    title: "Tre månader. Då och nu.",
+    lead: [
+      "Tre månader har gått sedan utbildningen.",
+      "Nu tittar vi inte på vad du minns.",
+      "Vi tittar på vad som faktiskt blivit en del av ditt sätt att leda.",
+      "Du får se det du skrev när du började.",
+      "Dina tre förändringsområden.",
+      "Din första ledarskapskarta.",
+      "Vad du ville fortsätta träna på efter vecka 6.",
+      "Och vad du skrev efter 30 dagar.",
+      "Jämför inte för att sätta betyg på dig själv.",
+      "Jämför för att förstå vad som verkligen förändrades.",
+    ],
+    fields: [],
+  },
+  {
+    key: "minns",
+    kind: "lookback",
+    title: "Det här skrev du",
+    lead: ["Läs det här innan du svarar."],
+    fields: [],
+  },
+  {
+    key: "da-och-nu",
+    kind: "reflection",
+    title: "Då och nu",
+    shareable: true,
+    doneWhen: { all: ["gor_annorlunda", "lattare", "markt", "markt_bygger", "fortsatta_3m"] },
+    fields: [
+      t("gor_annorlunda", "Vad gör du annorlunda idag än när utbildningen började?", { hint: "Beskriv något du faktiskt gör annorlunda." }),
+      t("samma_satt", "Vad gör du fortfarande på samma sätt, trots att du ville förändra det?", { optional: true }),
+      t("lattare", "Vad har blivit lättare utan att du behöver tänka lika mycket på det?", { hint: "Något som börjar kännas mer naturligt i vardagen." }),
+      choice("markt", "Har någon omkring dig märkt någon skillnad?", ["Ja", "Nej", "Jag vet inte"]),
+      t("markt_bygger", "Vad bygger du det på?", { hint: "Något någon sa. Något du såg. Något någon gjorde annorlunda.", ...when("markt", ["Ja"]) }),
+      t("faller_tillbaka", "Vilken situation får dig fortfarande att falla tillbaka i ditt gamla sätt?", { optional: true }),
+      t("fortsatta_3m", "Vad vill du fortsätta träna på de kommande tre månaderna?", { hint: "En sak. Konkret nog för att kunna märkas." }),
+    ],
+  },
+  {
+    key: "karta",
+    kind: "map",
+    title: "Min ledarskapskarta. Tre månader.",
+    lead: ["Det här är din bild av dig själv idag. Inte ett betyg. Titta på riktningen, inte på perfektion."],
+    note: "Samma sex skalor. Privat. Självskattning. Ingen poäng. Frivillig.",
+    measurePoint: "m3",
+    compareWith: ["start", "end", "d30"],
+    // Kartorna visas sida vid sida först när deltagaren har markerat alla sex skalor.
+    compareAfterDone: true,
+    fields: [],
+  },
+];
+
 // ---------- Startsamtalet ----------
 
 const START_SECTIONS = [
@@ -884,7 +1256,32 @@ const START_SECTIONS = [
     kind: "reflection",
     title: "Inför startsamtalet",
     privacy: true,
-    lead: ["Du behöver inte ta med ett färdigt svar. Ta med det du faktiskt funderar på."],
+    // Order 019 punkt 3. Förklaringen ersätter raden "Du behöver inte ta med ett färdigt svar".
+    guides: [
+      guide("Vad är startsamtalet?", [
+        "Innan utbildningen börjar har du ett enskilt samtal med Jan i ungefär 30 minuter.",
+        "Samtalet handlar om din verklighet som ledare.",
+        "Vad du leder.",
+        "Vad som pågår runt dig.",
+        "Vad som tar energi.",
+        "Vad du skjuter upp.",
+        "Och vad du själv hoppas kunna förändra.",
+        "Det är ingen bedömning.",
+        "Jan försöker förstå vad du står i så att utbildningen kan utgå från verkligheten du faktiskt möter.",
+        "Det du säger förs inte vidare till din arbetsgivare inom utbildningen.",
+        "Du behöver inte komma med genomtänkta eller snygga svar.",
+        "Kom med verkligheten som den ser ut.",
+      ]),
+      guide("Inför frågorna", [
+        "När vi frågar om din situation menar vi sammanhanget runt ditt ledarskap.",
+        "Vilka leder du?",
+        "Vad händer just nu?",
+        "Vad fungerar?",
+        "Vad skaver?",
+        "Vad behöver Jan förstå för att dina kommande svar ska få rätt sammanhang?",
+      ]),
+      example(["“Jag leder fem personer. Två är nya. Vi ligger efter i ett projekt och jag märker att jag själv börjar ta över mer och mer i stället för att låta dem lösa saker.”"]),
+    ],
     source: "Arbetsboken, Enskilt samtal. Order 010.",
     shareable: true,
     doneWhen: { atLeast: 1 },
@@ -899,6 +1296,17 @@ const START_SECTIONS = [
     kind: "reflection",
     title: "Efter startsamtalet",
     lead: ["Skriv medan det är färskt."],
+    // Order 019 punkt 4.
+    guides: [
+      guide("Varför skriver du efter samtalet?", [
+        "Samtalet ska inte bara kännas bra i stunden.",
+        "Vi vill fånga det du faktiskt såg eller förstod innan vardagen tar över igen.",
+        "Skriv kort.",
+        "Vad tar du med dig?",
+        "Och vad blir ditt första konkreta steg?",
+      ]),
+      example(["“Jag såg att jag väntat för länge med ett samtal som jag redan vet att jag behöver ta.”", "“Jag bokar samtalet före fredag.”"]),
+    ],
     source: "Order 010 beslut 7.",
     doneWhen: { atLeast: 1 },
     fields: [t("tar_med", "Vad tar jag med mig från samtalet?"), t("gora_nu", "Vad ska jag göra nu?")],
@@ -916,6 +1324,18 @@ const TALK_SECTIONS = [
       "Sitter du fast? Kommer samma sak tillbaka vecka efter vecka?",
       "Be om ett samtal.",
       "Jan kan också höra av sig, om han ser något i det du har delat med honom.",
+    ],
+    // Order 019 punkt 17. Två Nej-logiken och den privata rutan är oförändrade.
+    guides: [
+      guide("Vad är Samtal med Jan?", [
+        "Ibland räcker inte gruppen eller dina egna reflektioner.",
+        "Du kan be om ett enskilt samtal med Jan när du sitter fast, när samma sak återkommer eller när du behöver hjälp att tänka kring en verklig situation.",
+        "Jan tar inte över problemet.",
+        "Han hjälper dig att se fler delar av det och hitta ditt nästa steg.",
+        "Samtalet är inte terapi och inte en bedömning.",
+        "Du väljer själv vad du vill ta upp.",
+        "Efteråt skriver du vad du tar med dig och vad du gör nu.",
+      ]),
     ],
     button: "Be om ett samtal med Jan",
     source: "Order 013. Spec avsnitt 16.",
@@ -945,17 +1365,20 @@ const TALK_SECTIONS = [
 // ---------- Programmet ----------
 
 export const STEPS = [
-  { key: "w1", slug: "vecka-1", order: 1, label: "Vecka 1", title: "Jag som ledare", subtitle: "Vad behöver faktiskt förändras i mitt ledarskap?", built: true, sections: WEEK_1_SECTIONS },
-  { key: "w2", slug: "vecka-2", order: 2, label: "Vecka 2", title: "Mod, ansvar och beslut", subtitle: "Vad skjuter jag upp trots att det är mitt ansvar?", built: true, sections: WEEK_2_SECTIONS },
+  // phase: var i förändringsresan deltagaren är. Visas före momenträknaren. Order 019 punkt 23.
+  { key: "w1", slug: "vecka-1", order: 1, label: "Vecka 1", phase: "Förstå nuläget", title: "Jag som ledare", subtitle: "Vad behöver faktiskt förändras i mitt ledarskap?", built: true, sections: WEEK_1_SECTIONS },
+  { key: "w2", slug: "vecka-2", order: 2, label: "Vecka 2", phase: "Det du skjuter upp", title: "Mod, ansvar och beslut", subtitle: "Vad skjuter jag upp trots att det är mitt ansvar?", built: true, sections: WEEK_2_SECTIONS },
   // Se · Höra · Känna. Fast regel: SE vänster, HÖRA mitten, KÄNNA höger.
   // KÄNNA är en signal att undersöka, aldrig ett påstående om vad någon annan känner.
-  { key: "w3", slug: "vecka-3", order: 3, label: "Vecka 3", title: "Se. Höra. Känna.", subtitle: "Vad vet jag faktiskt innan jag bedömer en annan människa?", built: true, sections: WEEK_3_SECTIONS },
-  { key: "w4", slug: "vecka-4", order: 4, label: "Vecka 4", title: "Relation, trygghet och det svåra samtalet", subtitle: "Vad behöver jag göra eftersom jag har ansvaret?", built: true, sections: WEEK_4_SECTIONS },
-  { key: "w5", slug: "vecka-5", order: 5, label: "Vecka 5", title: "Teamet och förutsättningarna", subtitle: "Vad sitter hos personen, vad sitter i gruppen och vad har jag själv byggt runt dem?", built: true, sections: WEEK_5_SECTIONS },
-  { key: "w6", slug: "vecka-6", order: 6, label: "Vecka 6", title: "Ledarskap under press", subtitle: "Vem blir jag när det blir svårt, och vad fortsätter jag göra?", built: true, sections: WEEK_6_SECTIONS },
-  { key: "d30", slug: "30-dagar", order: 7, label: "30 dagar", title: "Vad blev faktiskt kvar?", subtitle: "Uppföljning efter utbildningen", built: true, sections: DAY_30_SECTIONS },
-  { key: "start", slug: "startsamtal", order: 0, aside: true, alwaysOpen: true, label: "Startsamtalet", title: "Startsamtalet", subtitle: "Inför och efter startsamtalet med Jan", built: true, sections: START_SECTIONS },
-  { key: "samtal", slug: "samtal", order: 0, aside: true, alwaysOpen: true, label: "Samtal med Jan", title: "Samtal med Jan", subtitle: "Samtal vid behov", built: true, sections: TALK_SECTIONS },
+  { key: "w3", slug: "vecka-3", order: 3, label: "Vecka 3", phase: "Det du vet och det du tolkar", title: "Se. Höra. Känna.", subtitle: "Vad vet jag faktiskt innan jag bedömer en annan människa?", built: true, sections: WEEK_3_SECTIONS },
+  { key: "w4", slug: "vecka-4", order: 4, label: "Vecka 4", phase: "Det svåra samtalet", title: "Relation, trygghet och det svåra samtalet", subtitle: "Vad behöver jag göra eftersom jag har ansvaret?", built: true, sections: WEEK_4_SECTIONS },
+  { key: "w5", slug: "vecka-5", order: 5, label: "Vecka 5", phase: "Lyft blicken", title: "Teamet och förutsättningarna", subtitle: "Vad sitter hos personen, vad sitter i gruppen och vad har jag själv byggt runt dem?", built: true, sections: WEEK_5_SECTIONS },
+  { key: "w6", slug: "vecka-6", order: 6, label: "Vecka 6", phase: "Det som håller under press", title: "Ledarskap under press", subtitle: "Vem blir jag när det blir svårt, och vad fortsätter jag göra?", built: true, sections: WEEK_6_SECTIONS },
+  { key: "d30", slug: "30-dagar", order: 7, label: "30 dagar", phase: "Det som blev kvar", title: "Vad blev faktiskt kvar?", subtitle: "Uppföljning efter utbildningen", built: true, sections: DAY_30_SECTIONS },
+  // Öppnas tre kalendermånader efter gruppens slutdatum. Se rules.stepOpensAt.
+  { key: "m3", slug: "tre-manader", order: 8, label: "3 månader", phase: "Då och nu", title: "Tre månader. Då och nu.", subtitle: "Uppföljning tre månader efter utbildningen", opensAfterEnd: { months: 3 }, built: true, sections: MONTH_3_SECTIONS },
+  { key: "start", slug: "startsamtal", order: 0, aside: true, alwaysOpen: true, label: "Startsamtalet", phase: "Före utbildningen", title: "Startsamtalet", subtitle: "Inför och efter startsamtalet med Jan", built: true, sections: START_SECTIONS },
+  { key: "samtal", slug: "samtal", order: 0, aside: true, alwaysOpen: true, label: "Samtal med Jan", phase: "Vid behov", title: "Samtal med Jan", subtitle: "Samtal vid behov", built: true, sections: TALK_SECTIONS },
 ];
 
 // Diplom. Inga kriterier är beslutade för den här produkten.
@@ -1009,6 +1432,7 @@ export function publicProgram({ internal = false } = {}) {
     liveSupport: LIVE_SUPPORT,
     privacyText: PRIVACY_TEXT,
     supportPrompt: SUPPORT_PROMPT,
+    journeyStory: JOURNEY_STORY,
     // Intern spårbarhet (källor, sidor, diplomstatus) stannar på servern.
     // Deltagarens sida får bara det som ska synas eller behövs för att fungera.
     diploma: null,

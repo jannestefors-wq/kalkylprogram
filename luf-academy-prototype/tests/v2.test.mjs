@@ -57,7 +57,7 @@ const countRows = (table, where = "1=1", ...args) => db.prepare(`SELECT COUNT(*)
 // ---------- Registret ----------
 
 test("v2: resans steg och ordning enligt specifikationen", () => {
-  assert.deepEqual(STEPS.map((s) => s.key), ["w1", "w2", "w3", "w4", "w5", "w6", "d30", "start", "samtal"]);
+  assert.deepEqual(STEPS.map((s) => s.key), ["w1", "w2", "w3", "w4", "w5", "w6", "d30", "m3", "start", "samtal"]);
   const order = (k) => STEPS.find((s) => s.key === k).sections.map((s) => s.key);
   assert.deepEqual(order("w1"), ["intro", "lasning", "stanna", "karta", "forandring", "manniskor", "situation", "triangel", "handling", "vad-hande", "privat", "traffen"]);
   assert.deepEqual(order("w2"), ["forra-veckan", "intro", "lasning", "stanna", "triangel", "handling", "vad-hande", "privat", "traffen"]);
@@ -95,7 +95,7 @@ test("v2: bara momenten i spec avsnitt 21 kan delas med Jan", () => {
     ...["w1", "w2", "w3", "w4", "w5", "w6"].map((w) => `${w}:handling`),
     ...["w1", "w2", "w3", "w4", "w5"].map((w) => `${w}:vad-hande`),
     "w2:triangel", "w3:se-hora-kanna", "w3:aterkoppling", "w4:samtalet", "w4:spegel", "w6:spegel", "w5:niva",
-    "w6:tillbaka", "w6:avslut", "d30:kvar", "samtal:infor",
+    "w6:tillbaka", "w6:avslut", "d30:kvar", "m3:da-och-nu", "samtal:infor",
   ].sort();
   assert.deepEqual(shareable, expected);
   for (const k of ["privat", "stanna", "karta", "manniskor", "halvvags", "trycket", "misstaget", "principer", "traffen", "efter"]) {
@@ -464,7 +464,7 @@ test("v2 integritet: admin ser grupper, datum, deltagare, status, påbörjade ve
   const out = (await admin.get("/api/admin/overview")).body;
   const a = out.cohorts.find((c) => c.id === "grupp-a");
   assert.ok(a.startDate && a.endDate && a.status && a.liveSessions.length === 7);
-  assert.deepEqual(Object.keys(a.participants[0]).sort(), ["email", "lastActivityAt", "name", "startedSteps", "status"]);
+  assert.deepEqual(Object.keys(a.participants[0]).sort(), ["email", "followUp3m", "lastActivityAt", "name", "startedSteps", "status"]);
   const text = JSON.stringify(out);
   // Fritext. Datum är inga texter och kan sammanfalla med träffarnas datum.
   const values = db.prepare("SELECT value FROM lr_entry WHERE length(value) > 3").all().map((r) => r.value).filter((v) => !/^\d{4}-\d{2}-\d{2}$/.test(v));

@@ -102,12 +102,13 @@ test("desktop: hela vecka 1, autosparning, utloggning och återkomst", async () 
     assert.ok(overview.includes(s), `översikten saknar: ${s}`);
   }
   assert.ok(!/poäng|badge|streak/i.test(overview));
-  assert.equal(await page.locator(".journey-step.is-locked").count(), 6, "vecka 2 till 6 och 30 dagar är låsta");
+  assert.equal(await page.locator(".journey-step.is-locked").count(), 7, "vecka 2 till 6, 30 dagar och 3 månader är låsta");
+  for (const s of ["Din förändringsresa", "Start", "3 månader", "Förstå nuläget"]) assert.ok(overview.includes(s), `översikten saknar: ${s}`);
   await page.screenshot({ path: `${SHOTS}01-oversikt-desktop.png`, fullPage: true });
 
   await page.click(".focus-card .button.primary");
   await page.waitForSelector(".section-intro");
-  assert.ok((await page.textContent(".intro")).includes("Ledarskap börjar inte med modellen."));
+  assert.ok((await page.textContent(".intro")).includes("Den här veckan börjar vi inte med att förändra dig."));
   await page.screenshot({ path: `${SHOTS}02-intro-desktop.png` });
   await page.click(".section-nav .primary");
 

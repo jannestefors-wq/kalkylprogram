@@ -384,3 +384,36 @@ blockquote.own-words { margin: 6px 0 14px; padding-left: 16px; border-left: 2px 
   .account { gap: 12px; font-size: 13px; }
   .account-name { display: none; }
 }
+
+/* ---------- Order 019. Resans båge och vägledning ---------- */
+.journey-main { display: flex; flex-direction: column; min-width: 0; }
+.journey-phase { font-size: 13px; color: var(--muted); }
+.story-card { padding: 22px 26px; }
+.story summary { cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.story summary::-webkit-details-marker { display: none; }
+.story summary::after { content: "Visa"; font-size: 13px; color: var(--muted); }
+.story[open] summary::after { content: "Dölj"; }
+.story-title { font-family: var(--serif); font-size: 24px; }
+.story-body { margin-top: 14px; }
+.story-par { margin-bottom: 14px; }
+.story-par p { font-family: var(--serif); font-size: 18px; line-height: 1.5; margin: 0 0 2px; }
+.story-par:last-child p { font-weight: 600; }
+
+.rail-details summary { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.rail-now { color: var(--ink); }
+.rail-count { font-size: 12px; color: var(--muted); white-space: nowrap; }
+
+.guide { margin: 4px 0 20px; padding: 14px 18px; border-left: 2px solid var(--line-strong); background: rgba(255, 253, 248, 0.6); border-radius: 0 var(--radius) var(--radius) 0; }
+.guide-heading { font-family: var(--sans); font-size: 13px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); margin: 0 0 8px; }
+.guide p { font-size: 16px; line-height: 1.55; margin: 0 0 4px; }
+.guide-list { margin: 4px 0 8px; padding-left: 20px; }
+.guide-list li { font-size: 16px; line-height: 1.5; }
+.guide-term strong { font-weight: 600; }
+.guide.is-example { border-left: 0; border: 1px dashed var(--line-strong); border-radius: var(--radius); background: transparent; }
+.guide-label { font-size: 12px !important; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold-text); margin-bottom: 6px !important; }
+.guide-sub { font-size: 14px !important; color: var(--muted); margin-bottom: 8px !important; }
+.intro .guide { margin-top: 10px; }
+
+.marker.m3 { background: var(--observe); border-radius: 3px; }
+.compare-line .marker.m3 { bottom: 14px; }
+.compare-wait { margin: 18px 0; }

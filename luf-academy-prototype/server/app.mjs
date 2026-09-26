@@ -80,8 +80,11 @@ export function createApp(db, config = {}) {
     ),
     entries: db.prepare("SELECT step_key, field_key, value, revision, updated_at FROM lr_entry WHERE enrollment_id = ?"),
     entry: db.prepare("SELECT * FROM lr_entry WHERE enrollment_id = ? AND step_key = ? AND field_key = ?"),
+    // Kartan efter tre månader ligger i en egen tabell (migration 0004). Samma form.
     assessments: db.prepare(
-      "SELECT measure_point, dimension, value, assessed_at, updated_at FROM lr_self_assessment WHERE enrollment_id = ?",
+      `SELECT measure_point, dimension, value, assessed_at, updated_at FROM lr_self_assessment WHERE enrollment_id = ?1
+       UNION ALL
+       SELECT measure_point, dimension, value, assessed_at, updated_at FROM lr_self_assessment_followup WHERE enrollment_id = ?1`,
     ),
     shares: db.prepare(
       "SELECT step_key, section_key, kind, created_at FROM lr_share WHERE enrollment_id = ? AND revoked_at IS NULL",
@@ -163,6 +166,12 @@ export function createApp(db, config = {}) {
     return (cfg.prototype && enr.test_step) || enr.current_step;
   }
 
+  // Datumstyrda steg (tre månader) öppnas av gruppens slutdatum. Bara testläget
+  // i prototypen kan öppna dem tidigare.
+  function stepCtx(enr) {
+    return { endDate: enr.end_date, today: rules.todayYmd(cfg.now()), testMode: Boolean(cfg.prototype && enr.test_step) };
+  }
+
   function lockedFor(enr, entries) {
     return rules.lockedSections(STEPS, currentStepOf(enr), entries);
   }
@@ -183,7 +192,8 @@ export function createApp(db, config = {}) {
     return {
       enrollmentId: enr.id,
       currentStep: currentStepOf(enr),
-      openSteps: rules.openStepKeys(STEPS, currentStepOf(enr)),
+      openSteps: rules.openStepKeys(STEPS, currentStepOf(enr), stepCtx(enr)),
+      opensAt: rules.opensAtMap(STEPS, enr.end_date),
       entries: Object.fromEntries(
         Object.entries(entries).map(([k, r]) => [k, { value: r.value, revision: r.revision, updatedAt: r.updated_at }]),
       ),
@@ -281,7 +291,7 @@ export function createApp(db, config = {}) {
     const base = baseRevision ?? null;
     const stepDef = getStep(step);
     if (!stepDef) throw new HttpError(400, "unknown_step");
-    if (!rules.isStepOpen(STEPS, step, currentStepOf(enr))) throw new HttpError(403, "step_not_open");
+    if (!rules.isStepOpen(STEPS, step, currentStepOf(enr), stepCtx(enr))) throw new HttpError(403, "step_not_open");
     const found = findField(step, field);
     if (!found) throw new HttpError(400, "unknown_field");
     const { section, field: def } = found;
@@ -346,7 +356,7 @@ export function createApp(db, config = {}) {
     const enr = ownEnrollment(user, enrollmentId);
     const { point, dimension, value } = body || {};
     // En skattning får bara göras i en karta som finns i ett öppet steg.
-    const found = rules.mapSectionFor(STEPS, point, currentStepOf(enr));
+    const found = rules.mapSectionFor(STEPS, point, currentStepOf(enr), stepCtx(enr));
     if (!found || found.closed) throw new HttpError(403, "measure_point_not_open");
     if (!MAP_DIMENSIONS.some((d) => d.key === dimension)) throw new HttpError(400, "unknown_dimension");
     if (!Number.isInteger(value) || value < 1 || value > 6) throw new HttpError(400, "invalid_value");
@@ -355,8 +365,9 @@ export function createApp(db, config = {}) {
       if (lockedFor(enr, entryMap(enr.id))[`${step.key}:${section.key}`]) throw new HttpError(423, "locked");
       const before = snapshot(enr, step.key, section);
       const now = nowIso();
+      const table = point === "m3" ? "lr_self_assessment_followup" : "lr_self_assessment";
       db.prepare(
-        `INSERT INTO lr_self_assessment (enrollment_id, measure_point, dimension, value, assessed_at, updated_at)
+        `INSERT INTO ${table} (enrollment_id, measure_point, dimension, value, assessed_at, updated_at)
          VALUES (?, ?, ?, ?, ?, ?)
          ON CONFLICT (enrollment_id, measure_point, dimension) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at`,
       ).run(enr.id, point, dimension, value, now, now);
@@ -531,6 +542,19 @@ export function createApp(db, config = {}) {
     };
   }
 
+  // Tre månader, för administratören: bara status. Härleds ur datumet och
+  // namngivna händelser. Aldrig fritext, aldrig kartan.
+  function followUpStatus(enrollmentId, endDate) {
+    const m3 = getStep("m3");
+    const opensAt = rules.stepOpensAt(m3, endDate);
+    const ev = (name, section) =>
+      Boolean(q.eventExists.get(enrollmentId, name, "m3", section || ""));
+    let status = opensAt && rules.todayYmd(cfg.now()) >= opensAt ? "open" : "not_open";
+    if (ev("week_started")) status = "started";
+    if (ev("section_completed", "da-och-nu")) status = "completed";
+    return { status, opensAt };
+  }
+
   // Programadministration. Grupper, datum, länkar, status. Aldrig fritext.
   function adminOverview(req) {
     const user = requireUser(req);
@@ -561,6 +585,7 @@ export function createApp(db, config = {}) {
               .prepare("SELECT DISTINCT step_key FROM lr_event WHERE enrollment_id = ? AND event_name = 'week_started'")
               .all(p.id)
               .map((r) => r.step_key),
+            followUp3m: followUpStatus(p.id, c.end_date),
           })),
       })),
     };

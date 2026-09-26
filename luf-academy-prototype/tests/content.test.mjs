@@ -22,7 +22,11 @@ function corpus() {
     else if (Array.isArray(v)) {
       if (v.every((x) => typeof x === "string")) out.push(v.join(" "));
       v.forEach(walk);
-    } else if (v && typeof v === "object") Object.values(v).forEach(walk);
+    } else if (v && typeof v === "object") {
+      // Exempelrader (order 019) visas som "term text" på samma rad.
+      if (typeof v.term === "string" && typeof v.text === "string") out.push(`${v.term} ${v.text}`);
+      Object.values(v).forEach(walk);
+    }
   };
   walk(publicProgram());
   return `${out.join("\n")}\n${CLIENT}`;

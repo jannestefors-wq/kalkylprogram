@@ -9,18 +9,56 @@ export function stepByKey(steps, key) {
   return steps.find((s) => s.key === key) || null;
 }
 
+// Kalenderdatum (ÅÅÅÅ-MM-DD) i svensk tid. Används för datumstyrda steg.
+export function todayYmd(now = new Date()) {
+  return new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Stockholm", year: "numeric", month: "2-digit", day: "2-digit" }).format(now);
+}
+
+// Lägg till hela kalendermånader. 31 januari plus en månad blir sista februari.
+export function addMonths(ymd, months) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(ymd || ""));
+  if (!m) return null;
+  const y = Number(m[1]);
+  const mo = Number(m[2]) - 1 + months;
+  const year = y + Math.floor(mo / 12);
+  const month = ((mo % 12) + 12) % 12;
+  const last = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
+  const day = Math.min(Number(m[3]), last);
+  return `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+}
+
+// Datumet då ett datumstyrt steg öppnas. Tre månader: gruppens slutdatum plus tre kalendermånader.
+export function stepOpensAt(step, endDate) {
+  if (!step?.opensAfterEnd || !endDate) return null;
+  return addMonths(endDate, step.opensAfterEnd.months);
+}
+
 // Ett steg är öppet när det är byggt och gruppen (eller testläget) har nått dit.
 // Startsamtalet och Samtal med Jan är alltid öppna.
-export function isStepOpen(steps, stepKey, currentStep) {
+// Ett datumstyrt steg (tre månader) öppnas av datumet, aldrig av att gruppen
+// flyttas fram. Bara testläget i testversionen kan öppna det tidigare.
+// ctx: { endDate, today, testMode }.
+export function isStepOpen(steps, stepKey, currentStep, ctx = {}) {
   const step = stepByKey(steps, stepKey);
   if (!step || !step.built) return false;
   if (step.alwaysOpen) return true;
   const current = stepByKey(steps, currentStep);
-  return Boolean(current) && step.order <= current.order;
+  const reached = Boolean(current) && step.order <= current.order;
+  if (step.opensAfterEnd) {
+    const at = stepOpensAt(step, ctx.endDate);
+    if (at && (ctx.today || todayYmd()) >= at) return true;
+    return Boolean(ctx.testMode) && reached;
+  }
+  return reached;
 }
 
-export function openStepKeys(steps, currentStep) {
-  return steps.filter((s) => isStepOpen(steps, s.key, currentStep)).map((s) => s.key);
+export function openStepKeys(steps, currentStep, ctx = {}) {
+  return steps.filter((s) => isStepOpen(steps, s.key, currentStep, ctx)).map((s) => s.key);
+}
+
+// Öppningsdatum för alla datumstyrda steg, för att kunna visa dem diskret.
+export function opensAtMap(steps, endDate) {
+  return Object.fromEntries(steps.filter((s) => s.opensAfterEnd).map((s) => [s.key, stepOpensAt(s, endDate)]));
 }
 
 const valueOf = (entries, stepKey, sectionKey, fieldKey) =>
@@ -105,10 +143,10 @@ export function lockedSections(steps, currentStep, entries) {
 }
 
 // Var en skattning får göras: i en öppen karta med den mätpunkten.
-export function mapSectionFor(steps, point, currentStep) {
+export function mapSectionFor(steps, point, currentStep, ctx = {}) {
   for (const step of steps.filter((s) => s.built)) {
     const section = step.sections.find((s) => s.kind === "map" && s.measurePoint === point);
-    if (section) return isStepOpen(steps, step.key, currentStep) ? { step, section } : { step, section, closed: true };
+    if (section) return isStepOpen(steps, step.key, currentStep, ctx) ? { step, section } : { step, section, closed: true };
   }
   return null;
 }

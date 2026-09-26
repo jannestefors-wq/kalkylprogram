@@ -1,0 +1,1005 @@
+{
+ "w1:stanna.filter": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": null
+ },
+ "w1:stanna.pratar_for_lite": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": null
+ },
+ "w1:stanna#doneWhen": "{\"atLeast\":1}",
+ "w1:karta#doneWhen": "{\"allDimensions\":true}",
+ "w1:forandring.mal_1": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": null
+ },
+ "w1:forandring.mal_1_hur": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": null
+ },
+ "w1:forandring.mal_2": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": null
+ },
+ "w1:forandring.mal_2_hur": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": null
+ },
+ "w1:forandring.mal_3": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": null
+ },
+ "w1:forandring.mal_3_hur": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": null
+ },
+ "w1:forandring#doneWhen": "{\"all\":[\"mal_1\",\"mal_1_hur\",\"mal_2\",\"mal_2_hur\",\"mal_3\",\"mal_3_hur\"]}",
+ "w1:manniskor.vem_1": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": null
+ },
+ "w1:manniskor.vem_2": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": null
+ },
+ "w1:manniskor.vem_3": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": null
+ },
+ "w1:manniskor.vem_4": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": null
+ },
+ "w1:manniskor#doneWhen": "{\"atLeast\":2}",
+ "w1:situation.vad_hande": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": null
+ },
+ "w1:situation.tolkning": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": null
+ },
+ "w1:situation.gjorde_lat": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": null
+ },
+ "w1:situation#doneWhen": "{\"all\":[\"vad_hande\",\"tolkning\",\"gjorde_lat\"]}",
+ "w1:situation#shareable": true,
+ "w1:triangel.filter": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": null
+ },
+ "w1:triangel.manniska": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": null
+ },
+ "w1:triangel.narvaro_t": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": null
+ },
+ "w1:triangel#doneWhen": "{\"all\":[\"filter\",\"manniska\",\"narvaro_t\"]}",
+ "w1:handling.omrade": {
+  "kind": "area",
+  "optional": false,
+  "showWhen": null
+ },
+ "w1:handling.nytt": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": "{\"field\":\"omrade\",\"in\":[\"nytt\"]}"
+ },
+ "w1:handling.gora": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": null
+ },
+ "w1:handling.marks": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": null
+ },
+ "w1:handling.nar": {
+  "kind": "date",
+  "optional": false,
+  "showWhen": null
+ },
+ "w1:handling#doneWhen": "{\"all\":[\"omrade\",\"nytt\",\"gora\",\"marks\",\"nar\"]}",
+ "w1:handling#shareable": true,
+ "w1:vad-hande.blev": {
+  "kind": "choice",
+  "optional": false,
+  "showWhen": null
+ },
+ "w1:vad-hande.gjorde_faktiskt": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": "{\"field\":\"blev\",\"in\":[\"Ja\",\"Delvis\"]}"
+ },
+ "w1:vad-hande.hande": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": "{\"field\":\"blev\",\"in\":[\"Ja\",\"Delvis\"]}"
+ },
+ "w1:vad-hande.markte": {
+  "kind": "choice",
+  "optional": false,
+  "showWhen": "{\"field\":\"blev\",\"in\":[\"Ja\",\"Delvis\"]}"
+ },
+ "w1:vad-hande.bygger": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": "{\"field\":\"markte\",\"in\":[\"Ja\"]}"
+ },
+ "w1:vad-hande.stoppade": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": "{\"field\":\"blev\",\"in\":[\"Nej\"]}"
+ },
+ "w1:vad-hande.kostar": {
+  "kind": "text",
+  "optional": true,
+  "showWhen": "{\"field\":\"blev\",\"in\":[\"Nej\"]}"
+ },
+ "w1:vad-hande.nasta": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": null
+ },
+ "w1:vad-hande#doneWhen": "{\"all\":[\"blev\",\"gjorde_faktiskt\",\"hande\",\"markte\",\"bygger\",\"stoppade\",\"nasta\"]}",
+ "w1:vad-hande#shareable": true,
+ "w1:privat.vet_redan": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": null
+ },
+ "w1:privat#doneWhen": "{\"atLeast\":1}",
+ "w1:traffen.vackte": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": null
+ },
+ "w1:traffen#doneWhen": "{\"atLeast\":1}",
+ "w2:stanna.skjutit_upp_beslut": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": null
+ },
+ "w2:stanna.kostar_vanta": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": null
+ },
+ "w2:stanna#doneWhen": "{\"atLeast\":1}",
+ "w2:triangel.galler": {
+  "kind": "choice",
+  "optional": false,
+  "showWhen": null
+ },
+ "w2:triangel.vad_det_ar": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": null
+ },
+ "w2:triangel.radsla": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": null
+ },
+ "w2:triangel.mod_t": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": null
+ },
+ "w2:triangel.ansvar_leder": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": null
+ },
+ "w2:triangel.obehag_risk": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": null
+ },
+ "w2:triangel.sta_kvar": {
+  "kind": "text",
+  "optional": true,
+  "showWhen": "{\"field\":\"galler\",\"in\":[\"Ett beslut\",\"Ett nej\",\"Ett besked\"]}"
+ },
+ "w2:triangel#doneWhen": "{\"all\":[\"galler\",\"vad_det_ar\",\"radsla\",\"mod_t\",\"ansvar_leder\",\"obehag_risk\"]}",
+ "w2:triangel#shareable": true,
+ "w2:handling.omrade": {
+  "kind": "area",
+  "optional": false,
+  "showWhen": null
+ },
+ "w2:handling.nytt": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": "{\"field\":\"omrade\",\"in\":[\"nytt\"]}"
+ },
+ "w2:handling.gora": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": null
+ },
+ "w2:handling.marks": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": null
+ },
+ "w2:handling.nar": {
+  "kind": "date",
+  "optional": false,
+  "showWhen": null
+ },
+ "w2:handling#doneWhen": "{\"all\":[\"omrade\",\"nytt\",\"gora\",\"marks\",\"nar\"]}",
+ "w2:handling#shareable": true,
+ "w2:vad-hande.blev": {
+  "kind": "choice",
+  "optional": false,
+  "showWhen": null
+ },
+ "w2:vad-hande.gjorde_faktiskt": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": "{\"field\":\"blev\",\"in\":[\"Ja\",\"Delvis\"]}"
+ },
+ "w2:vad-hande.hande": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": "{\"field\":\"blev\",\"in\":[\"Ja\",\"Delvis\"]}"
+ },
+ "w2:vad-hande.markte": {
+  "kind": "choice",
+  "optional": false,
+  "showWhen": "{\"field\":\"blev\",\"in\":[\"Ja\",\"Delvis\"]}"
+ },
+ "w2:vad-hande.bygger": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": "{\"field\":\"markte\",\"in\":[\"Ja\"]}"
+ },
+ "w2:vad-hande.stoppade": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": "{\"field\":\"blev\",\"in\":[\"Nej\"]}"
+ },
+ "w2:vad-hande.kostar": {
+  "kind": "text",
+  "optional": true,
+  "showWhen": "{\"field\":\"blev\",\"in\":[\"Nej\"]}"
+ },
+ "w2:vad-hande.nasta": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": null
+ },
+ "w2:vad-hande#doneWhen": "{\"all\":[\"blev\",\"gjorde_faktiskt\",\"hande\",\"markte\",\"bygger\",\"stoppade\",\"nasta\"]}",
+ "w2:vad-hande#shareable": true,
+ "w2:privat.undviker": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": null
+ },
+ "w2:privat#doneWhen": "{\"atLeast\":1}",
+ "w2:traffen.vackte": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": null
+ },
+ "w2:traffen#doneWhen": "{\"atLeast\":1}",
+ "w3:stanna.for_snabbt": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": null
+ },
+ "w3:stanna.kansla_tolkning": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": null
+ },
+ "w3:stanna#doneWhen": "{\"atLeast\":1}",
+ "w3:se-hora-kanna.vem": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": null
+ },
+ "w3:se-hora-kanna.se": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": null
+ },
+ "w3:se-hora-kanna.hora": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": null
+ },
+ "w3:se-hora-kanna.kanna": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": null
+ },
+ "w3:se-hora-kanna.tolkning_vet_inte": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": null
+ },
+ "w3:se-hora-kanna#doneWhen": "{\"all\":[\"se\",\"hora\",\"kanna\",\"tolkning_vet_inte\"]}",
+ "w3:se-hora-kanna#shareable": true,
+ "w3:aterkoppling.sett_hort": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": null
+ },
+ "w3:aterkoppling.fraga": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": null
+ },
+ "w3:aterkoppling.signal": {
+  "kind": "text",
+  "optional": true,
+  "showWhen": null
+ },
+ "w3:aterkoppling#doneWhen": "{\"all\":[\"sett_hort\",\"fraga\"]}",
+ "w3:aterkoppling#shareable": true,
+ "w3:handling.omrade": {
+  "kind": "area",
+  "optional": false,
+  "showWhen": null
+ },
+ "w3:handling.nytt": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": "{\"field\":\"omrade\",\"in\":[\"nytt\"]}"
+ },
+ "w3:handling.gora": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": null
+ },
+ "w3:handling.marks": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": null
+ },
+ "w3:handling.nar": {
+  "kind": "date",
+  "optional": false,
+  "showWhen": null
+ },
+ "w3:handling#doneWhen": "{\"all\":[\"omrade\",\"nytt\",\"gora\",\"marks\",\"nar\"]}",
+ "w3:handling#shareable": true,
+ "w3:vad-hande.blev": {
+  "kind": "choice",
+  "optional": false,
+  "showWhen": null
+ },
+ "w3:vad-hande.gjorde_faktiskt": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": "{\"field\":\"blev\",\"in\":[\"Ja\",\"Delvis\"]}"
+ },
+ "w3:vad-hande.hande": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": "{\"field\":\"blev\",\"in\":[\"Ja\",\"Delvis\"]}"
+ },
+ "w3:vad-hande.markte": {
+  "kind": "choice",
+  "optional": false,
+  "showWhen": "{\"field\":\"blev\",\"in\":[\"Ja\",\"Delvis\"]}"
+ },
+ "w3:vad-hande.bygger": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": "{\"field\":\"markte\",\"in\":[\"Ja\"]}"
+ },
+ "w3:vad-hande.stoppade": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": "{\"field\":\"blev\",\"in\":[\"Nej\"]}"
+ },
+ "w3:vad-hande.kostar": {
+  "kind": "text",
+  "optional": true,
+  "showWhen": "{\"field\":\"blev\",\"in\":[\"Nej\"]}"
+ },
+ "w3:vad-hande.nasta": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": null
+ },
+ "w3:vad-hande#doneWhen": "{\"all\":[\"blev\",\"gjorde_faktiskt\",\"hande\",\"markte\",\"bygger\",\"stoppade\",\"nasta\"]}",
+ "w3:vad-hande#shareable": true,
+ "w3:privat.forsvarar": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": null
+ },
+ "w3:privat#doneWhen": "{\"atLeast\":1}",
+ "w3:traffen.vackte": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": null
+ },
+ "w3:traffen#doneWhen": "{\"atLeast\":1}",
+ "w4:halvvags.forandrats": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": null
+ },
+ "w4:halvvags.medveten": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": null
+ },
+ "w4:halvvags.inte_gjort": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": null
+ },
+ "w4:halvvags#doneWhen": "{\"atLeast\":1}",
+ "w4:spegel.vem": {
+  "kind": "choice",
+  "optional": false,
+  "showWhen": null
+ },
+ "w4:spegel.tog_med": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": null
+ },
+ "w4:spegel#doneWhen": "{\"all\":[\"vem\",\"tog_med\"]}",
+ "w4:spegel#shareable": true,
+ "w4:stanna.for_tidigt": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": null
+ },
+ "w4:stanna#doneWhen": "{\"atLeast\":1}",
+ "w4:trygghet.vem": {
+  "kind": "short",
+  "optional": false,
+  "showWhen": null
+ },
+ "w4:trygghet.trygghet_sett": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": null
+ },
+ "w4:trygghet.relation_t": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": null
+ },
+ "w4:trygghet.utveckling_t": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": null
+ },
+ "w4:trygghet#doneWhen": "{\"all\":[\"trygghet_sett\",\"relation_t\",\"utveckling_t\"]}",
+ "w4:samtalet.med_vem": {
+  "kind": "choice",
+  "optional": false,
+  "showWhen": null
+ },
+ "w4:samtalet.observerat": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": null
+ },
+ "w4:samtalet.konflikt": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": null
+ },
+ "w4:samtalet.losning": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": null
+ },
+ "w4:samtalet.ansvar_k": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": null
+ },
+ "w4:samtalet.pagatt": {
+  "kind": "check",
+  "optional": false,
+  "showWhen": null
+ },
+ "w4:samtalet.gjorts": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": "{\"field\":\"pagatt\",\"in\":[\"ja\"]}"
+ },
+ "w4:samtalet.sitter": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": "{\"field\":\"pagatt\",\"in\":[\"ja\"]}"
+ },
+ "w4:samtalet#doneWhen": "{\"all\":[\"med_vem\",\"observerat\",\"konflikt\",\"losning\",\"ansvar_k\",\"gjorts\",\"sitter\"]}",
+ "w4:samtalet#shareable": true,
+ "w4:handling.omrade": {
+  "kind": "area",
+  "optional": false,
+  "showWhen": null
+ },
+ "w4:handling.nytt": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": "{\"field\":\"omrade\",\"in\":[\"nytt\"]}"
+ },
+ "w4:handling.gora": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": null
+ },
+ "w4:handling.marks": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": null
+ },
+ "w4:handling.nar": {
+  "kind": "date",
+  "optional": false,
+  "showWhen": null
+ },
+ "w4:handling#doneWhen": "{\"all\":[\"omrade\",\"nytt\",\"gora\",\"marks\",\"nar\"]}",
+ "w4:handling#shareable": true,
+ "w4:vad-hande.blev": {
+  "kind": "choice",
+  "optional": false,
+  "showWhen": null
+ },
+ "w4:vad-hande.gjorde_faktiskt": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": "{\"field\":\"blev\",\"in\":[\"Ja\",\"Delvis\"]}"
+ },
+ "w4:vad-hande.hande": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": "{\"field\":\"blev\",\"in\":[\"Ja\",\"Delvis\"]}"
+ },
+ "w4:vad-hande.markte": {
+  "kind": "choice",
+  "optional": false,
+  "showWhen": "{\"field\":\"blev\",\"in\":[\"Ja\",\"Delvis\"]}"
+ },
+ "w4:vad-hande.bygger": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": "{\"field\":\"markte\",\"in\":[\"Ja\"]}"
+ },
+ "w4:vad-hande.stoppade": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": "{\"field\":\"blev\",\"in\":[\"Nej\"]}"
+ },
+ "w4:vad-hande.kostar": {
+  "kind": "text",
+  "optional": true,
+  "showWhen": "{\"field\":\"blev\",\"in\":[\"Nej\"]}"
+ },
+ "w4:vad-hande.nasta": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": null
+ },
+ "w4:vad-hande#doneWhen": "{\"all\":[\"blev\",\"gjorde_faktiskt\",\"hande\",\"markte\",\"bygger\",\"stoppade\",\"nasta\"]}",
+ "w4:vad-hande#shareable": true,
+ "w4:privat.hjalp_samtal": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": null
+ },
+ "w4:privat#doneWhen": "{\"atLeast\":1}",
+ "w4:traffen.vackte": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": null
+ },
+ "w4:traffen#doneWhen": "{\"atLeast\":1}",
+ "w5:stanna.grupp_team_saknas": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": null
+ },
+ "w5:stanna.tolererar": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": null
+ },
+ "w5:stanna#doneWhen": "{\"atLeast\":1}",
+ "w5:niva.problem_hos": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": null
+ },
+ "w5:niva.sett_hort": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": null
+ },
+ "w5:niva.tror": {
+  "kind": "choice",
+  "optional": false,
+  "showWhen": null
+ },
+ "w5:niva.annan_niva": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": null
+ },
+ "w5:niva.fatt": {
+  "kind": "multi",
+  "optional": true,
+  "showWhen": null
+ },
+ "w5:niva.byggt": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": null
+ },
+ "w5:niva#doneWhen": "{\"all\":[\"problem_hos\",\"sett_hort\",\"tror\",\"annan_niva\",\"byggt\"]}",
+ "w5:niva#shareable": true,
+ "w5:handling.omrade": {
+  "kind": "area",
+  "optional": false,
+  "showWhen": null
+ },
+ "w5:handling.nytt": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": "{\"field\":\"omrade\",\"in\":[\"nytt\"]}"
+ },
+ "w5:handling.vag": {
+  "kind": "choice",
+  "optional": false,
+  "showWhen": null
+ },
+ "w5:handling.skapa": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": "{\"field\":\"vag\",\"in\":[\"Skapar det som saknas\"]}"
+ },
+ "w5:handling.resultat": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": "{\"field\":\"vag\",\"in\":[\"Lämnar över ett resultat\"]}"
+ },
+ "w5:handling.ramar": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": "{\"field\":\"vag\",\"in\":[\"Lämnar över ett resultat\"]}"
+ },
+ "w5:handling.chef_veta": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": "{\"field\":\"vag\",\"in\":[\"Lyfter det uppåt\"]}"
+ },
+ "w5:handling.hur_saga": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": "{\"field\":\"vag\",\"in\":[\"Lyfter det uppåt\"]}"
+ },
+ "w5:handling.marks": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": null
+ },
+ "w5:handling.nar": {
+  "kind": "date",
+  "optional": false,
+  "showWhen": null
+ },
+ "w5:handling#doneWhen": "{\"all\":[\"omrade\",\"nytt\",\"vag\",\"skapa\",\"resultat\",\"ramar\",\"chef_veta\",\"hur_saga\",\"marks\",\"nar\"]}",
+ "w5:handling#shareable": true,
+ "w5:vad-hande.blev": {
+  "kind": "choice",
+  "optional": false,
+  "showWhen": null
+ },
+ "w5:vad-hande.gjorde_faktiskt": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": "{\"field\":\"blev\",\"in\":[\"Ja\",\"Delvis\"]}"
+ },
+ "w5:vad-hande.hande": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": "{\"field\":\"blev\",\"in\":[\"Ja\",\"Delvis\"]}"
+ },
+ "w5:vad-hande.markte": {
+  "kind": "choice",
+  "optional": false,
+  "showWhen": "{\"field\":\"blev\",\"in\":[\"Ja\",\"Delvis\"]}"
+ },
+ "w5:vad-hande.bygger": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": "{\"field\":\"markte\",\"in\":[\"Ja\"]}"
+ },
+ "w5:vad-hande.stoppade": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": "{\"field\":\"blev\",\"in\":[\"Nej\"]}"
+ },
+ "w5:vad-hande.kostar": {
+  "kind": "text",
+  "optional": true,
+  "showWhen": "{\"field\":\"blev\",\"in\":[\"Nej\"]}"
+ },
+ "w5:vad-hande.nasta": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": null
+ },
+ "w5:vad-hande#doneWhen": "{\"all\":[\"blev\",\"gjorde_faktiskt\",\"hande\",\"markte\",\"bygger\",\"stoppade\",\"nasta\"]}",
+ "w5:vad-hande#shareable": true,
+ "w5:privat.slappa": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": null
+ },
+ "w5:privat#doneWhen": "{\"atLeast\":1}",
+ "w5:traffen.vackte": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": null
+ },
+ "w5:traffen#doneWhen": "{\"atLeast\":1}",
+ "w6:stanna.stress_gor": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": null
+ },
+ "w6:stanna.tog_hand": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": null
+ },
+ "w6:stanna#doneWhen": "{\"atLeast\":1}",
+ "w6:trycket.nar_trycket": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": null
+ },
+ "w6:trycket#doneWhen": "{\"all\":[\"nar_trycket\"]}",
+ "w6:tillbaka.forandrats": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": null
+ },
+ "w6:tillbaka.inte_forandrats": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": null
+ },
+ "w6:tillbaka#doneWhen": "{\"all\":[\"forandrats\",\"inte_forandrats\"]}",
+ "w6:tillbaka#shareable": true,
+ "w6:spegel.vem": {
+  "kind": "choice",
+  "optional": false,
+  "showWhen": null
+ },
+ "w6:spegel.tog_med": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": null
+ },
+ "w6:spegel#doneWhen": "{\"all\":[\"vem\",\"tog_med\"]}",
+ "w6:spegel#shareable": true,
+ "w6:misstaget.se_m": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": null
+ },
+ "w6:misstaget.lara": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": null
+ },
+ "w6:misstaget.vanda": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": null
+ },
+ "w6:misstaget#doneWhen": "{\"all\":[\"se_m\",\"lara\",\"vanda\"]}",
+ "w6:principer.vald": {
+  "kind": "choice",
+  "optional": false,
+  "showWhen": null
+ },
+ "w6:principer#doneWhen": "{\"all\":[\"vald\"]}",
+ "w6:karta#doneWhen": "{\"allDimensions\":true}",
+ "w6:avslut.fortsatta_1": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": null
+ },
+ "w6:avslut.folja_upp_1": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": null
+ },
+ "w6:avslut.fortsatta_2": {
+  "kind": "text",
+  "optional": true,
+  "showWhen": null
+ },
+ "w6:avslut.folja_upp_2": {
+  "kind": "text",
+  "optional": true,
+  "showWhen": null
+ },
+ "w6:avslut.testar": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": null
+ },
+ "w6:avslut.gor_da": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": null
+ },
+ "w6:avslut#doneWhen": "{\"all\":[\"fortsatta_1\",\"folja_upp_1\",\"testar\",\"gor_da\"]}",
+ "w6:avslut#shareable": true,
+ "w6:handling.omrade": {
+  "kind": "area",
+  "optional": false,
+  "showWhen": null
+ },
+ "w6:handling.nytt": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": "{\"field\":\"omrade\",\"in\":[\"nytt\"]}"
+ },
+ "w6:handling.gora": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": null
+ },
+ "w6:handling.marks": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": null
+ },
+ "w6:handling.nar": {
+  "kind": "date",
+  "optional": false,
+  "showWhen": null
+ },
+ "w6:handling#doneWhen": "{\"all\":[\"omrade\",\"nytt\",\"gora\",\"marks\",\"nar\"]}",
+ "w6:handling#shareable": true,
+ "w6:privat.vet_redan": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": null
+ },
+ "w6:privat#doneWhen": "{\"atLeast\":1}",
+ "w6:traffen.vackte": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": null
+ },
+ "w6:traffen#doneWhen": "{\"atLeast\":1}",
+ "d30:kvar.blev": {
+  "kind": "choice",
+  "optional": false,
+  "showWhen": null
+ },
+ "d30:kvar.hande_markte": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": "{\"field\":\"blev\",\"in\":[\"Ja\",\"Delvis\"]}"
+ },
+ "d30:kvar.stoppade": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": "{\"field\":\"blev\",\"in\":[\"Nej\"]}"
+ },
+ "d30:kvar.fortfarande": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": null
+ },
+ "d30:kvar.foll_bort_stoppade": {
+  "kind": "text",
+  "optional": true,
+  "showWhen": null
+ },
+ "d30:kvar.reagerat_bygger": {
+  "kind": "text",
+  "optional": true,
+  "showWhen": null
+ },
+ "d30:kvar.testade": {
+  "kind": "text",
+  "optional": true,
+  "showWhen": null
+ },
+ "d30:kvar.undvikit": {
+  "kind": "text",
+  "optional": true,
+  "showWhen": null
+ },
+ "d30:kvar.nasta_steg": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": null
+ },
+ "d30:kvar#doneWhen": "{\"all\":[\"blev\",\"hande_markte\",\"stoppade\",\"fortfarande\",\"nasta_steg\"]}",
+ "d30:kvar#shareable": true,
+ "start:infor.forsta": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": null
+ },
+ "start:infor.skaver": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": null
+ },
+ "start:infor.inte_gruppen": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": null
+ },
+ "start:infor#doneWhen": "{\"atLeast\":1}",
+ "start:infor#shareable": true,
+ "start:efter.tar_med": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": null
+ },
+ "start:efter.gora_nu": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": null
+ },
+ "start:efter#doneWhen": "{\"atLeast\":1}",
+ "samtal:infor.tanka_kring": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": null
+ },
+ "samtal:infor.monster": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": null
+ },
+ "samtal:infor#doneWhen": "{\"atLeast\":1}",
+ "samtal:infor#shareable": true,
+ "samtal:efter.tar_med": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": null
+ },
+ "samtal:efter.gora_nu": {
+  "kind": "text",
+  "optional": false,
+  "showWhen": null
+ },
+ "samtal:efter#doneWhen": "{\"atLeast\":1}"
+}

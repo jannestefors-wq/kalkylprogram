@@ -137,7 +137,7 @@ test("desktop: inloggning, integritet, vecka 1 med motorn, delning, utloggning o
   const text = await page.textContent("main");
   for (const s of ["Testgrupp. LMHM version 2", "23 september", "Nästa träff", "Fortsätt min ledarskapsresa", "Startsamtalet", "Samtal med Jan"]) assert.ok(text.includes(s), s);
   for (const line of ["Det här är din resa.", "Inte heller med Jan.", "Den som administrerar kursen ser vilka veckor du har börjat på. Aldrig det du skriver."]) assert.ok(text.includes(line), line);
-  assert.equal(await page.locator(".journey-step.is-locked").count(), 6);
+  assert.equal(await page.locator(".journey-step.is-locked").count(), 7);
 
   // Startsamtalet
   await goTo(page, "startsamtal", "infor", "#f-infor-skaver");
@@ -464,7 +464,7 @@ test("hela programmet på desktop: startsamtal, sex veckor, 30 dagar och samtal.
   const { ctx, page } = await open("desktop", FULL);
   await signIn(page);
   const steps = await sectionsOf(page);
-  assert.deepEqual(steps.map((s) => s.key), ["start", "w1", "w2", "w3", "w4", "w5", "w6", "d30", "samtal"]);
+  assert.deepEqual(steps.map((s) => s.key), ["start", "w1", "w2", "w3", "w4", "w5", "w6", "d30", "m3", "samtal"]);
 
   for (const s of steps) {
     if (!s.aside) await moveTo(page, s.key);
@@ -523,14 +523,25 @@ test("hela programmet på desktop: startsamtal, sex veckor, 30 dagar och samtal.
         for (const t of ["start/infor svar skaver", "w1/forandring svar mal_1", "w6/tillbaka svar inte_forandrats", "w6/avslut svar fortsatta_1", "w6/avslut svar folja_upp_1", "w6/avslut svar testar", "w6/handling svar gora"]) assert.ok(text.includes(t), `30 dagar visar ${t}`);
         assert.ok(!/lovade/i.test(text));
       }
+      if (s.key === "m3" && sec.key === "minns") {
+        const text = await page.textContent("article");
+        for (const t of ["w1/forandring svar mal_1", "w1/forandring svar mal_1_hur", "w6/avslut svar fortsatta_1", "d30/kvar svar nasta_steg"]) assert.ok(text.includes(t), `3 månader visar ${t}`);
+        for (const l of ["När du började", "Efter sex veckor", "30 dagar senare"]) assert.ok(text.includes(l), `3 månader visar kartan ${l}`);
+      }
+      if (s.key === "m3" && sec.key === "karta") {
+        for (const m of ["m0", "m1", "m2", "m3"]) assert.equal(await page.locator(`.compare .compare-line .marker.${m}`).count(), 6, `tre månaders jämförelse ${m}`);
+        assert.equal(await page.locator(".section-map .share").count(), 0, "kartan kan inte delas");
+      }
       if (s.key === "d30" && sec.key === "atertraff") assert.ok((await page.textContent("article")).includes("60 minuter"));
     }
   }
 
   const mine = [...store.keys()].filter((k) => k.startsWith(`data/users/${FULL}/e:`));
-  for (const k of ["start", "w1", "w2", "w3", "w4", "w5", "w6", "d30", "samtal"]) assert.ok(mine.some((p) => p.includes(`/e:${k}:`)), `${k} sparat`);
-  assert.deepEqual(Object.keys(store.get(`data/users/${FULL}/assessments`).points).sort(), ["d30", "end", "start"]);
-  assert.deepEqual(store.get(`roster/${FULL}`).startedSteps, ["w1", "w2", "w3", "w4", "w5", "w6", "d30"], "admin ser bara veckor");
+  for (const k of ["start", "w1", "w2", "w3", "w4", "w5", "w6", "d30", "m3", "samtal"]) assert.ok(mine.some((p) => p.includes(`/e:${k}:`)), `${k} sparat`);
+  assert.deepEqual(Object.keys(store.get(`data/users/${FULL}/assessments`).points).sort(), ["d30", "end", "m3", "start"]);
+  assert.deepEqual(store.get(`roster/${FULL}`).startedSteps, ["w1", "w2", "w3", "w4", "w5", "w6", "d30", "m3"], "admin ser bara veckor och uppföljningar");
+  assert.deepEqual(Object.keys(store.get(`roster/${FULL}`).followUp3m).sort(), ["opensAt", "status"], "tre månader: bara status till admin");
+  assert.equal(store.get(`roster/${FULL}`).followUp3m.status, "completed");
 
   await page.evaluate(() => { location.hash = "#/"; });
   await page.waitForSelector(".journey");
@@ -538,6 +549,7 @@ test("hela programmet på desktop: startsamtal, sex veckor, 30 dagar och samtal.
   assert.ok(!/poäng|badge|streak/i.test(journeyText));
   const overviewText = await page.$eval("main", (m) => { const c = m.cloneNode(true); c.querySelector(".test-mode")?.remove(); return c.textContent; });
   assertClean(overviewText, "översikten");
+  // Testläget har tagit testpersonen till 3 månader. Då är inget låst.
   assert.equal(await page.locator(".journey-step.is-locked").count(), 0);
   await shot(page, "14-oversikt-hela-resan-desktop");
   assert.deepEqual(page.errors, []);

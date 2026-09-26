@@ -115,20 +115,31 @@
 
   // Steget testpersonen står i. Testläget lagras i personens egen profil.
   const currentStepOf = (co, data) => data.profile?.testStep || co.currentStep;
+  // Tre månader öppnas efter datum. Testläget kan öppna steget för testpersonen. Order 019.
+  const stepCtx = (co, data) => ({ endDate: co.endDate, testMode: Boolean(data.profile?.testStep) });
+  // Samma status som servern visar för administratören. Aldrig text.
+  function followUp3m(co, data) {
+    const opensAt = R.stepOpensAt(step("m3"), co.endDate);
+    let status = opensAt && R.todayYmd() >= opensAt ? "open" : "not_open";
+    if (R.anyInStep("m3", data.entries, data.assessments, STEPS)) status = "started";
+    if (R.allStatuses(STEPS, data.entries, data.assessments, DIMS)["m3:da-och-nu"] === "done") status = "completed";
+    return { status, opensAt };
+  }
   const lockedFor = (co, data) => R.lockedSections(STEPS, currentStepOf(co, data), data.entries);
 
   async function touch(c, data) {
     const now = new Date().toISOString();
+    const follow = followUp3m(await cohort(c), data);
     // Bara veckorna. Startsamtalet och Samtal med Jan syns aldrig för administratören.
     const startedSteps = STEPS.filter((s) => s.built && !s.aside && R.anyInStep(s.key, data.entries, data.assessments, STEPS)).map((s) => s.key);
-    const started = startedSteps.join(",");
+    const started = `${startedSteps.join(",")}|${follow.status}`;
     const last = data.profile?.lastActivityAt ? Date.parse(data.profile.lastActivityAt) : 0;
     // Senast aktiv behöver inte vara exakt på sekunden. Skriv högst var femte minut.
     if (data.profile && Date.now() - last < 5 * 60 * 1000 && data.profile.started === started) return;
     data.profile = { ...(data.profile || { enrolledAt: now }), lastActivityAt: now, started };
     await own(c).doc("profile").set(data.profile);
     // Status utan fritext, för testrollen programadministratör.
-    await c.db.doc(`roster/${c.uid}`).set({ lastActivityAt: now, startedSteps });
+    await c.db.doc(`roster/${c.uid}`).set({ lastActivityAt: now, startedSteps, followUp3m: follow });
   }
 
   // Delat avsnitt hålls levande: Jan ser texten som den är nu.
@@ -188,7 +199,8 @@
     return {
       enrollmentId: ENROLLMENT_ID,
       currentStep: current,
-      openSteps: R.openStepKeys(STEPS, current),
+      openSteps: R.openStepKeys(STEPS, current, stepCtx(co, data)),
+      opensAt: R.opensAtMap(STEPS, co.endDate),
       entries: Object.fromEntries(Object.entries(data.entries).map(([k, e]) => [k, { value: e.value, revision: e.revision, updatedAt: e.updatedAt }])),
       assessments: data.assessments,
       shares: data.shares,
@@ -253,7 +265,7 @@
 
     const co = await cohort(c);
     const data = await loadOwn(c);
-    if (!R.isStepOpen(STEPS, stepKey, currentStepOf(co, data))) throw httpError(403, "step_not_open");
+    if (!R.isStepOpen(STEPS, stepKey, currentStepOf(co, data), stepCtx(co, data))) throw httpError(403, "step_not_open");
     if (lockedFor(co, data)[`${stepKey}:${found.section.key}`]) throw httpError(423, "locked");
 
     const key = `${stepKey}:${path}`;
@@ -294,7 +306,7 @@
     if (!Number.isInteger(value) || value < 1 || value > 6) throw httpError(400, "invalid_value");
     const co = await cohort(c);
     const data = await loadOwn(c);
-    const found = R.mapSectionFor(STEPS, point, currentStepOf(co, data));
+    const found = R.mapSectionFor(STEPS, point, currentStepOf(co, data), stepCtx(co, data));
     if (!found || found.closed) throw httpError(403, "measure_point_not_open");
     if (lockedFor(co, data)[`${found.step.key}:${found.section.key}`]) throw httpError(423, "locked");
     const now = new Date().toISOString();
@@ -393,6 +405,7 @@
             status: "active",
             lastActivityAt: d.data().lastActivityAt || null,
             startedSteps: d.data().startedSteps || [],
+            followUp3m: d.data().followUp3m || { status: "not_open", opensAt: R.stepOpensAt(step("m3"), co.endDate) },
           })),
         },
       ],
