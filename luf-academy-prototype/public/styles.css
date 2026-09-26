@@ -417,3 +417,7 @@ blockquote.own-words { margin: 6px 0 14px; padding-left: 16px; border-left: 2px 
 .marker.m3 { background: var(--observe); border-radius: 3px; }
 .compare-line .marker.m3 { bottom: 14px; }
 .compare-wait { margin: 18px 0; }
+@media (max-width: 899px) {
+  /* Mobil: veckan och läget på första raden, titel och fas under. */
+  .journey-main { grid-column: 1 / -1; grid-row: 2; }
+}
