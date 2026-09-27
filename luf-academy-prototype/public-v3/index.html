@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="sv">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>Min förändringsresa · LMHM v3</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <aside class="testbar" aria-label="Human Test">
+    <strong>Human Test · bara påhittade uppgifter</strong>
+    <label>Testvy <select id="person"><option value="v3_alex">Alex · deltagare</option><option value="v3_sam">Sam · annan deltagare</option><option value="v3_jan">Jan</option><option value="v3_admin">Fredde · admin</option><option value="v3_employer">Arbetsgivare</option></select></label>
+    <button id="login">Öppna testvy</button>
+    <label id="clock-wrap" hidden>Simulerad tid <select id="clock"><option value="-7">Före start</option><option value="0">Start</option><option value="21">Mitt i kärnresan</option><option value="42">Kärnresans slut</option><option value="72">30 dagar efter slut</option><option value="134">Tre månader efter slut</option></select></label>
+  </aside>
+  <header><a href="#direction" class="brand">LUF Academy <span>Ledarskap med hjärta och mod</span></a><p id="identity"></p></header>
+  <div class="layout"><nav id="nav" aria-label="Mitt arbetsrum"></nav><main id="app" tabindex="-1"><h1>Välkommen till Human Test</h1><p>Öppna den lokala testlänken och välj en testvy. Använd bara påhittade uppgifter.</p></main></div>
+  <div id="status" role="status" aria-live="polite"></div>
+  <script type="module" src="/app.js"></script>
+</body>
+</html>
