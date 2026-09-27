@@ -1818,8 +1818,9 @@ async function renderAdmin() {
 
 // Bara status. Aldrig text, aldrig kartan.
 function followUpLabel(f) {
-  if (!f) return "Inte öppen";
-  return { not_open: f.opensAt ? `Öppnas ${fmtOpensDate(f.opensAt)}` : "Inte öppen", open: "Öppnad", started: "Påbörjad", completed: "Slutförd" }[f.status] || "Inte öppen";
+  // Tillgänglig betyder att datumet har passerat. Inte att deltagaren har öppnat sidan.
+  if (!f) return "Väntar";
+  return { not_open: "Väntar", open: "Tillgänglig", started: "Påbörjad", completed: "Slutförd" }[f.status] || "Väntar";
 }
 
 function liveSessionEditor(s, stepLabel) {

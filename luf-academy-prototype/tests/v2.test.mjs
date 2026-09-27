@@ -79,7 +79,7 @@ test("v2: integritetstexten och den privata frågan finns ordagrant", () => {
     "Det du skriver här delas inte automatiskt med din arbetsgivare.",
     "Inte heller med Jan.",
     "Du väljer själv vad du delar, och du kan ta tillbaka det.",
-    "Den som administrerar kursen ser vilka veckor du har börjat på. Aldrig det du skriver.",
+    "Den som administrerar utbildningen ser bara din progression, till exempel vilka veckor du har börjat och status på uppföljningarna. Aldrig det du skriver.",
   ]);
   // Order 015: en tredje rad som säger att rutan är privat. Samma knappar.
   assert.deepEqual(SUPPORT_PROMPT.lines, ["Två veckor i rad blev det inte som du hade tänkt.", "Vill du prata med Jan om vad som stoppar dig?", "Den här rutan ser bara du."]);

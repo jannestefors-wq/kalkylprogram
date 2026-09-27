@@ -136,7 +136,7 @@ test("desktop: inloggning, integritet, vecka 1 med motorn, delning, utloggning o
   assert.equal(await page.isVisible("#prototype-band"), true);
   const text = await page.textContent("main");
   for (const s of ["Testgrupp. LMHM version 2", "23 september", "Nästa träff", "Fortsätt min ledarskapsresa", "Startsamtalet", "Samtal med Jan"]) assert.ok(text.includes(s), s);
-  for (const line of ["Det här är din resa.", "Inte heller med Jan.", "Den som administrerar kursen ser vilka veckor du har börjat på. Aldrig det du skriver."]) assert.ok(text.includes(line), line);
+  for (const line of ["Det här är din resa.", "Inte heller med Jan.", "Den som administrerar utbildningen ser bara din progression, till exempel vilka veckor du har börjat och status på uppföljningarna. Aldrig det du skriver."]) assert.ok(text.includes(line), line);
   assert.equal(await page.locator(".journey-step.is-locked").count(), 7);
 
   // Startsamtalet

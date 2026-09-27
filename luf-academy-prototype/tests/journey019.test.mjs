@@ -340,3 +340,17 @@ test("019 server: i produktionsläge finns inget testläge som kan öppna tre m�
     srv.close();
   }
 });
+
+// ---------- Order 019A ----------
+
+test("019A: integritetstexten säger progression och status på uppföljningarna", () => {
+  const text = publicProgram().privacyText;
+  assert.equal(text.at(-1), "Den som administrerar utbildningen ser bara din progression, till exempel vilka veckor du har börjat och status på uppföljningarna. Aldrig det du skriver.");
+  assert.ok(!JSON.stringify(publicProgram()).includes("Den som administrerar kursen"));
+});
+
+test("019A: adminstatus för tre månader heter Väntar, Tillgänglig, Påbörjad och Slutförd", () => {
+  const fn = CLIENT.slice(CLIENT.indexOf("function followUpLabel"), CLIENT.indexOf("function liveSessionEditor"));
+  for (const s of ['not_open: "Väntar"', 'open: "Tillgänglig"', 'started: "Påbörjad"', 'completed: "Slutförd"']) assert.ok(fn.includes(s), s);
+  assert.ok(!fn.includes("Öppnad"), "inget som antyder att deltagaren har öppnat sidan");
+});

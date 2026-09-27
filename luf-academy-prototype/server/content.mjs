@@ -186,7 +186,7 @@ export const PRIVACY_TEXT = [
   "Det du skriver här delas inte automatiskt med din arbetsgivare.",
   "Inte heller med Jan.",
   "Du väljer själv vad du delar, och du kan ta tillbaka det.",
-  "Den som administrerar kursen ser vilka veckor du har börjat på. Aldrig det du skriver.",
+  "Den som administrerar utbildningen ser bara din progression, till exempel vilka veckor du har börjat och status på uppföljningarna. Aldrig det du skriver.",
 ];
 
 // Spec avsnitt 16. Privat vägledning efter två Nej i rad. Visas bara för deltagaren.

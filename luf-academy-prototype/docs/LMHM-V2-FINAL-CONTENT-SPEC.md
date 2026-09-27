@@ -6,6 +6,8 @@ Det här är den enda innehållsspecifikation som byggordern behöver för Ledar
 
 **INTERN KÄLLA:** HUMAN EXPERIENCE REVIEW 001, accepted changes: 3. Införda i order 015: ledtexten till läsningen i vecka 1 (avsnitt 19), en tredje rad i den privata rutan efter två Nej (avsnitt 16) och ledtexten till "Vad har jag fortfarande inte gjort?" i Halvvägs. I övrigt är dokumentet oförändrat sedan order 014. Noteringen visas aldrig för deltagaren.
 
+**INTERN KÄLLA:** PEDAGOGICAL JOURNEY 019A. Integritetstexten i avsnitt 4 säger nu att administratören ser progression och status på uppföljningarna. Adminstatusen för tre månader heter Väntar, Tillgänglig, Påbörjad och Slutförd (avsnitt 27). Noteringen visas aldrig för deltagaren.
+
 **INTERN KÄLLA:** HUMAN TEST PEDAGOGICAL JOURNEY 019. Order 019 bygger om deltagarens pedagogiska upplevelse utan att ändra kärnan. Införda: berättelsen Din förändringsresa och hela tidslinjen på översikten (avsnitt 26), den gemensamma designregeln för vägledning och exempel (avsnitt 26), vägledning i startsamtalet (avsnitt 4), i den gemensamma motorn (avsnitt 7), i vecka 1 till 6 (avsnitt 9 till 14), i Spegeln (avsnitt 15) och i Samtal med Jan (avsnitt 16), ny inledning vid 30 dagar (avsnitt 17), lässyfte för alla veckor (avsnitt 19), ett exempel vid varje triangel (avsnitt 20) och den nya uppföljningen efter tre månader (avsnitt 27). Inga nya obligatoriska fält i vecka 1 till 6. Befintliga fältnycklar är oförändrade. Rader som ersatts eller flyttats in i vägledningen är listade i avsnitt 26. Noteringen visas aldrig för deltagaren.
 
 **Märkning i dokumentet**
@@ -50,7 +52,7 @@ Människor med ansvar för att skapa riktning, förutsättningar och resultat ge
 > Det du skriver här delas inte automatiskt med din arbetsgivare.
 > Inte heller med Jan.
 > Du väljer själv vad du delar, och du kan ta tillbaka det.
-> Den som administrerar kursen ser vilka veckor du har börjat på. Aldrig det du skriver.
+> Den som administrerar utbildningen ser bara din progression, till exempel vilka veckor du har börjat och status på uppföljningarna. Aldrig det du skriver.
 
 **DELTAGARTEXT. Inför startsamtalet**
 
@@ -158,7 +160,7 @@ Fält:
 
 1. Privat fritext är privat som standard.
 2. Jan ser bara det deltagaren aktivt har delat, så länge delningen gäller. Delningen kan återkallas.
-3. Fredde och andra administratörer ser aldrig fritext, självskattningar eller delat material. De ser grupper, datum, deltagare, status och vilka veckor som har påbörjats.
+3. Fredde och andra administratörer ser aldrig fritext, självskattningar eller delat material. De ser grupper, datum, deltagare, status, vilka veckor som har påbörjats och status på uppföljningarna.
 4. Arbetsgivaren får ingen automatisk individuell rapport och ingen läsrätt.
 5. Spegeln sparar aldrig namn eller initial på en tredje person.
 6. Jan för ingen dold journal om deltagarna.
@@ -1353,7 +1355,7 @@ Kartan visas sida vid sida med kartorna från starten, vecka 6 och 30 dagar när
 **SYSTEMLOGIK. Integritet**
 • Fritexten är privat som standard. Deltagaren kan aktivt dela M1 till M6 med Jan och återkalla delningen.
 • Kartan kan aldrig delas.
-• Administratören ser bara om uppföljningen är öppnad, påbörjad eller slutförd. Aldrig text och aldrig kartan.
+• Administratören ser bara uppföljningens status: Väntar, Tillgänglig, Påbörjad eller Slutförd. Tillgänglig betyder att datumet har passerat och att uppföljningen är tillgänglig för deltagaren. Det säger inte att deltagaren har öppnat sidan. Aldrig text och aldrig kartan.
 • Arbetsgivaren får ingen individuell rapport.
 • Ingen fritext i mätningen.
 
