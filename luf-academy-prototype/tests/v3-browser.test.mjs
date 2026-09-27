@@ -146,7 +146,17 @@ for(const width of [1280,390]) test("025: focus choices, phase defaults, meeting
   assert.deepEqual(await page.locator('form[data-id="keep-focus"] textarea').evaluateAll(xs=>xs.map(x=>x.name)),["reason"]);
   await submit(page,"keep-focus","keep");
   await page.getByRole("button",{name:"Behåll mitt fokus",exact:true}).click();
-  await fill(page,"keep-focus","reason","Jag vill ge försöket tid");await submit(page,"keep-focus","keep");
+  const draftSaved=page.waitForResponse(r=>r.url().includes("/event") && r.request().postDataJSON()?.event?.type==="draft" && r.request().postDataJSON()?.event?.id==="keep-focus" && r.status()===200);
+  await fill(page,"keep-focus","reason","Jag vill ge försöket mer tid");await draftSaved;
+  const persisted=()=>JSON.parse(db.prepare("SELECT value FROM lr_v3_state WHERE user_id='v3_alex'").get().value);
+  assert.equal(persisted().drafts["keep-focus"].data.reason,"Jag vill ge försöket mer tid");
+  await submit(page,"keep-focus","keep");
+  assert.equal(Object.hasOwn(persisted().drafts,"keep-focus"),false);
+  assert.deepEqual(persisted().reviews.map(x=>x.reason),["","Jag vill ge försöket mer tid"]);
+  await page.reload();await page.locator("h1",{hasText:"Min riktning"}).waitFor();
+  await page.getByRole("button",{name:"Behåll mitt fokus",exact:true}).click();
+  assert.equal(await page.locator('form[data-id="keep-focus"] [name="reason"]').inputValue(),"");
+  assert.deepEqual(persisted().reviews.map(x=>x.reason),["","Jag vill ge försöket mer tid"]);
   await page.getByRole("button",{name:"Jag behöver byta fokus",exact:true}).click();
   assert.equal(await page.locator('form[data-id="focus"] [name="reason"]').isVisible(),true);
   await fill(page,"focus","title","Ställa en fråga till");await fill(page,"focus","reason","Jag förstår situationen bättre");
@@ -154,7 +164,7 @@ for(const width of [1280,390]) test("025: focus choices, phase defaults, meeting
   await submit(page,"focus","focus");
   const state=JSON.parse(db.prepare("SELECT value FROM lr_v3_state WHERE user_id='v3_alex'").get().value);
   assert.equal(state.focus.length,2);assert.equal(state.focus[0].title,"Lyssna färdigt");assert.equal(state.focus[1].reason,"Jag förstår situationen bättre");
-  assert.deepEqual(state.reviews.map(x=>x.reason),["","Jag vill ge försöket tid"]);
+  assert.deepEqual(state.reviews.map(x=>x.reason),["","Jag vill ge försöket mer tid"]);
   await page.getByText("Boken som stöd",{exact:true}).click();
   assert.equal(await page.getByRole("heading",{name:"När du vill förstå din situation bättre",exact:true}).isVisible(),true);
   assert.ok(!(await page.locator("main").innerText()).includes("Caseaktiverad läsning"));

@@ -57,6 +57,7 @@ export function reduceState(previous, event) {
     case "keep": {
       if (!currentFocus(s)) fail("Välj ett fokus först.");
       s.reviews.push({ focusId: currentFocus(s).id, reason: text(d.reason), day: s.day });
+      delete s.drafts["keep-focus"];
       break;
     }
     case "action": {

@@ -49,6 +49,23 @@ test("B: one focus, preserved reason/history, observation never creates focus",(
   assert.equal(s.focus[1].reason,"Jag såg ett annat problem");
   s=step(s,{type:"keep",data:{reason:"Vill prova igen"}});assert.equal(s.reviews.length,1);
 });
+test("026: confirmed keep clears only its draft and preserves reviews",()=>{
+  let s=step(initialState(),focus());
+  s=step(s,{type:"keep",data:{reason:"Tidigare reflektion"}});
+  const previousReviews=structuredClone(s.reviews);
+  s=step(s,{type:"draft",id:"keep-focus",kind:"focus",data:{reason:"Jag vill ge försöket mer tid"}});
+  s=step(s,{type:"draft",id:"reflection",kind:"reflection",data:{text:"Annat utkast"}});
+  assert.equal(s.drafts["keep-focus"].data.reason,"Jag vill ge försöket mer tid");
+  assert.throws(()=>step(s,{type:"keep",data:{reason:42}}),/Ogiltig text/);
+  assert.ok(Object.hasOwn(s.drafts,"keep-focus"));
+  const confirmed=step(s,{type:"keep",data:{reason:s.drafts["keep-focus"].data.reason}});
+  assert.equal(Object.hasOwn(confirmed.drafts,"keep-focus"),false);
+  assert.deepEqual(confirmed.reviews.slice(0,-1),previousReviews);
+  assert.equal(confirmed.reviews.at(-1).reason,"Jag vill ge försöket mer tid");
+  assert.deepEqual(confirmed.drafts.reflection,s.drafts.reflection);
+  assert.ok(Object.hasOwn(s.drafts,"keep-focus"));
+});
+
 test("C: several actions, Ja/Delvis/Nej and conditional backbone, no seven fields",()=>{
   let s=step(initialState(),focus());
   for(const [i,result] of ["Ja","Delvis","Nej"].entries()){
