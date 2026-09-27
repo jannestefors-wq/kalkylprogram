@@ -55,10 +55,14 @@ const find = title => {
   return { ...r };
 };
 export const BOOK = {
-  foundation: ["Människan först", "Utan filter", "Modet att kliva fram", "Triangelmetodiken", "Se — Höra — Känna"].map(title => {
-    const ref=find(title), start=Number(ref.pages.split("–")[0]);
-    return { ...ref, pages: start+"–"+(start+1), pdfPages: (start+7)+"–"+(start+8), note: "Preliminärt Human Test-urval. Stanna där det hjälper dig förstå." };
-  }),
+  // Pedagogiskt urval 027, implementerat i 028. Exakta intervall, ingen automatisk utökning.
+  foundation: [
+    { title: "Utan filter", pages: "7–8", pdfPages: "14–15" },
+    { title: "Människan först", pages: "20–21", pdfPages: "27–28" },
+    { title: "Modet att kliva fram", pages: "30–31", pdfPages: "37–38" },
+    { title: "Triangelmetodiken", pages: "54–55", pdfPages: "61–62" },
+    { title: "Se — Höra — Känna", pages: "66", pdfPages: "73" }
+  ],
   cases: ["Konflikt — Lösning — Ansvar", "Varför vi alltid börjar i fel ände", "Individ — Team — Organisation", "Stress, press och den inre kompassen", "Konsten att ge och ta emot feedback"].map(find),
   optional: [...new Map(source.map(r => [r.title, { ...r }])).values()]
 };

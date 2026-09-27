@@ -168,7 +168,9 @@ for(const width of [1280,390]) test("025: focus choices, phase defaults, meeting
   await page.getByText("Boken som stöd",{exact:true}).click();
   assert.equal(await page.getByRole("heading",{name:"När du vill förstå din situation bättre",exact:true}).isVisible(),true);
   assert.ok(!(await page.locator("main").innerText()).includes("Caseaktiverad läsning"));
-  assert.match(await page.locator("main").innerText(),/Preliminärt Human Test-urval/);
+  assert.doesNotMatch(await page.locator("main").innerText(),/Preliminärt Human Test-urval/);
+  assert.match(await page.locator("main").innerText(),/Du behöver inte läsa allt före nästa samtal eller Runda bordet/);
+  assert.match(await page.locator("main").innerText(),/Läs i små delar för ett gemensamt språk/);
   await shot("books");
   for(const [day,talk,round] of [[0,"start",null],[21,"middle","round-3"],[42,"end","round-6"],[72,"end","round-6"],[134,"three","round-7"]]){
     await clock(page,day);await nav(page,"talk");

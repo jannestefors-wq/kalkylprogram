@@ -140,6 +140,14 @@ test("F: four conversations, minutes are advisory; Start does not require Spegel
 });
 test("G: three book layers without week rules; real PDF checks reject wrong title/page",()=>{
   assert.deepEqual(Object.keys(BOOK),["foundation","cases","optional"]);
+  assert.deepEqual(BOOK.foundation,[
+    {title:"Utan filter",pages:"7–8",pdfPages:"14–15"},
+    {title:"Människan först",pages:"20–21",pdfPages:"27–28"},
+    {title:"Modet att kliva fram",pages:"30–31",pdfPages:"37–38"},
+    {title:"Triangelmetodiken",pages:"54–55",pdfPages:"61–62"},
+    {title:"Se — Höra — Känna",pages:"66",pdfPages:"73"}
+  ]);
+  assert.equal(BOOK.foundation.reduce((n,r)=>{const [a,b=a]=r.pages.split("–").map(Number);return n+b-a+1;},0),9);
   assert.ok(!JSON.stringify(BOOK).includes("vecka"));
   assert.ok(process.env.LHM_BOOK_TXT,"Boktext krävs, testet får inte hoppas över.");
   const raw=readFileSync(process.env.LHM_BOOK_TXT,"utf8");
@@ -148,6 +156,10 @@ test("G: three book layers without week rules; real PDF checks reject wrong titl
   assert.ok(verifyBook(bad,raw).length>0);
   const wrong=structuredClone(BOOK);wrong.foundation[0].pages="1–2";
   assert.ok(verifyBook(wrong,raw).length>0);
+  const invented=structuredClone(BOOK);invented.foundation.push({title:"Påhittat material",pages:"205",pdfPages:"212"});
+  assert.ok(verifyBook(invented,raw).length>0);
+  const wrongPdf=structuredClone(BOOK);wrongPdf.foundation[4].pdfPages="74";
+  assert.ok(verifyBook(wrongPdf,raw).length>0);
 });
 test("H: permanent SE/HÖRA/KÄNNA positions and own-signal wording",()=>{
   assert.deepEqual(CORNERS,["SE","HÖRA","KÄNNA"]);assert.match(FEELING,/egen signal/);assert.match(FEELING,/aldrig kunskap/);
