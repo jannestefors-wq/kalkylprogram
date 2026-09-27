@@ -7,7 +7,7 @@ import { join } from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import { openV3Db, createV3App } from "../server/app-v3.mjs";
 import { initialState, reduceState, projectState } from "../server/rules-v3.mjs";
-import { SURFACES,TALKS,CORNERS,FEELING,BOOK,FIELDS } from "../server/content-v3.mjs";
+import { SURFACES,TALKS,CORNERS,FEELING,BOOK,FIELDS,RESULT_NOTE } from "../server/content-v3.mjs";
 import { ROUNDS, MIRROR_FIXTURES } from "../preview/testdata-v3.mjs";
 import { verifyBook } from "../scripts/verify-book-v3.mjs";
 const focus=(id="f1",title="Lyssna färdigt",reason="")=>({type:"focus",id,data:{title,why:"Ge utrymme",notice:"Fler talar till punkt",reason}});
@@ -135,6 +135,7 @@ test("G: three book layers without week rules; real PDF checks reject wrong titl
 test("H: permanent SE/HÖRA/KÄNNA positions and own-signal wording",()=>{
   assert.deepEqual(CORNERS,["SE","HÖRA","KÄNNA"]);assert.match(FEELING,/egen signal/);assert.match(FEELING,/aldrig kunskap/);
   assert.equal(SURFACES.length,7);
+  assert.doesNotMatch(JSON.stringify({SURFACES,TALKS,CORNERS,FEELING,BOOK,FIELDS,RESULT_NOTE}),/bevisad effekt|LMHM orsakade|garanterad förändring|fungerar för alla/i);
 });
 test("I: fixed synthetic mirrors, no injected answers, no contact/email routes",async t=>{
   const f=await fixture(t),cookie=await f.login("v3_alex");

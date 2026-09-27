@@ -60,9 +60,9 @@ for(const width of [1280,390]) test("Human journey, sharing, roles and layout "+
   await page.getByText("När du vill undersöka lite djupare",{exact:true}).click();
   const boxes=await page.locator(".corners span").evaluateAll(xs=>xs.map(x=>({text:x.textContent,left:x.getBoundingClientRect().left})));
   assert.deepEqual(boxes.map(x=>x.text),["SE","HÖRA","KÄNNA"]);assert.ok(boxes[0].left<boxes[1].left && boxes[1].left<boxes[2].left);
-  await nav(page,"round");await fill(page,"cotrainer-round-1","text","PRIVATE-COTRAINER");await submit(page,"cotrainer-round-1","note");
-  await clock(page,21);await nav(page,"talk");await page.getByText("Mitt 1:1",{exact:true}).click();await fill(page,"talk-middle","takeaway","Ge mer tid");await submit(page,"talk-middle","note");
-  await nav(page,"direction");await page.getByText("Ompröva: behåll eller byt fokus",{exact:true}).click();await fill(page,"focus","title","Ge tid efter frågan");await fill(page,"focus","reason","Jag förstod problemet bättre");await submit(page,"focus","focus");
+  await clock(page,21);await nav(page,"round");await fill(page,"cotrainer-round-3","text","PRIVATE-COTRAINER");await submit(page,"cotrainer-round-3","note");
+  await nav(page,"talk");await fill(page,"talk-middle","takeaway","Ge mer tid");await submit(page,"talk-middle","note");
+  await nav(page,"direction");await page.getByRole("button",{name:"Jag behöver byta fokus",exact:true}).click();await fill(page,"focus","title","Ge tid efter frågan");await fill(page,"focus","reason","Jag förstod problemet bättre");await submit(page,"focus","focus");
   await nav(page,"action");await fill(page,"action","what","Vänta på svaret");await fill(page,"action","situation","Nästa fiktiva möte");await fill(page,"action","when","På fredag");await submit(page,"action","action");
   await nav(page,"outcome");form=page.locator('form[data-kind="outcome"]').first();id=await form.getAttribute("data-id");await form.locator("select").selectOption("Ja");await form.locator('[name="happened"]').fill("Den andre fick tänka klart");await form.locator('[name="evidence"]').fill("Jag hörde ett nytt förslag");await form.locator('[name="next"]').fill("Fortsätta ge tid");await submit(page,id,"outcome");
   await nav(page,"talk");await page.getByText("Avslutande 1:1",{exact:true}).click();await fill(page,"talk-end","next","Fortsätta ge tid");await submit(page,"talk-end","note");
@@ -71,7 +71,7 @@ for(const width of [1280,390]) test("Human journey, sharing, roles and layout "+
   await clock(page,134);await nav(page,"journey");await page.getByText("Spegeln 2",{exact:true}).click();await page.locator('[data-mirror="2"]').click();await page.getByText("Spegeln 2",{exact:true}).click();await page.locator('[data-mirror="2"]').waitFor({state:"detached"});
   await fill(page,"three","noticed","Mer utrymme i samtalet");await submit(page,"three","note");
   await page.screenshot({path:shots+"/journey-"+width+".png",fullPage:true});
-  await nav(page,"talk");await page.getByText("3-månaders 1:1",{exact:true}).click();await fill(page,"talk-three","takeaway","Fortsätta undersöka");await submit(page,"talk-three","note");
+  await nav(page,"talk");await fill(page,"talk-three","takeaway","Fortsätta undersöka");await submit(page,"talk-three","note");
   const stored=JSON.parse(db.prepare("SELECT value FROM lr_v3_state WHERE user_id='v3_alex'").get().value);
   assert.equal(stored.focus.length,2);assert.equal(stored.actions.length,2);assert.equal(stored.mirrors.length,8);assert.equal(stored.coreEnd.next,"Fortsätta ge tid");
   assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
@@ -104,6 +104,7 @@ test("Two tabs and failed saves keep local text; no silent overwrite",async t=>{
 });
 test("Validation can be corrected in place without freezing autosave",async t=>{
   const {page}=await setup(t);
+  await clock(page,0);
   await fill(page,"focus","title","Undersöka");await submit(page,"focus","focus");
   await nav(page,"action");await fill(page,"action","what","Lyssna");await fill(page,"action","situation","Fiktivt samtal");await fill(page,"action","when","Idag");await submit(page,"action","action");
   await nav(page,"outcome");
@@ -113,4 +114,85 @@ test("Validation can be corrected in place without freezing autosave",async t=>{
   await form.locator("button[type=submit]").click();await invalid;
   await form.locator('[name="blocked"]').fill("Tiden ändrades");await submit(page,id,"outcome");
   await nav(page,"reflection");await fill(page,"reflection","text","Jag kan fortsätta skriva");await submit(page,"reflection","note");
+});
+for(const width of [1280,390]) test("025: focus choices, phase defaults, meetings and human wording "+width,async t=>{
+  const {page,db}=await setup(t,width);
+  const shot=async name=>page.screenshot({path:shots+"/025-"+name+"-"+width+".png",fullPage:true});
+  assert.equal(await page.locator('form[data-kind="focus"]').count(),0);
+  assert.match(await page.locator("main").innerText(),/Förstå först → samtal → välj fokus/);
+  await shot("before-start");
+  await nav(page,"action");
+  assert.ok(!(await page.locator("main").innerText()).includes("Välj ett primärt fokus"));
+  assert.equal(await page.getByRole("link",{name:"Förbered Start 1:1",exact:true}).isVisible(),true);
+  await nav(page,"round");
+  assert.equal(await page.locator('form[data-kind="cotrainer"]').count(),0);
+  assert.equal(await page.locator("#round-select").count(),0);
+  await shot("before-round");
+  await nav(page,"talk");
+  assert.deepEqual(await page.locator("details[data-talk][open]").evaluateAll(xs=>xs.map(x=>x.dataset.talk)),["start"]);
+  assert.equal(await page.locator("details[data-talk]").count(),4);
+  await fill(page,"talk-start","preparation","Utan Spegel: vad vill jag förstå?");
+  await submit(page,"talk-start","note");
+  assert.equal(JSON.parse(db.prepare("SELECT value FROM lr_v3_state WHERE user_id='v3_alex'").get().value).mirrors.length,0);
+  await clock(page,0);await nav(page,"direction");
+  assert.deepEqual(await page.locator('form[data-id="focus"] textarea').evaluateAll(xs=>xs.map(x=>x.name)),["title","why","notice"]);
+  await shot("first-focus");
+  await fill(page,"focus","title","Lyssna färdigt");await submit(page,"focus","focus");
+  assert.equal(await page.locator('form[data-id="focus"]').count(),0);
+  assert.equal(await page.getByRole("button",{name:"Behåll mitt fokus",exact:true}).isVisible(),true);
+  assert.equal(await page.getByRole("button",{name:"Jag behöver byta fokus",exact:true}).isVisible(),true);
+  await shot("focus-choices");
+  await page.getByRole("button",{name:"Behåll mitt fokus",exact:true}).click();
+  assert.deepEqual(await page.locator('form[data-id="keep-focus"] textarea').evaluateAll(xs=>xs.map(x=>x.name)),["reason"]);
+  await submit(page,"keep-focus","keep");
+  await page.getByRole("button",{name:"Behåll mitt fokus",exact:true}).click();
+  await fill(page,"keep-focus","reason","Jag vill ge försöket tid");await submit(page,"keep-focus","keep");
+  await page.getByRole("button",{name:"Jag behöver byta fokus",exact:true}).click();
+  assert.equal(await page.locator('form[data-id="focus"] [name="reason"]').isVisible(),true);
+  await fill(page,"focus","title","Ställa en fråga till");await fill(page,"focus","reason","Jag förstår situationen bättre");
+  await shot("change-focus");
+  await submit(page,"focus","focus");
+  const state=JSON.parse(db.prepare("SELECT value FROM lr_v3_state WHERE user_id='v3_alex'").get().value);
+  assert.equal(state.focus.length,2);assert.equal(state.focus[0].title,"Lyssna färdigt");assert.equal(state.focus[1].reason,"Jag förstår situationen bättre");
+  assert.deepEqual(state.reviews.map(x=>x.reason),["","Jag vill ge försöket tid"]);
+  await page.getByText("Boken som stöd",{exact:true}).click();
+  assert.equal(await page.getByRole("heading",{name:"När du vill förstå din situation bättre",exact:true}).isVisible(),true);
+  assert.ok(!(await page.locator("main").innerText()).includes("Caseaktiverad läsning"));
+  assert.match(await page.locator("main").innerText(),/Preliminärt Human Test-urval/);
+  await shot("books");
+  for(const [day,talk,round] of [[0,"start",null],[21,"middle","round-3"],[42,"end","round-6"],[72,"end","round-6"],[134,"three","round-7"]]){
+    await clock(page,day);await nav(page,"talk");
+    assert.deepEqual(await page.locator("details[data-talk][open]").evaluateAll(xs=>xs.map(x=>x.dataset.talk)),[talk]);
+    // Other conversations remain openable without a completion gate.
+    const other=talk==="start"?"middle":"start";
+    await page.locator('details[data-talk="'+other+'"] > summary').click();
+    assert.equal(await page.locator('details[data-talk="'+other+'"]').getAttribute("open"),"");
+    await page.locator('details[data-talk="'+other+'"] > summary').click();
+    await shot("talk-"+day);
+    await nav(page,"round");
+    if(round){
+      assert.equal(await page.locator("#round-select").inputValue(),round);
+      assert.equal(await page.locator('form[data-kind="cotrainer"]').getAttribute("data-id"),"cotrainer-"+round);
+      await fill(page,"cotrainer-"+round,"text","Min privata tanke vid "+day);
+      await submit(page,"cotrainer-"+round,"note");
+      assert.equal(await page.locator("#round-select").inputValue(),round);
+      await shot("round-"+day);
+      if(day===21){
+        await page.locator("#round-select").selectOption("round-1");
+        await fill(page,"cotrainer-round-1","text","Tillbaka till min första träff");
+        await submit(page,"cotrainer-round-1","note");
+        assert.equal(await page.locator("#round-select").inputValue(),"round-1");
+      }
+    }else assert.equal(await page.locator('form[data-kind="cotrainer"]').count(),0);
+  }
+  await nav(page,"talk");await clock(page,0);
+  assert.deepEqual(await page.locator("details[data-talk][open]").evaluateAll(xs=>xs.map(x=>x.dataset.talk)),["start"]);
+  await clock(page,21);
+  assert.deepEqual(await page.locator("details[data-talk][open]").evaluateAll(xs=>xs.map(x=>x.dataset.talk)),["middle"]);
+  await clock(page,134);
+  await nav(page,"journey");
+  assert.equal(await page.getByText("Vad märker du själv? Vad har andra börjat märka? Tillsammans hjälper det dig att se vad som faktiskt har förändrats.",{exact:true}).isVisible(),true);
+  assert.ok(!(await page.locator("main").innerText()).includes("flera datapunkter"));
+  await shot("journey");
+  assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
 });

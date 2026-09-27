@@ -57,7 +57,7 @@ const find = title => {
 export const BOOK = {
   foundation: ["Människan först", "Utan filter", "Modet att kliva fram", "Triangelmetodiken", "Se — Höra — Känna"].map(title => {
     const ref=find(title), start=Number(ref.pages.split("–")[0]);
-    return { ...ref, pages: start+"–"+(start+1), pdfPages: (start+7)+"–"+(start+8), note: "Kort inledande urval. Stanna där det hjälper dig förstå." };
+    return { ...ref, pages: start+"–"+(start+1), pdfPages: (start+7)+"–"+(start+8), note: "Preliminärt Human Test-urval. Stanna där det hjälper dig förstå." };
   }),
   cases: ["Konflikt — Lösning — Ansvar", "Varför vi alltid börjar i fel ände", "Individ — Team — Organisation", "Stress, press och den inre kompassen", "Konsten att ge och ta emot feedback"].map(find),
   optional: [...new Map(source.map(r => [r.title, { ...r }])).values()]
@@ -66,4 +66,6 @@ const coaching = { title: "Det coachande ledarskapet", pages: "163–164", pdfPa
 BOOK.cases.push(coaching);
 BOOK.optional.push(coaching);
 export const BOOK_NOTE = "Gemensam grund ger oss ett språk tidigt i resan. Välj ett kort stycke och stanna där det hjälper dig förstå. Sidintervallen visar var du hittar materialet, inte en läsläxa. Du behöver inte läsa allt eller bli klar före ett möte.";
-export const RESULT_NOTE = "Observerad förändring och upplevd förändring: flera datapunkter som tillsammans ger en starkare bild. De visar inte i sig vad som orsakade en förändring.";
+export const RESULT_NOTE = "Vad märker du själv? Vad har andra börjat märka? Tillsammans hjälper det dig att se vad som faktiskt har förändrats.";
+// Resultattolkning: observationer är inte belägg för att LMHM orsakat förändringen.
+// Inga påståenden om bevisad effekt, garanterad förändring eller att det fungerar för alla.
