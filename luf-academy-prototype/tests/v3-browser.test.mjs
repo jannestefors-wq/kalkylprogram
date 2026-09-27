@@ -1,4 +1,59 @@
 import { test } from "node:test";
+
+for(const width of [1280,390]) test("030: whole navigation, current phase, mirror information and one book introduction "+width,async t=>{
+  const {page,db}=await setup(t,width);
+  for(const id of ["direction","action","outcome","reflection","round","talk","journey"]){
+    await nav(page,id);
+    const bounds=await page.locator('#nav [aria-current="page"]').evaluate(el=>{
+      const r=el.getBoundingClientRect();return {left:r.left,right:r.right,top:r.top,bottom:r.bottom,w:innerWidth,h:innerHeight};
+    });
+    assert.ok(bounds.left>=0 && bounds.right<=bounds.w && bounds.top>=0 && bounds.bottom<=bounds.h,JSON.stringify(bounds));
+    assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+    if(width===390) assert.ok(await page.locator("#nav a").evaluateAll(xs=>xs.every(el=>{
+      const r=el.getBoundingClientRect();return r.left>=0 && r.right<=innerWidth;
+    })));
+  }
+  await nav(page,"direction");await page.getByText("Spegeln 1",{exact:true}).click();
+  const info=page.locator("[data-mirror-info]");
+  assert.equal(await info.getAttribute("open"),null);
+  assert.equal(await info.locator("p").first().isVisible(),false);
+  assert.equal(await page.getByText("Du väljer själv om något här delas med Jan.",{exact:true}).isVisible(),true);
+  await info.locator("summary").click();
+  assert.match(await info.innerText(),/Jan ser inget automatiskt/);
+  assert.match(await info.innerText(),/återkalla delningen/);
+  assert.match(await info.innerText(),/Admin ser bara status/);
+  assert.match(await info.innerText(),/identifierbar; anonymitet utlovas inte/);
+  assert.match(await info.innerText(),/lagringstider kräver separat integritetsgranskning/);
+  await page.getByText("Boken som stöd",{exact:true}).click();
+  const intro="Boken är ett stöd. Läs i små delar och stanna där det hjälper dig. Du behöver inte läsa allt före nästa samtal eller Runda bordet.";
+  assert.equal(await page.getByText(intro,{exact:true}).count(),1);
+  assert.doesNotMatch(await page.locator("main").innerText(),/Gemensam grund ger oss ett språk|Läs i små delar för ett gemensamt språk/);
+  await clock(page,72);await nav(page,"journey");
+  assert.equal(await page.locator("[data-d30-review]").count(),0);
+  assert.equal(await page.locator('form[data-id="d30"]').isVisible(),true);
+  assert.equal(await page.locator("h2").first().innerText(),"30 dagar · Vad blev faktiskt kvar?");
+  await fill(page,"d30","still","Sparad återblick från 30 dagar");await submit(page,"d30","note");
+  await clock(page,134);
+  const review=page.locator("[data-d30-review]");
+  assert.equal(await review.getAttribute("open"),null);
+  assert.equal(await page.locator('form[data-id="d30"]').isVisible(),false);
+  assert.equal(await page.locator('form[data-id="three"]').isVisible(),true);
+  assert.equal(await page.locator("h2").first().innerText(),"Tre månader · då och nu");
+  const positions=await page.locator('form[data-id="three"], [data-d30-review]').evaluateAll(xs=>xs.map(x=>x.tagName));
+  assert.deepEqual(positions,["FORM","DETAILS"]);
+  const mainText=await page.locator("main").innerText();
+  assert.ok(mainText.indexOf("Spegeln 2")<mainText.indexOf("30 dagar ·"));
+  assert.ok(mainText.indexOf("Till 3-månaders 1:1")<mainText.indexOf("30 dagar ·"));
+  await review.locator("summary").click();
+  assert.equal(await page.locator('form[data-id="d30"] [name="still"]').inputValue(),"Sparad återblick från 30 dagar");
+  await fill(page,"d30","next","Återblicken går att använda");await submit(page,"d30","note");
+  assert.equal(JSON.parse(db.prepare("SELECT value FROM lr_v3_state WHERE user_id='v3_alex'").get().value).notes.d30.data.still,"Sparad återblick från 30 dagar");
+  await nav(page,"talk");await nav(page,"journey");assert.equal(await review.getAttribute("open"),null);
+  await page.getByText("Spegeln 2",{exact:true}).click();
+  const second=page.locator("details").filter({has:page.locator(':scope > summary').filter({hasText:/^Spegeln 2$/})}).first();
+  assert.equal(await second.locator("[data-mirror-info]").getAttribute("open"),null);
+});
+
 import assert from "node:assert/strict";
 import { createServer } from "node:http";
 import { createRequire } from "node:module";
@@ -170,7 +225,7 @@ for(const width of [1280,390]) test("025: focus choices, phase defaults, meeting
   assert.ok(!(await page.locator("main").innerText()).includes("Caseaktiverad läsning"));
   assert.doesNotMatch(await page.locator("main").innerText(),/Preliminärt Human Test-urval/);
   assert.match(await page.locator("main").innerText(),/Du behöver inte läsa allt före nästa samtal eller Runda bordet/);
-  assert.match(await page.locator("main").innerText(),/Läs i små delar för ett gemensamt språk/);
+  assert.match(await page.locator("main").innerText(),/Boken är ett stöd. Läs i små delar och stanna där det hjälper dig/);
   await shot("books");
   for(const [day,talk,round] of [[0,"start",null],[21,"middle","round-3"],[42,"end","round-6"],[72,"end","round-6"],[134,"three","round-7"]]){
     await clock(page,day);await nav(page,"talk");

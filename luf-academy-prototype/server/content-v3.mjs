@@ -69,7 +69,7 @@ export const BOOK = {
 const coaching = { title: "Det coachande ledarskapet", pages: "163–164", pdfPages: "170–171", inChapter: "Att utveckla andra ledare" };
 BOOK.cases.push(coaching);
 BOOK.optional.push(coaching);
-export const BOOK_NOTE = "Gemensam grund ger oss ett språk tidigt i resan. Välj ett kort stycke och stanna där det hjälper dig förstå. Sidintervallen visar var du hittar materialet, inte en läsläxa. Du behöver inte läsa allt eller bli klar före ett möte.";
+export const BOOK_NOTE = "Boken är ett stöd. Läs i små delar och stanna där det hjälper dig. Du behöver inte läsa allt före nästa samtal eller Runda bordet.";
 export const RESULT_NOTE = "Vad märker du själv? Vad har andra börjat märka? Tillsammans hjälper det dig att se vad som faktiskt har förändrats.";
 // Resultattolkning: observationer är inte belägg för att LMHM orsakat förändringen.
 // Inga påståenden om bevisad effekt, garanterad förändring eller att det fungerar för alla.

@@ -88,16 +88,16 @@ function form(kind,id,value={},submit="Spara",type="note") {
 function note(kind,id) { return form(kind,id,state.notes[id]?.data || {}) + (state.notes[id] && kind!=="cotrainer"?share("note:"+id):""); }
 function books() {
   const list=items=>items.map(x=>'<div class="book"><strong>'+esc(x.title)+'</strong> · s. '+esc(x.pages)+(x.note?'<br><small>'+esc(x.note)+'</small>':'')+'</div>').join("");
-  return '<details><summary>Boken som stöd</summary><p>'+esc(cfg.bookNote)+'</p><h3>Gemensam grund</h3><p>Läs i små delar för ett gemensamt språk. Stanna där det hjälper. Du behöver inte läsa allt före nästa samtal eller Runda bordet.</p>'+list(cfg.book.foundation)+'<h3>När du vill förstå din situation bättre</h3><p>Välj ett avsnitt som hjälper dig med situationen du står i. Jan kan också ge en läshänvisning.</p>'+list(cfg.book.cases)+(state.recommendations?.length?'<h3>Jan har pekat på</h3>'+list(cfg.book.optional.filter(x=>state.recommendations.includes(x.title))):"")+'<details><summary>Frivillig fördjupning</summary><p>I egen takt, utan kalenderkrav.</p>'+list(cfg.book.optional)+'</details></details>';
+  return '<details><summary>Boken som stöd</summary><p>'+esc(cfg.bookNote)+'</p><h3>Gemensam grund</h3>'+list(cfg.book.foundation)+'<h3>När du vill förstå din situation bättre</h3><p>Välj ett avsnitt som hjälper dig med situationen du står i. Jan kan också ge en läshänvisning.</p>'+list(cfg.book.cases)+(state.recommendations?.length?'<h3>Jan har pekat på</h3>'+list(cfg.book.optional.filter(x=>state.recommendations.includes(x.title))):"")+'<details><summary>Frivillig fördjupning</summary><p>I egen takt, utan kalenderkrav.</p>'+list(cfg.book.optional)+'</details></details>';
 }
 function thinking() {
   return '<details><summary>När du vill undersöka lite djupare</summary><div class="corners">'+cfg.corners.map(x=>'<span>'+x+'</span>').join("")+'</div><p>'+esc(cfg.feeling)+'</p><p>Vad vet du? Vad tolkar du? Varför tror du att det händer? Är detta rätt problem?</p><p>Mät · Korrigera · Mät igen: se vad som händer, ompröva och välj nästa försök. Inget här behöver fyllas i.</p></details>';
 }
 function mirror(round) {
   const answers=state.mirrors.filter(x=>x.round===round);
-  return '<details><summary>Spegeln '+round+'</summary><p>Perspektiv och observationer hjälper dig att förstå. Det är inte betyg eller diagnos. Alla svar här är påhittade. Ingen kontaktas.</p><p>Du läser svaren. Jan ser inget automatiskt. Du kan dela valda svar eller en egen sammanfattning och återkalla delningen. Admin ser bara status. Relationsrollen kan göra en verklig svarande identifierbar; anonymitet utlovas inte.</p><p class="muted">Riktiga svar och lagringstider kräver separat integritetsgranskning före användning.</p>'+
+  return '<details><summary>Spegeln '+round+'</summary><p>Perspektiv och observationer hjälper dig att förstå. Det är inte betyg eller diagnos. Alla svar här är påhittade. Ingen kontaktas.</p><p>Du väljer själv om något här delas med Jan.</p>'+
     (!answers.length?'<button data-mirror="'+round+'">Visa syntetiska svar · Spegeln '+round+'</button>':answers.map(a=>'<details><summary>'+esc(a.relation)+' · syntetiskt perspektiv</summary>'+a.answers.map((x,i)=>'<p><strong>'+esc(cfg.mirror[round][i])+(round===1 && i===5?" (frivillig)":"")+'</strong><br>'+esc(x || "Inget svar")+'</p>').join("")+share("mirror:"+a.id)+'</details>').join(""))+
-    '<h3>Min egen sammanfattning</h3>'+note("summary","summary-"+round)+'</details>';
+    '<details data-mirror-info><summary>Så fungerar Spegeln och delningen</summary><p>Du läser svaren. Jan ser inget automatiskt. Du kan dela valda svar eller en egen sammanfattning och återkalla delningen. Admin ser bara status. Relationsrollen kan göra en verklig svarande identifierbar; anonymitet utlovas inte.</p><p class="muted">Riktiga svar och lagringstider kräver separat integritetsgranskning före användning.</p></details><h3>Min egen sammanfattning</h3>'+note("summary","summary-"+round)+'</details>';
 }
 function render() {
   if(!cfg || cfg.person.role!=="participant") return;
@@ -139,15 +139,19 @@ function render() {
     html+=cfg.talks.map(t=>'<details data-talk="'+t.id+'"'+(t.id===relevant?" open":"")+'><summary>'+t.title+'</summary><p>Cirka '+t.minutes+' minuter är ett riktvärde. Samtalet får följa människan.</p>'+(t.id==="start"?'<p>Vad skaver? Vad tror du är problemet? Vad har du sett i Spegeln? Vad vill du förstå? Skriv bara det som hjälper.</p>':"")+(t.id==="three" && state.day<134?'<p>Här kan du läsa frågorna inför tre månader. Anteckningsytan öppnas vid tremånadersuppföljningen.</p>'+cfg.fields.talk.map(([,label])=>'<p>'+esc(label)+'</p>').join(""):note("talk","talk-"+t.id))+(t.id==="start" && state.day>=0?'<p><a data-nav="direction" href="#direction">Vad är mitt primära fokus nu?</a></p><p><a data-nav="action" href="#action">Vad ska jag prova först?</a></p>':"")+'</details>').join("");
   }
   if(id==="journey") {
-    html+='<p>'+esc(cfg.resultNote)+'</p>'+mirror(1)+'<details><summary>Fokus och handlingar över tid</summary>'+state.focus.map(f=>'<div class="record">'+record(f)+state.actions.filter(x=>x.focusId===f.id).map(x=>'<div class="card">'+record(x)+record(x.outcome)+'</div>').join("")+'</div>').join("")+'</details>';
-    if(state.day>=72) html+='<h2>30 dagar · Vad blev faktiskt kvar?</h2><div class="card"><h3>Vid kärnresans slut</h3>'+record(state.coreEnd?.focus)+'<h3>Sista handlingen</h3>'+record(state.coreEnd?.action)+'<p>Det jag tänkte fortsätta göra: '+esc(state.coreEnd?.next || "Ingen anteckning")+'</p></div>'+note("d30","d30")+'<p><a data-nav="round" href="#round">Runda bordet Återträff</a></p>';
-    else html+='<p class="muted">Här möter du uppföljningen 30 dagar efter kärnresans slut.</p>';
-    if(state.day>=134) html+='<h2>Tre månader · då och nu</h2><p>Jämför ditt ursprungliga fokus, fokusbyten, handlingar, 30 dagar och Spegeln 1 med det du ser nu.</p>'+mirror(2)+note("three","three")+'<a data-nav="talk" href="#talk">Till 3-månaders 1:1</a>';
+    html+='<p>'+esc(cfg.resultNote)+'</p>';
+    if(state.day>=134) html+='<h2>Tre månader · då och nu</h2><p>Jämför ditt ursprungliga fokus, fokusbyten, handlingar, 30 dagar och Spegeln 1 med det du ser nu.</p>'+mirror(2)+note("three","three")+'<p><a data-nav="talk" href="#talk">Till 3-månaders 1:1</a></p>';
+    if(state.day>=72) {
+      const d30='<div class="card"><h3>Vid kärnresans slut</h3>'+record(state.coreEnd?.focus)+'<h3>Sista handlingen</h3>'+record(state.coreEnd?.action)+'<p>Det jag tänkte fortsätta göra: '+esc(state.coreEnd?.next || "Ingen anteckning")+'</p></div>'+note("d30","d30")+'<p><a data-nav="round" href="#round">Runda bordet Återträff</a></p>';
+      html+=state.day>=134?'<details data-d30-review><summary>30 dagar · Vad blev faktiskt kvar?</summary>'+d30+'</details>':'<h2>30 dagar · Vad blev faktiskt kvar?</h2>'+d30;
+    } else html+='<p class="muted">Här möter du uppföljningen 30 dagar efter kärnresans slut.</p>';
+    html+=mirror(1)+'<details><summary>Fokus och handlingar över tid</summary>'+state.focus.map(f=>'<div class="record">'+record(f)+state.actions.filter(x=>x.focusId===f.id).map(x=>'<div class="card">'+record(x)+record(x.outcome)+'</div>').join("")+'</div>').join("")+'</details>';
     html+='<details><summary>Privat sparhistorik</summary><p>Tidigare sparade versioner av din resa. Bara du kan läsa dem.</p><button id="history">Visa tidigare versioner</button><div id="history-list"></div></details>';
   }
   $("#app").innerHTML=html;
   for(const detail of document.querySelectorAll("#app details")) if(openDetails.has(detail.querySelector(":scope > summary")?.textContent)) detail.open=true;
   bind();
+  if(!sameView && matchMedia("(max-width:760px)").matches) $("#nav [aria-current=page]")?.scrollIntoView({block:"nearest",inline:"nearest"});
 }
 function roundInfo(x) { return '<div class="record"><h3>'+esc(x.title)+'</h3><p>'+new Intl.DateTimeFormat("sv-SE",{dateStyle:"long",timeStyle:"short",timeZone:"Europe/Stockholm"}).format(new Date(x.startsAt))+' · '+esc(x.duration)+'</p><p>'+esc(x.preparation)+'</p><small>Testträff. Ingen riktig möteslänk eller extern anslutning.</small></div>'; }
 function bindForms() {
@@ -179,7 +183,7 @@ function bindForms() {
 }
 function bind() {
   bindForms();
-  document.querySelectorAll("[data-nav]").forEach(a=>a.onclick=async e=>{e.preventDefault();try{await flush();section=a.dataset.nav;render();$("#app").focus();}catch(e){if(!blocked)status(e.message);}});
+  document.querySelectorAll("[data-nav]").forEach(a=>a.onclick=async e=>{e.preventDefault();try{await flush();section=a.dataset.nav;render();$("#app").focus({preventScroll:matchMedia("(max-width:760px)").matches});}catch(e){if(!blocked)status(e.message);}});
   document.querySelectorAll("[data-share]").forEach(b=>b.onclick=async()=>{try{await flush();await send({type:"share",target:b.dataset.share,enabled:b.dataset.enabled==="true"});render();}catch(e){if(!blocked)status(e.message);}});
   document.querySelectorAll("[data-mirror]").forEach(b=>b.onclick=async()=>{try{await flush();await send({type:"mirror",round:Number(b.dataset.mirror)});render();}catch(e){if(!blocked)status(e.message);}});
   document.querySelectorAll("[data-focus-mode]").forEach(button=>button.onclick=async()=>{try{await flush();focusMode=button.dataset.focusMode;render();}catch(e){if(!blocked)status(e.message);}});
