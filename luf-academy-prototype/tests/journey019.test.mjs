@@ -354,3 +354,40 @@ test("019A: adminstatus för tre månader heter Väntar, Tillgänglig, Påbörja
   for (const s of ['not_open: "Väntar"', 'open: "Tillgänglig"', 'started: "Påbörjad"', 'completed: "Slutförd"']) assert.ok(fn.includes(s), s);
   assert.ok(!fn.includes("Öppnad"), "inget som antyder att deltagaren har öppnat sidan");
 });
+
+// ---------- Order 020 ----------
+
+test("020: Din förändringsresa har fyra rubriker. Samma rader i samma ordning som i 019.", () => {
+  const story = publicProgram().journeyStory;
+  assert.deepEqual(story.sections.map((x) => x.heading), ["Förstå nuläget", "Prova i verkligheten", "Se vad som händer", "Följ förändringen"]);
+  const lines = story.sections.flatMap((x) => x.paragraphs.flat());
+  assert.deepEqual(lines, [
+    "Du börjar inte här för att lära dig fler modeller.",
+    "Vi börjar med att förstå hur du faktiskt leder idag.",
+    "Vad gör du när det blir svårt?",
+    "Vad undviker du?",
+    "Vad får dig att kliva fram?",
+    "Vad händer med dig under press?",
+    "Vilka mönster och drivkrafter påverkar dina beslut, relationer och sättet du möter andra människor?",
+    "Tillsammans försöker vi förstå ditt nuläge innan du bestämmer vad du vill förändra.",
+    "Sedan väljer du tre saker i ditt eget ledarskap som du vill arbeta med.",
+    "Varje vecka tar du något av dem ut i verkligheten.",
+    "Du provar.",
+    "Du kommer tillbaka.",
+    "Vi tittar på vad som faktiskt hände.",
+    "Inte på vad du tänkte göra.",
+    "Inte på vad som borde ha hänt.",
+    "Sedan justerar du och provar igen.",
+    "Efter sex veckor tittar du tillbaka på hela resan.",
+    "Efter 30 dagar ser vi vad som blev kvar när utbildningen inte längre höll dig i handen.",
+    "Efter tre månader jämför du då och nu.",
+    "Målet är inte att du ska kunna mer om ledarskap.",
+    "Målet är att du ska börja leda annorlunda. Och att människorna omkring dig ska kunna märka skillnaden.",
+  ]);
+  assert.ok(CLIENT.includes('h("h3", { class: "story-heading" }, sec.heading)'));
+});
+
+test("020: knappen säger Fortsätt: förstå nuläget i vecka 1, och bara där", () => {
+  assert.ok(CLIENT.includes('const continueText = current.key === "w1" ? "Fortsätt: förstå nuläget" : "Fortsätt min ledarskapsresa";'));
+  assert.equal((CLIENT.match(/stepHref\(current\.key, nextSectionKey\(current\.key\)\) \}, continueText\)/g) || []).length, 2, "samma mål som förut");
+});

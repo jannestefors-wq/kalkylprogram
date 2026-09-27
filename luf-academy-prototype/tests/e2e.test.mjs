@@ -98,12 +98,15 @@ test("desktop: hela vecka 1, autosparning, utloggning och återkomst", async () 
 
   // Översikt
   const overview = await page.textContent("main");
-  for (const s of ["Ledarskap med hjärta och mod", "Testdeltagare Jan", "Grupp A", "Nästa träff", "Vecka 1", "Vecka 6", "30 dagar", "Fortsätt min ledarskapsresa", "Det här är din resa.", "Startsamtalet"]) {
+  for (const s of ["Ledarskap med hjärta och mod", "Testdeltagare Jan", "Grupp A", "Nästa träff", "Vecka 1", "Vecka 6", "30 dagar", "Fortsätt: förstå nuläget", "Det här är din resa.", "Startsamtalet"]) {
     assert.ok(overview.includes(s), `översikten saknar: ${s}`);
   }
   assert.ok(!/poäng|badge|streak/i.test(overview));
   assert.equal(await page.locator(".journey-step.is-locked").count(), 7, "vecka 2 till 6, 30 dagar och 3 månader är låsta");
   for (const s of ["Din förändringsresa", "Start", "3 månader", "Förstå nuläget"]) assert.ok(overview.includes(s), `översikten saknar: ${s}`);
+  // Order 020: fyra rubriker i Din förändringsresa och knappen i vecka 1.
+  assert.deepEqual(await page.$$eval(".story-heading", (els) => els.map((e) => e.textContent)), ["Förstå nuläget", "Prova i verkligheten", "Se vad som händer", "Följ förändringen"]);
+  assert.equal((await page.textContent(".focus-card .button.primary")).trim(), "Fortsätt: förstå nuläget");
   await page.screenshot({ path: `${SHOTS}01-oversikt-desktop.png`, fullPage: true });
 
   await page.click(".focus-card .button.primary");

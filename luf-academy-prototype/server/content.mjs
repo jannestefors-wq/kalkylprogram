@@ -59,28 +59,54 @@ const example = (lines, extra = {}) => ({ example: true, label: "Exempel, inte f
 const ex = (term, text) => ({ term, text });
 
 // Översikten, före veckorna. Order 019 punkt 1.
+// Order 020: samma text, uppdelad i fyra delar med diskreta rubriker.
+const JOURNEY_SECTIONS = [
+  {
+    heading: "Förstå nuläget",
+    paragraphs: [
+      ["Du börjar inte här för att lära dig fler modeller.", "Vi börjar med att förstå hur du faktiskt leder idag."],
+      [
+        "Vad gör du när det blir svårt?",
+        "Vad undviker du?",
+        "Vad får dig att kliva fram?",
+        "Vad händer med dig under press?",
+        "Vilka mönster och drivkrafter påverkar dina beslut, relationer och sättet du möter andra människor?",
+      ],
+      ["Tillsammans försöker vi förstå ditt nuläge innan du bestämmer vad du vill förändra."],
+    ],
+  },
+  {
+    heading: "Prova i verkligheten",
+    paragraphs: [
+      ["Sedan väljer du tre saker i ditt eget ledarskap som du vill arbeta med."],
+      ["Varje vecka tar du något av dem ut i verkligheten.", "Du provar."],
+    ],
+  },
+  {
+    heading: "Se vad som händer",
+    paragraphs: [
+      ["Du kommer tillbaka.", "Vi tittar på vad som faktiskt hände.", "Inte på vad du tänkte göra.", "Inte på vad som borde ha hänt."],
+      ["Sedan justerar du och provar igen."],
+    ],
+  },
+  {
+    heading: "Följ förändringen",
+    paragraphs: [
+      [
+        "Efter sex veckor tittar du tillbaka på hela resan.",
+        "Efter 30 dagar ser vi vad som blev kvar när utbildningen inte längre höll dig i handen.",
+        "Efter tre månader jämför du då och nu.",
+      ],
+      ["Målet är inte att du ska kunna mer om ledarskap.", "Målet är att du ska börja leda annorlunda. Och att människorna omkring dig ska kunna märka skillnaden."],
+    ],
+  },
+];
+
 export const JOURNEY_STORY = {
   title: "Din förändringsresa",
-  paragraphs: [
-    ["Du börjar inte här för att lära dig fler modeller.", "Vi börjar med att förstå hur du faktiskt leder idag."],
-    [
-      "Vad gör du när det blir svårt?",
-      "Vad undviker du?",
-      "Vad får dig att kliva fram?",
-      "Vad händer med dig under press?",
-      "Vilka mönster och drivkrafter påverkar dina beslut, relationer och sättet du möter andra människor?",
-    ],
-    ["Tillsammans försöker vi förstå ditt nuläge innan du bestämmer vad du vill förändra."],
-    ["Sedan väljer du tre saker i ditt eget ledarskap som du vill arbeta med."],
-    ["Varje vecka tar du något av dem ut i verkligheten.", "Du provar.", "Du kommer tillbaka.", "Vi tittar på vad som faktiskt hände.", "Inte på vad du tänkte göra.", "Inte på vad som borde ha hänt."],
-    ["Sedan justerar du och provar igen."],
-    [
-      "Efter sex veckor tittar du tillbaka på hela resan.",
-      "Efter 30 dagar ser vi vad som blev kvar när utbildningen inte längre höll dig i handen.",
-      "Efter tre månader jämför du då och nu.",
-    ],
-    ["Målet är inte att du ska kunna mer om ledarskap.", "Målet är att du ska börja leda annorlunda. Och att människorna omkring dig ska kunna märka skillnaden."],
-  ],
+  sections: JOURNEY_SECTIONS,
+  // Samma rader i samma ordning som i order 019.
+  paragraphs: JOURNEY_SECTIONS.flatMap((x) => x.paragraphs),
 };
 
 // Order 019 punkt 7. Samma introduktion på alla Stanna upp.

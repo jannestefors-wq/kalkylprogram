@@ -6,6 +6,8 @@ Det här är den enda innehållsspecifikation som byggordern behöver för Ledar
 
 **INTERN KÄLLA:** HUMAN EXPERIENCE REVIEW 001, accepted changes: 3. Införda i order 015: ledtexten till läsningen i vecka 1 (avsnitt 19), en tredje rad i den privata rutan efter två Nej (avsnitt 16) och ledtexten till "Vad har jag fortfarande inte gjort?" i Halvvägs. I övrigt är dokumentet oförändrat sedan order 014. Noteringen visas aldrig för deltagaren.
 
+**INTERN KÄLLA:** HUMAN TEST SCREEN REVIEW 002. OVERVIEW CLARITY PATCH 020. Din förändringsresa på översikten står i fyra delar med rubrikerna Förstå nuläget, Prova i verkligheten, Se vad som händer och Följ förändringen. Samma text och samma ordning. Huvudknappen i vecka 1 heter Fortsätt: förstå nuläget (avsnitt 26). Noteringen visas aldrig för deltagaren.
+
 **INTERN KÄLLA:** PEDAGOGICAL JOURNEY 019A. Integritetstexten i avsnitt 4 säger nu att administratören ser progression och status på uppföljningarna. Adminstatusen för tre månader heter Väntar, Tillgänglig, Påbörjad och Slutförd (avsnitt 27). Noteringen visas aldrig för deltagaren.
 
 **INTERN KÄLLA:** HUMAN TEST PEDAGOGICAL JOURNEY 019. Order 019 bygger om deltagarens pedagogiska upplevelse utan att ändra kärnan. Införda: berättelsen Din förändringsresa och hela tidslinjen på översikten (avsnitt 26), den gemensamma designregeln för vägledning och exempel (avsnitt 26), vägledning i startsamtalet (avsnitt 4), i den gemensamma motorn (avsnitt 7), i vecka 1 till 6 (avsnitt 9 till 14), i Spegeln (avsnitt 15) och i Samtal med Jan (avsnitt 16), ny inledning vid 30 dagar (avsnitt 17), lässyfte för alla veckor (avsnitt 19), ett exempel vid varje triangel (avsnitt 20) och den nya uppföljningen efter tre månader (avsnitt 27). Inga nya obligatoriska fält i vecka 1 till 6. Befintliga fältnycklar är oförändrade. Rader som ersatts eller flyttats in i vägledningen är listade i avsnitt 26. Noteringen visas aldrig för deltagaren.
@@ -1254,7 +1256,9 @@ Order 019 lägger inga fält till vecka 1 till 6. De sex nya fälten finns bara 
 • Vägledningen står före fälten och är information. Den ger inga nya fält, ändrar inte när ett moment räknas som klart och sparar ingen data.
 • Exempel märks alltid "Exempel, inte facit". De är korta, verklighetsnära och ger aldrig ett rätt svar.
 
-**DELTAGARTEXT. Översikten, före veckorna.** Rubrik: "Din förändringsresa". Visas öppen innan deltagaren har börjat, och går sedan att fälla ut.
+**DELTAGARTEXT. Översikten, före veckorna.** Rubrik: "Din förändringsresa". Visas öppen innan deltagaren har börjat, och går sedan att fälla ut. Texten står i fyra delar med diskreta rubriker (order 020). Raderna och ordningen är desamma som i order 019.
+
+Del 1: "Förstå nuläget"
 > Du börjar inte här för att lära dig fler modeller.
 > Vi börjar med att förstå hur du faktiskt leder idag.
 > Vad gör du när det blir svårt?
@@ -1263,19 +1267,27 @@ Order 019 lägger inga fält till vecka 1 till 6. De sex nya fälten finns bara 
 > Vad händer med dig under press?
 > Vilka mönster och drivkrafter påverkar dina beslut, relationer och sättet du möter andra människor?
 > Tillsammans försöker vi förstå ditt nuläge innan du bestämmer vad du vill förändra.
+
+Del 2: "Prova i verkligheten"
 > Sedan väljer du tre saker i ditt eget ledarskap som du vill arbeta med.
 > Varje vecka tar du något av dem ut i verkligheten.
 > Du provar.
+
+Del 3: "Se vad som händer"
 > Du kommer tillbaka.
 > Vi tittar på vad som faktiskt hände.
 > Inte på vad du tänkte göra.
 > Inte på vad som borde ha hänt.
 > Sedan justerar du och provar igen.
+
+Del 4: "Följ förändringen"
 > Efter sex veckor tittar du tillbaka på hela resan.
 > Efter 30 dagar ser vi vad som blev kvar när utbildningen inte längre höll dig i handen.
 > Efter tre månader jämför du då och nu.
 > Målet är inte att du ska kunna mer om ledarskap.
 > Målet är att du ska börja leda annorlunda. Och att människorna omkring dig ska kunna märka skillnaden.
+
+**DELTAGARTEXT. Huvudknappen på översikten.** När deltagaren står i vecka 1 heter knappen "Fortsätt: förstå nuläget". I övriga steg heter den "Fortsätt min ledarskapsresa". Knappen leder till samma plats som tidigare.
 
 **SYSTEMLOGIK. Hela tidslinjen på översikten**
 • Översikten visar Start, Vecka 1 till 6, 30 dagar och 3 månader i den ordningen.

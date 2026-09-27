@@ -397,7 +397,11 @@ blockquote.own-words { margin: 6px 0 14px; padding-left: 16px; border-left: 2px 
 .story-body { margin-top: 14px; }
 .story-par { margin-bottom: 14px; }
 .story-par p { font-family: var(--serif); font-size: 18px; line-height: 1.5; margin: 0 0 2px; }
-.story-par:last-child p { font-weight: 600; }
+.story-section:last-child .story-par:last-child p { font-weight: 600; }
+.story-section + .story-section { margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--line); }
+.story-heading { font-family: var(--sans); font-size: 12px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gold-text); margin: 0 0 8px; }
+.story-section .story-par { margin-bottom: 10px; }
+.story-section .story-par:last-child { margin-bottom: 0; }
 
 .rail-details summary { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
 .rail-now { color: var(--ink); }

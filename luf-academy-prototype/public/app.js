@@ -576,6 +576,8 @@ function renderOverview() {
   const enr = state.enrollment;
   const current = step(state.journey.currentStep) || step("w1");
   const pending = pendingReturn();
+  // Order 020: i vecka 1 säger knappen vart den leder. Andra veckor behåller sin text.
+  const continueText = current.key === "w1" ? "Fortsätt: förstå nuläget" : "Fortsätt min ledarskapsresa";
 
   const main = h(
     "section",
@@ -602,7 +604,7 @@ function renderOverview() {
       h("p", { class: "kicker" }, `${ps.label}. Du bestämde dig för att prova`),
       planRecall(pending, { large: false }),
       h("a", { class: "button primary", href: stepHref(pending, returnSection(pending).key) }, returnStarted(pending) ? "Fortsätt skriva om vad som hände" : "Berätta vad som hände"),
-      h("a", { class: "button quiet", href: stepHref(current.key, nextSectionKey(current.key)) }, "Fortsätt min ledarskapsresa"),
+      h("a", { class: "button quiet", href: stepHref(current.key, nextSectionKey(current.key)) }, continueText),
     );
   } else {
     focus = h(
@@ -611,7 +613,7 @@ function renderOverview() {
       h("p", { class: "kicker" }, `${current.label}. ${current.title}`),
       h("h2", {}, current.subtitle),
       h("p", { class: "muted" }, state.journey.lastActivityAt ? `Senast du var här: ${fmtDate(state.journey.lastActivityAt)} ${fmtTime(state.journey.lastActivityAt)}.` : "Du har inte börjat ännu. Det tar den tid det tar."),
-      h("a", { class: "button primary", href: stepHref(current.key, nextSectionKey(current.key)) }, "Fortsätt min ledarskapsresa"),
+      h("a", { class: "button primary", href: stepHref(current.key, nextSectionKey(current.key)) }, continueText),
     );
   }
 
@@ -714,7 +716,13 @@ function renderOverview() {
         "details",
         { class: "story", open: state.journey.lastActivityAt ? null : true },
         h("summary", {}, h("span", { class: "story-title" }, story.title)),
-        h("div", { class: "story-body" }, story.paragraphs.map((p) => h("div", { class: "story-par" }, p.map((l) => h("p", {}, l))))),
+        h(
+          "div",
+          { class: "story-body" },
+          story.sections.map((sec) =>
+            h("section", { class: "story-section" }, h("h3", { class: "story-heading" }, sec.heading), sec.paragraphs.map((p) => h("div", { class: "story-par" }, p.map((l) => h("p", {}, l))))),
+          ),
+        ),
       ),
     );
 
